@@ -1,0 +1,6 @@
+[package]
+name = "hanamaru-renderer"
+version = "0.1.0"
+authors = ["gam0022 <gam0022@gmail.com>"]
+
+[dependencies]
