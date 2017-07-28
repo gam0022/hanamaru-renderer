@@ -6,7 +6,7 @@ use std::path::Path;
 
 use num::complex::Complex;
 
-fn main() {
+fn fractal() {
     let max_iterations = 256u16;
 
     let imgx = 800;
@@ -48,4 +48,20 @@ fn main() {
 
     // We must indicate the image’s color type and what format to save as
     let _ = image::ImageLuma8(imgbuf).save(fout, image::PNG);
+}
+
+fn main() {
+    let width = 800;
+    let height = 600;
+
+    let mut imgbuf = image::ImageBuffer::new(width, height);
+
+    for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
+        let u = x as f64 / width as f64;
+        let v = y as f64 / height as f64;
+        *pixel = image::Rgb([(255.0 * u) as u8, (255.0 * v) as u8, 127]);
+    }
+
+    let ref mut fout = File::create(&Path::new("test.png")).unwrap();
+    let _ = image::ImageRgb8(imgbuf).save(fout, image::PNG);
 }
