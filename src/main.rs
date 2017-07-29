@@ -1,10 +1,11 @@
 extern crate num;
 extern crate image;
-
 use std::fs::File;
 use std::path::Path;
-
 use num::complex::Complex;
+
+mod vector;
+use vector::Vector3;
 
 fn fractal() {
     let max_iterations = 256u16;
@@ -53,6 +54,11 @@ fn fractal() {
 fn main() {
     let width = 800;
     let height = 600;
+
+    let v1 = Vector3{x: 1.0, y: 2.0, z: 3.0};
+    let v2 = Vector3{x: 2.0, y: 2.0, z: 3.0};
+    let v3 = v1 + v2;
+    println!("{:?}", v3);
 
     let mut imgbuf = image::ImageBuffer::new(width, height);
 
