@@ -1,17 +1,17 @@
-use vector::Vector3;
+use vector::{Vector3, Vector2};
 use consts;
 
 pub struct Ray {
-    pub origin : Vector3,
-    pub direction : Vector3,
+    pub origin: Vector3,
+    pub direction: Vector3,
 }
 
 #[derive(Debug)]
 pub struct Intersection {
-    pub hit : bool,
-    pub position : Vector3,
-    pub distance : f64,
-    pub normal : Vector3,
+    pub hit: bool,
+    pub position: Vector3,
+    pub distance: f64,
+    pub normal: Vector3,
 }
 
 impl Intersection {
@@ -31,11 +31,11 @@ pub struct Sphere {
 }
 
 pub trait Intersectable {
-    fn intersect(&self, ray: &Ray, intersection : &mut Intersection);
+    fn intersect(&self, ray: &Ray, intersection: &mut Intersection);
 }
 
 impl Intersectable for Sphere {
-    fn intersect(&self, ray: &Ray, intersection : &mut Intersection) {
+    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) {
         let a : Vector3 = ray.origin - self.center;
         let b = a.dot(&ray.direction);
         let c = a.dot(&a) - self.radius * self.radius;
@@ -46,6 +46,36 @@ impl Intersectable for Sphere {
             intersection.position = ray.origin + ray.direction * t;
             intersection.distance = t;
             intersection.normal = (intersection.position - self.center).normalize();
+        }
+    }
+}
+
+pub struct Camera {
+    pub eye : Vector3,
+    pub forward : Vector3,
+    pub right : Vector3,
+    pub up : Vector3,
+    pub zoom : f64,
+}
+
+impl Camera {
+    pub fn new(eye: Vector3, target: Vector3, y_up: Vector3, zoom: f64) -> Camera {
+        let forward = (target - eye).normalize();
+        let right = forward.cross(&y_up).normalize();
+
+        Camera {
+            eye: eye,
+            forward: forward,
+            right: right,
+            up: right.cross(&forward).normalize(),
+            zoom: zoom,
+        }
+    }
+
+    pub fn shoot_ray(&self, uv: Vector2) -> Ray {
+        Ray {
+            origin: self.eye,
+            direction: (uv.x * self.right + uv.y * self.up + self.zoom * self.forward).normalize(),
         }
     }
 }

@@ -5,15 +5,16 @@ use std::path::Path;
 
 mod vector;
 mod consts;
-mod geometry;
-use vector::Vector3;
-use geometry::{Ray, Sphere};
+mod scene;
+
+use vector::{Vector3, Vector2};
+use scene::{Ray, Sphere};
 
 fn main() {
     let width = 800;
     let height = 600;
 
-    geometry::test();
+    scene::test();
 
     let mut imgbuf = image::ImageBuffer::new(width, height);
 

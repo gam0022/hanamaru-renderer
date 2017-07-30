@@ -113,3 +113,10 @@ impl Neg for Vector3 {
         }
     }
 }
+
+#[derive(Copy, Clone, Debug)]
+#[repr(C)]
+pub struct Vector2 {
+    pub x: f64,
+    pub y: f64,
+}
