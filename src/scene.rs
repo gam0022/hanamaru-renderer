@@ -26,13 +26,13 @@ impl Intersection {
     }
 }
 
-pub struct Sphere {
-    pub center : Vector3,
-    pub radius : f64,
-}
-
 pub trait Intersectable {
     fn intersect(&self, ray: &Ray, intersection: &mut Intersection);
+}
+
+pub struct Sphere {
+    pub center: Vector3,
+    pub radius: f64,
 }
 
 impl Intersectable for Sphere {
@@ -47,6 +47,25 @@ impl Intersectable for Sphere {
             intersection.position = ray.origin + ray.direction * t;
             intersection.distance = t;
             intersection.normal = (intersection.position - self.center).normalize();
+        }
+    }
+}
+
+pub struct Plane {
+    pub center: Vector3,
+    pub normal: Vector3,
+}
+
+impl Intersectable for Plane {
+    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) {
+        let d = -self.center.dot(&self.normal);
+        let v = ray.direction.dot(&self.normal);
+        let t = -(ray.origin.dot(&self.normal) + d) / v;
+        if t > 0.0 && t < intersection.distance {
+            intersection.hit = true;
+            intersection.position = ray.origin + ray.direction * t;
+            intersection.normal = self.normal;
+            intersection.distance = t;
         }
     }
 }

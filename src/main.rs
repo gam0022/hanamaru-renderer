@@ -9,7 +9,7 @@ mod scene;
 mod renderer;
 
 use vector::Vector3;
-use scene::{Scene, Camera, Sphere};
+use scene::{Scene, Camera, Sphere, Plane};
 use renderer::{Renderer, DebugRenderer};
 
 #[allow(dead_code)]
@@ -35,16 +35,17 @@ fn main() {
     let mut imgbuf = image::ImageBuffer::new(width, height);
 
     let camera = Camera::new(
-        Vector3::new(0.0, 0.0, 9.0),
-        Vector3::new(0.0, 0.0, 0.0),
+        Vector3::new(0.0, 3.0, 9.0),
+        Vector3::new(0.0, 1.0, 0.0),
         Vector3::new(0.0, 1.0, 0.0),
         3.0
     );
 
     let scene = Scene {
         elements: vec![
-            Box::new(Sphere{ center: Vector3::new(0.0, 0.0, 0.0), radius: 1.0 }),
-            Box::new(Sphere{ center: Vector3::new(-2.0, 0.0, -1.0), radius: 1.0 }),
+            Box::new(Sphere{ center: Vector3::new(0.0, 1.0, 0.0), radius: 1.0 }),
+            Box::new(Sphere{ center: Vector3::new(2.0, 0.5, -1.0), radius: 0.5 }),
+            Box::new(Plane{ center: Vector3::new(0.0, 0.0, 0.0), normal: Vector3::new(0.0, 1.0, 0.0) }),
         ],
     };
 
