@@ -1,6 +1,7 @@
 use vector::{Vector3, Vector2};
 use consts;
 
+#[derive(Debug)]
 pub struct Ray {
     pub origin: Vector3,
     pub direction: Vector3,
@@ -15,7 +16,7 @@ pub struct Intersection {
 }
 
 impl Intersection {
-    fn new() -> Intersection {
+    pub fn new() -> Intersection {
         Intersection {
             hit: false,
             position: Vector3::zero(),
@@ -50,6 +51,7 @@ impl Intersectable for Sphere {
     }
 }
 
+#[derive(Debug)]
 pub struct Camera {
     pub eye : Vector3,
     pub forward : Vector3,
@@ -72,7 +74,7 @@ impl Camera {
         }
     }
 
-    pub fn shoot_ray(&self, uv: Vector2) -> Ray {
+    pub fn shoot_ray(&self, uv: &Vector2) -> Ray {
         Ray {
             origin: self.eye,
             direction: (uv.x * self.right + uv.y * self.up + self.zoom * self.forward).normalize(),

@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub, Mul, Neg};
+use std::ops::{Add, Sub, Mul, Div, Neg};
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]
@@ -8,6 +8,10 @@ pub struct Vector3 {
     pub z: f64,
 }
 impl Vector3 {
+    pub fn new(x: f64, y: f64, z: f64) -> Vector3 {
+        Vector3 { x: x, y: y, z: z }
+    }
+
     pub fn zero() -> Vector3 {
         Vector3::from_one(0.0)
     }
@@ -102,6 +106,30 @@ impl Mul<Vector3> for f64 {
     }
 }
 
+impl Div for Vector3 {
+    type Output = Vector3;
+
+    fn div(self, other: Vector3) -> Vector3 {
+        Vector3 {
+            x: self.x / other.x,
+            y: self.y / other.y,
+            z: self.z / other.z,
+        }
+    }
+}
+
+impl Div<f64> for Vector3 {
+    type Output = Vector3;
+
+    fn div(self, other: f64) -> Vector3 {
+        Vector3 {
+            x: self.x / other,
+            y: self.y / other,
+            z: self.z / other,
+        }
+    }
+}
+
 impl Neg for Vector3 {
     type Output = Vector3;
 
@@ -119,4 +147,127 @@ impl Neg for Vector3 {
 pub struct Vector2 {
     pub x: f64,
     pub y: f64,
+}
+
+impl Vector2 {
+    pub fn new(x: f64, y: f64) -> Vector2 {
+        Vector2 { x: x, y: y}
+    }
+
+    pub fn zero() -> Vector2 {
+        Vector2::from_one(0.0)
+    }
+
+    pub fn from_one(v: f64) -> Vector2 {
+        Vector2 { x: v, y: v }
+    }
+
+    pub fn length(&self) -> f64 {
+        self.norm().sqrt()
+    }
+
+    pub fn norm(&self) -> f64 {
+        (self.x * self.x + self.y * self.y)
+    }
+
+    pub fn normalize(&self) -> Vector2 {
+        let inv_len = self.length().recip();
+        Vector2 {
+            x: self.x * inv_len,
+            y: self.y * inv_len,
+        }
+    }
+
+    pub fn dot(&self, other: &Vector2) -> f64 {
+        self.x * other.x + self.y * other.y
+    }
+
+    pub fn cross(&self, other: &Vector2) -> f64 {
+        self.x * other.y - other.x * self.y
+    }
+}
+
+impl Add for Vector2 {
+    type Output = Vector2;
+
+    fn add(self, other: Vector2) -> Vector2 {
+        Vector2 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+impl Sub for Vector2 {
+    type Output = Vector2;
+
+    fn sub(self, other: Vector2) -> Vector2 {
+        Vector2 {
+            x: self.x - other.x,
+            y: self.y - other.y,
+        }
+    }
+}
+
+impl Mul for Vector2 {
+    type Output = Vector2;
+
+    fn mul(self, other: Vector2) -> Vector2 {
+        Vector2 {
+            x: self.x * other.x,
+            y: self.y * other.y,
+        }
+    }
+}
+
+impl Mul<f64> for Vector2 {
+    type Output = Vector2;
+
+    fn mul(self, other: f64) -> Vector2 {
+        Vector2 {
+            x: self.x * other,
+            y: self.y * other,
+        }
+    }
+}
+
+impl Mul<Vector2> for f64 {
+    type Output = Vector2;
+
+    fn mul(self, other: Vector2) -> Vector2 {
+        other * self
+    }
+}
+
+impl Div for Vector2 {
+    type Output = Vector2;
+
+    fn div(self, other: Vector2) -> Vector2 {
+        Vector2 {
+            x: self.x / other.x,
+            y: self.y / other.y,
+        }
+    }
+}
+
+impl Div<f64> for Vector2 {
+    type Output = Vector2;
+
+    fn div(self, other: f64) -> Vector2 {
+        Vector2 {
+            x: self.x / other,
+            y: self.y / other,
+        }
+    }
+}
+
+impl Neg for Vector2 {
+    type Output = Vector2;
+
+    fn neg(self) -> Vector2 {
+        Vector2 {
+            x: -self.x,
+            y: -self.y,
+        }
+    }
 }
