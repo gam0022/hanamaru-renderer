@@ -9,7 +9,7 @@ mod scene;
 mod renderer;
 
 use vector::{Vector3, Vector2};
-use scene::{Camera, Ray, Intersectable, Sphere, Intersection};
+use scene::{Scene, Camera, Ray, Intersectable, Sphere, Intersection};
 use renderer::DebugRenderer;
 
 fn main_test() {
@@ -45,10 +45,16 @@ fn main() {
     );
     println!("{:?}", camera);
 
+    let scene = Scene {
+        elements: vec![
+            Box::new(Sphere{ center: Vector3::new(0.0, 0.0, 0.0), radius: 1.0 }),
+        ],
+    };
+
     for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
         let frag_coord = Vector2::new(x as f64, y as f64);
         let uv = (frag_coord * 2.0 - resolution) / resolution.x.min(resolution.y);
-        let color = DebugRenderer::test(&camera, &uv);
+        let color = DebugRenderer::test(&scene, &camera, &uv);
         *pixel = image::Rgb([
             (255.0 * color.x) as u8,
             (255.0 * color.y) as u8,
