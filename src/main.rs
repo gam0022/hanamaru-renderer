@@ -13,11 +13,6 @@ fn main() {
     let width = 800;
     let height = 600;
 
-    let v1 = Vector3{x: 1.0, y: 2.0, z: 3.0};
-    let v2 = Vector3{x: 2.0, y: 2.0, z: 3.0};
-    let v3 = v1 + v2;
-    println!("{:?}", v3);
-
     geometry::test();
 
     let mut imgbuf = image::ImageBuffer::new(width, height);
