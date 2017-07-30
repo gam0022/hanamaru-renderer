@@ -37,16 +37,16 @@ fn main() {
     let mut imgbuf = image::ImageBuffer::new(width, height);
 
     let camera = Camera::new(
-        Vector3::new(0.0, 0.0, 3.0),
+        Vector3::new(0.0, 0.0, 9.0),
         Vector3::new(0.0, 0.0, 0.0),
         Vector3::new(0.0, 1.0, 0.0),
-        1.5
+        3.0
     );
 
     let scene = Scene {
         elements: vec![
             Box::new(Sphere{ center: Vector3::new(0.0, 0.0, 0.0), radius: 1.0 }),
-            Box::new(Sphere{ center: Vector3::new(-2.0, 0.0, -1.0), radius: 0.5 }),
+            Box::new(Sphere{ center: Vector3::new(-2.0, 0.0, -1.0), radius: 1.0 }),
         ],
     };
 

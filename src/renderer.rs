@@ -15,9 +15,11 @@ impl DebugRenderer {
     pub fn calc_pixel(&self, scene: &Scene, camera: &Camera, uv: &Vector2) -> Vector3 {
        let ray = camera.shoot_ray(&uv);
        let intersection = scene.intersect(&ray);
+       let light_direction = Vector3::new(1.0, -1.0, 1.0).normalize();
 
        if intersection.hit {
-           Vector3::new(0.0, 0.0, 0.0)
+           let diffuse = intersection.normal.dot(&light_direction).max(0.0);
+           Vector3::new(1.0, 1.0, 1.0) * diffuse
        } else {
            Vector3::new(1.0, 1.0, 1.0)
        }
