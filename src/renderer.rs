@@ -30,7 +30,7 @@ impl Renderer for DebugRenderer {
        let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
 
        if intersection.hit {
-           let diffuse = intersection.normal.dot(&light_direction).max(0.2);
+           let diffuse = intersection.normal.dot(&light_direction).max(0.0);
            let shadow_ray = Ray {
                origin: intersection.position + intersection.normal * consts::OFFSET,
                direction: light_direction,
