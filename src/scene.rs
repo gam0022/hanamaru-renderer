@@ -96,6 +96,7 @@ impl Scene {
     }
 }
 
+#[allow(dead_code)]
 pub fn test() {
     let ray = Ray{origin: Vector3{x: 0.0, y: 0.0, z: -3.0}, direction: Vector3{x: 0.0, y: 0.0, z: 1.0}};
     let sphere = Sphere{center: Vector3{x: 0.0, y: 0.0, z: 0.0}, radius: 1.0};

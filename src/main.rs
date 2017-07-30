@@ -8,18 +8,16 @@ mod consts;
 mod scene;
 mod renderer;
 
-use vector::{Vector3, Vector2};
-use scene::{Scene, Camera, Ray, Intersectable, Sphere, Intersection};
+use vector::Vector3;
+use scene::{Scene, Camera, Sphere};
 use renderer::{Renderer, DebugRenderer};
 
-fn main_test() {
+#[allow(dead_code)]
+fn main_gradation() {
     let width = 800;
     let height = 600;
 
-    scene::test();
-
     let mut imgbuf = image::ImageBuffer::new(width, height);
-
 
     for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
         let u = x as f64 / width as f64;

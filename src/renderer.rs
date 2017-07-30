@@ -1,9 +1,8 @@
 extern crate image;
-use image::{ImageBuffer, Pixel, Rgb};
+use image::{ImageBuffer, Rgb};
 
-use consts;
 use vector::{Vector3, Vector2};
-use scene::{Scene, Camera, Ray, Intersectable, Sphere, Intersection};
+use scene::{Scene, Camera};
 
 pub trait Renderer {
     fn render(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
