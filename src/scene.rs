@@ -86,6 +86,11 @@ pub fn test() {
     let mut intersection = Intersection::new();
     sphere.intersect(&ray, &mut intersection);
     println!("{:?}", intersection);
+
+    let sphere = Sphere{center: Vector3{x: 0.0, y: 0.0, z: 0.0}, radius: 2.0};
+    sphere.intersect(&ray, &mut intersection);
+    println!("{:?}", intersection);
+
     println!("{}", consts::EPS);
 
     let v1 = Vector3{x: 1.0, y: 2.0, z: 3.0};
