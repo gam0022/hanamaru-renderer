@@ -48,6 +48,10 @@ impl Vector3 {
             z: self.x * other.y - self.y * other.x,
         }
     }
+
+    pub fn reflect(&self, normal: &Vector3) -> Vector3 {
+        *self - 2.0 * self.dot(&normal) * *normal
+    }
 }
 
 impl Add for Vector3 {
