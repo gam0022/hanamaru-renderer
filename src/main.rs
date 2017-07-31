@@ -9,7 +9,7 @@ mod scene;
 mod renderer;
 
 use vector::Vector3;
-use scene::{Scene, Camera, Sphere, Plane};
+use scene::{Scene, CameraBuilder, Sphere, Plane};
 use renderer::{Renderer, DebugRenderer};
 
 #[allow(dead_code)]
@@ -34,12 +34,12 @@ fn main() {
     let height = 600;
     let mut imgbuf = image::ImageBuffer::new(width, height);
 
-    let camera = Camera::new(
-        Vector3::new(0.0, 3.0, 9.0),
-        Vector3::new(0.0, 1.0, 0.0),
-        Vector3::new(0.0, 1.0, 0.0),
-        3.0
-    );
+    let camera = CameraBuilder::new()
+        .eye(Vector3::new(0.0, 3.0, 9.0))
+        .target(Vector3::new(0.0, 1.0, 0.0))
+        .y_up(Vector3::new(0.0, 1.0, 0.0))
+        .zoom(3.0)
+        .finalize();
 
     let scene = Scene {
         elements: vec![

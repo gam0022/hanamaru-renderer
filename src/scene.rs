@@ -101,6 +101,48 @@ impl Camera {
     }
 }
 
+pub struct CameraBuilder {
+    eye: Vector3,
+    target: Vector3,
+    y_up: Vector3,
+    zoom: f64,
+}
+
+impl CameraBuilder {
+    pub fn new() -> CameraBuilder {
+        CameraBuilder {
+            eye: Vector3::zero(),
+            target: Vector3::new(0.0, 0.0, 1.0),
+            y_up: Vector3::new(0.0, 1.0, 0.0),
+            zoom: 2.0,
+        }
+    }
+
+    pub fn eye(&mut self, coordinate: Vector3) -> &mut CameraBuilder {
+        self.eye = coordinate;
+        self
+    }
+
+    pub fn target(&mut self, coordinate: Vector3) -> &mut CameraBuilder {
+        self.target = coordinate;
+        self
+    }
+
+    pub fn y_up(&mut self, coordinate: Vector3) -> &mut CameraBuilder {
+        self.y_up = coordinate;
+        self
+    }
+
+    pub fn zoom(&mut self, coordinate: f64) -> &mut CameraBuilder {
+        self.zoom = coordinate;
+        self
+    }
+
+    pub fn finalize(&self) -> Camera {
+        Camera::new(self.eye, self.target, self.y_up, self.zoom)
+    }
+}
+
 pub struct Scene {
     pub elements: Vec<Box<Intersectable>>,
 }
