@@ -3,13 +3,15 @@ extern crate image;
 use std::fs::File;
 use std::path::Path;
 
-mod vector;
 mod consts;
+mod vector;
 mod scene;
 mod renderer;
+mod material;
 
 use vector::Vector3;
 use scene::{Scene, CameraBuilder, Sphere, Plane};
+use material::{Material, SurfaceType};
 use renderer::{Renderer, DebugRenderer};
 
 #[allow(dead_code)]
@@ -43,9 +45,21 @@ fn main() {
 
     let scene = Scene {
         elements: vec![
-            Box::new(Sphere{ center: Vector3::new(0.0, 1.0, 0.0), radius: 1.0 }),
-            Box::new(Sphere{ center: Vector3::new(2.0, 0.5, -1.0), radius: 0.5 }),
-            Box::new(Plane{ center: Vector3::new(0.0, 0.0, 0.0), normal: Vector3::new(0.0, 1.0, 0.0) }),
+            Box::new(Sphere{ center: Vector3::new(0.0, 1.0, 0.0), radius: 1.0, material: Material {
+                albedo: Vector3::new(1.0, 0.2, 0.2),
+                emission: Vector3::zero(),
+                surface: SurfaceType::Diffuse {},
+            }}),
+            Box::new(Sphere{ center: Vector3::new(2.0, 0.5, -1.0), radius: 0.5, material: Material {
+                albedo: Vector3::new(0.2, 0.2, 1.0),
+                emission: Vector3::zero(),
+                surface: SurfaceType::Diffuse {},
+            }}),
+            Box::new(Plane{ center: Vector3::new(0.0, 0.0, 0.0), normal: Vector3::new(0.0, 1.0, 0.0), material: Material {
+                albedo: Vector3::new(1.0, 1.0, 1.0),
+                emission: Vector3::zero(),
+                surface: SurfaceType::Diffuse {},
+            }}),
         ],
     };
 

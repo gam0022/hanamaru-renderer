@@ -1,5 +1,6 @@
-use vector::{Vector3, Vector2};
 use consts;
+use vector::{Vector3, Vector2};
+use material::Material;
 
 #[derive(Debug)]
 pub struct Ray {
@@ -13,6 +14,7 @@ pub struct Intersection {
     pub position: Vector3,
     pub distance: f64,
     pub normal: Vector3,
+    pub material: Material,
 }
 
 impl Intersection {
@@ -22,6 +24,7 @@ impl Intersection {
             position: Vector3::zero(),
             distance: consts::INF,
             normal: Vector3::zero(),
+            material: Material::new(),
         }
     }
 }
@@ -33,6 +36,7 @@ pub trait Intersectable {
 pub struct Sphere {
     pub center: Vector3,
     pub radius: f64,
+    pub material: Material,
 }
 
 impl Intersectable for Sphere {
@@ -47,6 +51,7 @@ impl Intersectable for Sphere {
             intersection.position = ray.origin + ray.direction * t;
             intersection.distance = t;
             intersection.normal = (intersection.position - self.center).normalize();
+            intersection.material = self.material.clone();
         }
     }
 }
@@ -54,6 +59,7 @@ impl Intersectable for Sphere {
 pub struct Plane {
     pub center: Vector3,
     pub normal: Vector3,
+    pub material: Material,
 }
 
 impl Intersectable for Plane {
@@ -66,6 +72,7 @@ impl Intersectable for Plane {
             intersection.position = ray.origin + ray.direction * t;
             intersection.normal = self.normal;
             intersection.distance = t;
+            intersection.material = self.material.clone();
         }
     }
 }
@@ -155,24 +162,4 @@ impl Scene {
         }
         intersection
     }
-}
-
-#[allow(dead_code)]
-pub fn test() {
-    let ray = Ray{origin: Vector3{x: 0.0, y: 0.0, z: -3.0}, direction: Vector3{x: 0.0, y: 0.0, z: 1.0}};
-    let sphere = Sphere{center: Vector3{x: 0.0, y: 0.0, z: 0.0}, radius: 1.0};
-    let mut intersection = Intersection::new();
-    sphere.intersect(&ray, &mut intersection);
-    println!("{:?}", intersection);
-
-    let sphere = Sphere{center: Vector3{x: 0.0, y: 0.0, z: 0.0}, radius: 2.0};
-    sphere.intersect(&ray, &mut intersection);
-    println!("{:?}", intersection);
-
-    println!("{}", consts::EPS);
-
-    let v1 = Vector3{x: 1.0, y: 2.0, z: 3.0};
-    let v2 = Vector3{x: 2.0, y: 2.0, z: 3.0};
-    let v3 = v1 + v2;
-    println!("{:?}", v3);
 }

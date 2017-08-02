@@ -37,7 +37,7 @@ impl Renderer for DebugRenderer {
            };
            let shadow_intersection = scene.intersect(&shadow_ray);
            let shadow = if shadow_intersection.hit { 0.5 } else { 1.0 };
-           Vector3::new(1.0, 1.0, 1.0) * diffuse * shadow
+           intersection.material.albedo * diffuse * shadow
        } else {
            Vector3::new(0.0, 0.0, 0.0)
        }
