@@ -46,12 +46,12 @@ fn main() {
     let scene = Scene {
         elements: vec![
             Box::new(Sphere{ center: Vector3::new(0.0, 1.0, 0.0), radius: 1.0, material: Material {
-                albedo: Vector3::new(1.0, 0.2, 0.2),
+                albedo: Vector3::new(1.0, 0.5, 0.5),
                 emission: Vector3::zero(),
                 surface: SurfaceType::Diffuse {},
             }}),
             Box::new(Sphere{ center: Vector3::new(2.0, 0.5, -1.0), radius: 0.5, material: Material {
-                albedo: Vector3::new(0.2, 0.2, 1.0),
+                albedo: Vector3::new(0.5, 0.5, 1.0),
                 emission: Vector3::zero(),
                 surface: SurfaceType::Diffuse {},
             }}),

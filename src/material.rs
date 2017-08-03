@@ -20,7 +20,7 @@ impl Material {
     pub fn new() -> Material {
         Material {
             albedo: Vector3::from_one(1.0),
-            emission: Vector3::zero(),
+            emission: Vector3::from_one(1.0),
             surface: SurfaceType::Diffuse {}
         }
     }
