@@ -26,14 +26,15 @@ pub trait Renderer {
 pub struct DebugRenderer;
 impl Renderer for DebugRenderer {
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, uv: &Vector2) -> Vector3 {
-        let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
-        let mut color = Vector3::from_one(1.0);
         let mut ray = camera.shoot_ray(&uv);
+        let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
 
-        for i in 1..5 {
+        let mut accumulation = Vector3::zero();
+        let mut reflect = Vector3::one();
+
+        for i in 1..3 {
             let intersection = scene.intersect(&ray);
 
-            let diffuse = intersection.normal.dot(&light_direction).max(0.0);
             let shadow_ray = Ray {
                 origin: intersection.position + intersection.normal * consts::OFFSET,
                 direction: light_direction,
@@ -41,24 +42,29 @@ impl Renderer for DebugRenderer {
             let shadow_intersection = scene.intersect(&shadow_ray);
             let shadow = if shadow_intersection.hit { 0.5 } else { 1.0 };
 
-            color = color * (intersection.material.emission + intersection.material.albedo * diffuse * shadow);
-
-            if !intersection.hit {
-                break;
-            }
-
             match intersection.material.surface {
-                SurfaceType::Diffuse => break,
+                SurfaceType::Diffuse => {
+                    let diffuse = intersection.normal.dot(&light_direction).max(0.0);
+                    let color = intersection.material.emission + intersection.material.albedo * diffuse * shadow;
+                    reflect = reflect * color;
+                    accumulation = accumulation + reflect;
+                    break;
+                },
                 SurfaceType::Specular => {
                     ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                     ray.direction = ray.direction.reflect(&intersection.normal);
+                    reflect = reflect * intersection.material.albedo;
                 },
                 SurfaceType::Reflection { refractiveIndex: refractiveIndex } => {},
                 SurfaceType::GGX { roughness: roughness } => {},
                 SurfaceType::GGXReflection { refractiveIndex: refractiveIndex, roughness: roughness } => {},
             }
+
+            if !intersection.hit {
+                break;
+            }
         }
 
-        color
+        accumulation
    }
 }

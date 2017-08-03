@@ -16,6 +16,10 @@ impl Vector3 {
         Vector3::from_one(0.0)
     }
 
+    pub fn one() -> Vector3 {
+        Vector3::from_one(1.0)
+    }
+
     pub fn from_one(v: f64) -> Vector3 {
         Vector3 { x: v, y: v, z: v }
     }
