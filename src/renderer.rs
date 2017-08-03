@@ -32,7 +32,7 @@ impl Renderer for DebugRenderer {
         let mut accumulation = Vector3::zero();
         let mut reflect = Vector3::one();
 
-        for i in 1..3 {
+        for i in 1..consts::DEBUG_REFLECT_MAX {
             let intersection = scene.intersect(&ray);
 
             let shadow_ray = Ray {
