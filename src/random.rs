@@ -1,8 +1,7 @@
 extern crate rand;
 
-use self::rand::{thread_rng, Rng};
+use self::rand::{Rng, ThreadRng};
 
-pub fn hash() -> f64 {
-    let mut rng = thread_rng();
-    rng.gen_range(0.0, 1.0)
+pub fn get_random(rng: &mut ThreadRng) -> (f64, f64) {
+    (rng.gen_range(0.0, 1.0), rng.gen_range(0.0, 1.0))
 }

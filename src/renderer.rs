@@ -1,5 +1,8 @@
 extern crate image;
+extern crate rand;
+
 use image::{ImageBuffer, Rgb};
+use self::rand::{thread_rng, Rng};
 
 use consts;
 use vector::{Vector3, Vector2};
@@ -75,13 +78,14 @@ impl Renderer for PathTracingRenderer {
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, uv: &Vector2) -> Vector3 {
         let original_ray = camera.shoot_ray(&uv);
         let mut all_accumulation = Vector3::zero();
+        let mut rng = thread_rng();
         for sampling in 1..consts::PATHTRACING_SAMPLING {
             let mut ray = original_ray.clone();
             let mut accumulation = Vector3::zero();
             let mut reflection = Vector3::one();
 
             for bounce in 1..consts::PATHTRACING_BOUNCE_LIMIT {
-                let random = Vector2 { x: random::hash(), y: random::hash() };
+                let random = random::get_random(&mut rng);
                 let intersection = scene.intersect(&ray);
 
                 accumulation = accumulation + reflection * intersection.material.emission;
