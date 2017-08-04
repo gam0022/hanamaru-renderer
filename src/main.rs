@@ -8,11 +8,13 @@ mod vector;
 mod scene;
 mod renderer;
 mod material;
+mod brdf;
+mod random;
 
 use vector::Vector3;
 use scene::{Scene, CameraBuilder, Sphere, Plane};
 use material::{Material, SurfaceType};
-use renderer::{Renderer, DebugRenderer};
+use renderer::{Renderer, DebugRenderer, PathTracingRenderer};
 
 #[allow(dead_code)]
 fn main_gradation() {
@@ -68,7 +70,8 @@ fn main() {
         ],
     };
 
-    let renderer = DebugRenderer{};
+    //let renderer = DebugRenderer{};
+    let renderer = PathTracingRenderer{};
     renderer.render(&scene, &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();

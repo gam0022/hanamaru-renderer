@@ -2,7 +2,7 @@ use consts;
 use vector::{Vector3, Vector2};
 use material::Material;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Ray {
     pub origin: Vector3,
     pub direction: Vector3,

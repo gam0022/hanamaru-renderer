@@ -5,6 +5,8 @@ use consts;
 use vector::{Vector3, Vector2};
 use scene::{Scene, Camera, Ray};
 use material::SurfaceType;
+use brdf;
+use random;
 
 pub trait Renderer {
     fn render(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
@@ -30,9 +32,9 @@ impl Renderer for DebugRenderer {
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
 
         let mut accumulation = Vector3::zero();
-        let mut reflect = Vector3::one();
+        let mut reflection = Vector3::one();
 
-        for i in 1..consts::DEBUG_REFLECT_MAX {
+        for i in 1..consts::DEBUG_BOUNCE_LIMIT {
             let intersection = scene.intersect(&ray);
 
             let shadow_ray = Ray {
@@ -46,14 +48,14 @@ impl Renderer for DebugRenderer {
                 SurfaceType::Diffuse => {
                     let diffuse = intersection.normal.dot(&light_direction).max(0.0);
                     let color = intersection.material.emission + intersection.material.albedo * diffuse * shadow;
-                    reflect = reflect * color;
-                    accumulation = accumulation + reflect;
+                    reflection = reflection * color;
+                    accumulation = accumulation + reflection;
                     break;
                 },
                 SurfaceType::Specular => {
                     ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                     ray.direction = ray.direction.reflect(&intersection.normal);
-                    reflect = reflect * intersection.material.albedo;
+                    reflection = reflection * intersection.material.albedo;
                 },
                 SurfaceType::Reflection { refractiveIndex: refractiveIndex } => {},
                 SurfaceType::GGX { roughness: roughness } => {},
@@ -67,4 +69,45 @@ impl Renderer for DebugRenderer {
 
         accumulation
    }
+}
+pub struct PathTracingRenderer;
+impl Renderer for PathTracingRenderer {
+    fn calc_pixel(&self, scene: &Scene, camera: &Camera, uv: &Vector2) -> Vector3 {
+        let original_ray = camera.shoot_ray(&uv);
+        let mut all_accumulation = Vector3::zero();
+        for sampling in 1..consts::PATHTRACING_SAMPLING {
+            let mut ray = original_ray.clone();
+            let mut accumulation = Vector3::zero();
+            let mut reflection = Vector3::one();
+
+            for bounce in 1..consts::PATHTRACING_BOUNCE_LIMIT {
+                let random = Vector2 { x: random::hash(), y: random::hash() };
+                let intersection = scene.intersect(&ray);
+
+                accumulation = accumulation + reflection * intersection.material.emission;
+                reflection = reflection * intersection.material.albedo;
+
+                if intersection.hit {
+                    match intersection.material.surface {
+                        SurfaceType::Diffuse => {
+                            ray.origin = intersection.position + intersection.normal * consts::OFFSET;
+                            ray.direction = brdf::importance_sample_diffuse(random, intersection.normal);
+                        },
+                        SurfaceType::Specular => {
+                            ray.origin = intersection.position + intersection.normal * consts::OFFSET;
+                            ray.direction = ray.direction.reflect(&intersection.normal);
+                        },
+                        SurfaceType::Reflection { refractiveIndex: refractiveIndex } => {},
+                        SurfaceType::GGX { roughness: roughness } => {},
+                        SurfaceType::GGXReflection { refractiveIndex: refractiveIndex, roughness: roughness } => {},
+                    }
+                } else {
+                    break;
+                }
+            }
+            all_accumulation = all_accumulation + accumulation;
+        }
+
+        all_accumulation / consts::PATHTRACING_SAMPLING as f64
+    }
 }
