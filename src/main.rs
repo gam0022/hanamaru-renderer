@@ -58,12 +58,12 @@ fn main() {
                 surface: SurfaceType::Diffuse {},
             }}),
             Box::new(Sphere{ center: Vector3::new(-3.0, 1.5, -1.0), radius: 1.5, material: Material {
-                albedo: Vector3::new(0.8, 0.8, 0.8),
+                albedo: Vector3::new(1.0, 1.0, 1.0),
                 emission: Vector3::zero(),
                 surface: SurfaceType::Specular {},
             }}),
             Box::new(Plane{ center: Vector3::new(0.0, 0.0, 0.0), normal: Vector3::new(0.0, 1.0, 0.0), material: Material {
-                albedo: Vector3::new(1.0, 1.0, 1.0),
+                albedo: Vector3::new(0.8, 0.8, 0.8),
                 emission: Vector3::zero(),
                 surface: SurfaceType::Diffuse {},
             }}),
