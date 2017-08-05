@@ -3,7 +3,7 @@ extern crate rand;
 extern crate rayon;
 
 use image::{ImageBuffer, Rgb};
-use self::rand::{thread_rng, Rng};
+use self::rand::thread_rng;
 use self::rayon::prelude::*;
 
 use consts;
@@ -59,6 +59,7 @@ pub trait Renderer: Sync {
 
 pub struct DebugRenderer;
 impl Renderer for DebugRenderer {
+    #[allow(unused_variables)]
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Vector3 {
         let mut ray = camera.shoot_ray(&normalized_coord);
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
@@ -66,7 +67,7 @@ impl Renderer for DebugRenderer {
         let mut accumulation = Vector3::zero();
         let mut reflection = Vector3::one();
 
-        for i in 1..consts::DEBUG_BOUNCE_LIMIT {
+        for bounce in 1..consts::DEBUG_BOUNCE_LIMIT {
             let intersection = scene.intersect(&ray);
 
             let shadow_ray = Ray {

@@ -1,7 +1,7 @@
 extern crate image;
 
 use vector::Vector3;
-use image::{ImageBuffer, Rgb};
+use image::Rgb;
 
 pub fn vector3_to_rgb(color: Vector3) -> Rgb<u8> {
     image::Rgb([

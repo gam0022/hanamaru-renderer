@@ -1,5 +1,5 @@
 use consts;
-use vector::{Vector2, Vector3};
+use vector::Vector3;
 
 pub fn importance_sample_diffuse(random: (f64, f64), normal: Vector3) -> Vector3 {
     let up = if normal.x.abs() > consts::EPS { Vector3::new(0.0, 1.0, 0.0) } else { Vector3::new(1.0, 0.0, 0.0) };
