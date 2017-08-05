@@ -185,27 +185,27 @@ impl Skybox {
 
         if abs_x > abs_y && abs_x > abs_z {
             if direction.x.is_positive() {
-                self.get_color(&self.px_image, direction.z / direction.x, -direction.y / direction.x)
+                self.get_color(&self.px_image, -direction.z / direction.x, -direction.y / direction.x)
             } else {
-                self.get_color(&self.nx_image, direction.z / direction.x, direction.y / direction.x)
+                self.get_color(&self.nx_image, -direction.z / direction.x, direction.y / direction.x)
             }
         } else if abs_y > abs_x && abs_y > abs_z {
             if direction.y.is_positive() {
-                self.get_color(&self.py_image, direction.z / direction.y, direction.x / direction.y)
+                self.get_color(&self.py_image, direction.x / direction.y, direction.z / direction.y)
             } else {
-                self.get_color(&self.ny_image, -direction.z / direction.y, -direction.x / direction.y)
+                self.get_color(&self.ny_image, -direction.x / direction.y, direction.z / direction.y)
             }
         } else {
             if direction.z.is_positive() {
-                self.get_color(&self.pz_image, -direction.x / direction.z, -direction.y / direction.z)
+                self.get_color(&self.pz_image, direction.x / direction.z, -direction.y / direction.z)
             } else {
-                self.get_color(&self.nz_image, -direction.x / direction.z, direction.y / direction.z)
+                self.get_color(&self.nz_image, direction.x / direction.z, direction.y / direction.z)
             }
         }
     }
 
     fn get_color(&self, image: &DynamicImage, u: f64, v: f64) -> Vector3 {
-        color::rgba_to_vector3(image.get_pixel((image.width() as f64 * (u + 1.0) * 0.5) as u32, (image.height() as f64 * (v + 1.0) * 0.5) as u32))
+        color::rgba_to_vector3(image.get_pixel(((image.width() - 1) as f64 * (u + 1.0) * 0.5) as u32, ((image.height() - 1) as f64 * (v + 1.0) * 0.5) as u32))
     }
 }
 

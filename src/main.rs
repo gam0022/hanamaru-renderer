@@ -24,10 +24,10 @@ fn render() {
     let mut imgbuf = image::ImageBuffer::new(width, height);
 
     let camera = CameraBuilder::new()
-        .eye(Vector3::new(1.0, 1.0, 9.0))
+        .eye(Vector3::new(0.0, 3.0, 9.0))
         .target(Vector3::new(0.0, 1.0, 0.0))
         .y_up(Vector3::new(0.0, 1.0, 0.0))
-        .zoom(1.0)
+        .zoom(3.0)
         .finalize();
 
     let scene = Scene {
@@ -47,11 +47,11 @@ fn render() {
                 emission: Vector3::zero(),
                 surface: SurfaceType::Specular {},
             }}),
-            /*Box::new(Plane{ center: Vector3::new(0.0, 0.0, 0.0), normal: Vector3::new(0.0, 1.0, 0.0), material: Material {
+            Box::new(Plane{ center: Vector3::new(0.0, 0.0, 0.0), normal: Vector3::new(0.0, 1.0, 0.0), material: Material {
                 albedo: Vector3::new(0.8, 0.8, 0.8),
                 emission: Vector3::zero(),
                 surface: SurfaceType::Diffuse {},
-            }}),*/
+            }}),
         ],
         skybox: Skybox::new(
             "textures/cube/pisa/px.png",
