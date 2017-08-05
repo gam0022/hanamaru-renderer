@@ -57,7 +57,7 @@ fn render() {
 
     //let renderer = DebugRenderer{};
     let renderer = PathTracingRenderer{};
-    renderer.render_parallel(&scene, &camera, &mut imgbuf);
+    renderer.render(&scene, &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
     let _ = image::ImageRgb8(imgbuf).save(fout, image::PNG);

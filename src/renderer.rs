@@ -15,17 +15,15 @@ use random;
 use color;
 
 pub trait Renderer: Sync {
-    fn render(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+    fn render_single_thread(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
             let coord = Vector2::new(x as f64, resolution.y - y as f64);
-            let uv = (coord * 2.0 - resolution) / resolution.x.min(resolution.y);
-            let color = self.calc_pixel(&scene, &camera, &uv);
-            *pixel = color::vector3_to_rgb(color);
+            *pixel = color::vector3_to_rgb(self.supersampling(scene, camera, &coord, &resolution));
         }
     }
 
-    fn render_parallel(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+    fn render(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         for y in 0..imgbuf.height() {
             let input: Vec<u32> = (0..imgbuf.width()).collect();
