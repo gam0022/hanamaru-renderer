@@ -18,8 +18,8 @@ pub trait Renderer: Sync {
     fn render_single_thread(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
-            let coord = Vector2::new(x as f64, resolution.y - y as f64);
-            *pixel = color::vector3_to_rgb(self.supersampling(scene, camera, &coord, &resolution));
+            let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
+            *pixel = color::vector3_to_rgb(self.supersampling(scene, camera, &frag_coord, &resolution));
         }
     }
 
@@ -30,8 +30,8 @@ pub trait Renderer: Sync {
             let mut output = vec![];
             input.par_iter()
                 .map(|&x| {
-                    let coord = Vector2::new(x as f64, resolution.y - y as f64);
-                    color::vector3_to_rgb(self.supersampling(scene, camera, &coord, &resolution))
+                    let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
+                    color::vector3_to_rgb(self.supersampling(scene, camera, &frag_coord, &resolution))
                 }).collect_into(&mut output);
             for (x, pixel) in output.iter().enumerate() {
                 imgbuf.put_pixel(x as u32, y, *pixel);
@@ -39,15 +39,14 @@ pub trait Renderer: Sync {
         }
     }
 
-    fn supersampling(&self, scene: &Scene, camera: &Camera, coord: &Vector2, resolution: &Vector2) -> Vector3 {
+    fn supersampling(&self, scene: &Scene, camera: &Camera, frag_coord: &Vector2, resolution: &Vector2) -> Vector3 {
         let mut accumulation = Vector3::zero();
 
         for sy in 0..consts::SUPERSAMPLING {
             for sx in 0..consts::SUPERSAMPLING {
                 let offset = Vector2::new(sx as f64, sy as f64) / consts::SUPERSAMPLING as f64 - 0.5;
-                let sub_coord = *coord + offset;
-                let uv = (sub_coord * 2.0 - *resolution) / resolution.x.min(resolution.y);
-                let color = self.calc_pixel(&scene, &camera, &uv);
+                let normalized_coord = ((*frag_coord + offset) * 2.0 - *resolution) / resolution.x.min(resolution.y);
+                let color = self.calc_pixel(&scene, &camera, &normalized_coord);
                 accumulation = accumulation + color;
             }
         }
@@ -55,13 +54,13 @@ pub trait Renderer: Sync {
         accumulation / (consts::SUPERSAMPLING * consts::SUPERSAMPLING) as f64
     }
 
-    fn calc_pixel(&self, scene: &Scene, camera: &Camera, uv: &Vector2) -> Vector3;
+    fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Vector3;
 }
 
 pub struct DebugRenderer;
 impl Renderer for DebugRenderer {
-    fn calc_pixel(&self, scene: &Scene, camera: &Camera, uv: &Vector2) -> Vector3 {
-        let mut ray = camera.shoot_ray(&uv);
+    fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Vector3 {
+        let mut ray = camera.shoot_ray(&normalized_coord);
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
 
         let mut accumulation = Vector3::zero();
@@ -105,8 +104,8 @@ impl Renderer for DebugRenderer {
 }
 pub struct PathTracingRenderer;
 impl Renderer for PathTracingRenderer {
-    fn calc_pixel(&self, scene: &Scene, camera: &Camera, uv: &Vector2) -> Vector3 {
-        let original_ray = camera.shoot_ray(&uv);
+    fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Vector3 {
+        let original_ray = camera.shoot_ray(&normalized_coord);
         let mut all_accumulation = Vector3::zero();
         let mut rng = thread_rng();
         for sampling in 1..consts::PATHTRACING_SAMPLING {

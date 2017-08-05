@@ -100,10 +100,10 @@ impl Camera {
         }
     }
 
-    pub fn shoot_ray(&self, uv: &Vector2) -> Ray {
+    pub fn shoot_ray(&self, normalized_coord: &Vector2) -> Ray {
         Ray {
             origin: self.eye,
-            direction: (uv.x * self.right + uv.y * self.up + self.zoom * self.forward).normalize(),
+            direction: (normalized_coord.x * self.right + normalized_coord.y * self.up + self.zoom * self.forward).normalize(),
         }
     }
 }
