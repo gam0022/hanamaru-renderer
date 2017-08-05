@@ -12,6 +12,7 @@ use scene::{Scene, Camera, Ray};
 use material::SurfaceType;
 use brdf;
 use random;
+use color;
 
 pub trait Renderer: Sync {
     fn render(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
@@ -20,13 +21,10 @@ pub trait Renderer: Sync {
             let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
             let uv = (frag_coord * 2.0 - resolution) / resolution.x.min(resolution.y);
             let color = self.calc_pixel(&scene, &camera, &uv);
-            *pixel = image::Rgb([
-                (255.0 * color.x) as u8,
-                (255.0 * color.y) as u8,
-                (255.0 * color.z) as u8,
-            ]);
+            *pixel = color::vector3_to_rgb(color);
         }
     }
+
     fn render_parallel(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         for y in 0..imgbuf.height() {
@@ -37,17 +35,14 @@ pub trait Renderer: Sync {
                     let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
                     let uv = (frag_coord * 2.0 - resolution) / resolution.x.min(resolution.y);
                     let color = self.calc_pixel(&scene, &camera, &uv);
-                    image::Rgb([
-                        (255.0 * color.x) as u8,
-                        (255.0 * color.y) as u8,
-                        (255.0 * color.z) as u8,
-                    ])}
-                ).collect_into(&mut output);
+                    color::vector3_to_rgb(color)
+                }).collect_into(&mut output);
             for (x, pixel) in output.iter().enumerate() {
                 imgbuf.put_pixel(x as u32, y, *pixel);
             }
         }
     }
+
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, uv: &Vector2) -> Vector3;
 }
 
