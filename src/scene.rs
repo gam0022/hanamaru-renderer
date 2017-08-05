@@ -29,7 +29,7 @@ impl Intersection {
     }
 }
 
-pub trait Intersectable {
+pub trait Intersectable: Sync {
     fn intersect(&self, ray: &Ray, intersection: &mut Intersection);
 }
 

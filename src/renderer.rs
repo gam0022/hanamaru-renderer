@@ -1,8 +1,10 @@
 extern crate image;
 extern crate rand;
+extern crate rayon;
 
 use image::{ImageBuffer, Rgb};
 use self::rand::{thread_rng, Rng};
+use self::rayon::prelude::*;
 
 use consts;
 use vector::{Vector3, Vector2};
@@ -11,7 +13,7 @@ use material::SurfaceType;
 use brdf;
 use random;
 
-pub trait Renderer {
+pub trait Renderer: Sync {
     fn render(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
@@ -23,6 +25,27 @@ pub trait Renderer {
                 (255.0 * color.y) as u8,
                 (255.0 * color.z) as u8,
             ]);
+        }
+    }
+    fn render_parallel(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+        let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
+        for y in 0..imgbuf.height() {
+            let input: Vec<u32> = (0..imgbuf.width()).collect();
+            let mut output = vec![];
+            input.par_iter()
+                .map(|&x| {
+                    let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
+                    let uv = (frag_coord * 2.0 - resolution) / resolution.x.min(resolution.y);
+                    let color = self.calc_pixel(&scene, &camera, &uv);
+                    image::Rgb([
+                        (255.0 * color.x) as u8,
+                        (255.0 * color.y) as u8,
+                        (255.0 * color.z) as u8,
+                    ])}
+                ).collect_into(&mut output);
+            for (x, pixel) in output.iter().enumerate() {
+                imgbuf.put_pixel(x as u32, y, *pixel);
+            }
         }
     }
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, uv: &Vector2) -> Vector3;
