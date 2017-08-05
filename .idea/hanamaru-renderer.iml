@@ -5,6 +5,7 @@
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Rust &lt;hanamaru-renderer&gt;" level="project" />
     <orderEntry type="library" name="Cargo &lt;hanamaru-renderer&gt;" level="project" />
   </component>
 </module>
