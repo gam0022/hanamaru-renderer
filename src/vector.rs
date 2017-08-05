@@ -82,6 +82,18 @@ impl Sub for Vector3 {
     }
 }
 
+impl Sub<f64> for Vector3 {
+    type Output = Vector3;
+
+    fn sub(self, other: f64) -> Vector3 {
+        Vector3 {
+            x: self.x - other,
+            y: self.y - other,
+            z: self.z - other,
+        }
+    }
+}
+
 impl Mul for Vector3 {
     type Output = Vector3;
 
@@ -213,6 +225,17 @@ impl Sub for Vector2 {
         Vector2 {
             x: self.x - other.x,
             y: self.y - other.y,
+        }
+    }
+}
+
+impl Sub<f64> for Vector2 {
+    type Output = Vector2;
+
+    fn sub(self, other: f64) -> Vector2 {
+        Vector2 {
+            x: self.x - other,
+            y: self.y - other,
         }
     }
 }

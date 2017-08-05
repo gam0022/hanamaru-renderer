@@ -18,8 +18,8 @@ pub trait Renderer: Sync {
     fn render(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
-            let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
-            let uv = (frag_coord * 2.0 - resolution) / resolution.x.min(resolution.y);
+            let coord = Vector2::new(x as f64, resolution.y - y as f64);
+            let uv = (coord * 2.0 - resolution) / resolution.x.min(resolution.y);
             let color = self.calc_pixel(&scene, &camera, &uv);
             *pixel = color::vector3_to_rgb(color);
         }
@@ -32,15 +32,29 @@ pub trait Renderer: Sync {
             let mut output = vec![];
             input.par_iter()
                 .map(|&x| {
-                    let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
-                    let uv = (frag_coord * 2.0 - resolution) / resolution.x.min(resolution.y);
-                    let color = self.calc_pixel(&scene, &camera, &uv);
-                    color::vector3_to_rgb(color)
+                    let coord = Vector2::new(x as f64, resolution.y - y as f64);
+                    color::vector3_to_rgb(self.supersampling(scene, camera, &coord, &resolution))
                 }).collect_into(&mut output);
             for (x, pixel) in output.iter().enumerate() {
                 imgbuf.put_pixel(x as u32, y, *pixel);
             }
         }
+    }
+
+    fn supersampling(&self, scene: &Scene, camera: &Camera, coord: &Vector2, resolution: &Vector2) -> Vector3 {
+        let mut accumulation = Vector3::zero();
+
+        for sy in 0..consts::SUPERSAMPLING {
+            for sx in 0..consts::SUPERSAMPLING {
+                let offset = Vector2::new(sx as f64, sy as f64) / consts::SUPERSAMPLING as f64 - 0.5;
+                let sub_coord = *coord + offset;
+                let uv = (sub_coord * 2.0 - *resolution) / resolution.x.min(resolution.y);
+                let color = self.calc_pixel(&scene, &camera, &uv);
+                accumulation = accumulation + color;
+            }
+        }
+
+        accumulation / (consts::SUPERSAMPLING * consts::SUPERSAMPLING) as f64
     }
 
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, uv: &Vector2) -> Vector3;
