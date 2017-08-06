@@ -132,7 +132,7 @@ impl Renderer for PathTracingRenderer {
                             ray.direction = ray.direction.reflect(&intersection.normal);
                         },
                         SurfaceType::Refraction { refractive_index } => {
-                            brdf::sample_refraction(random, refractive_index, &intersection, &mut ray);
+                            brdf::sample_refraction(random, &intersection.normal, refractive_index, &intersection, &mut ray);
                         },
                         SurfaceType::GGX { roughness } => {
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
@@ -145,7 +145,10 @@ impl Renderer for PathTracingRenderer {
                                 intersection.material.albedo = Vector3::zero();
                             }
                         },
-                        SurfaceType::GGXReflection { refractive_index, roughness } => {},
+                        SurfaceType::GGXReflection { refractive_index, roughness } => {
+                            let half = brdf::importance_sample_ggx(random, &intersection.normal, roughness);
+                            brdf::sample_refraction(random, &half, refractive_index, &intersection, &mut ray);
+                        },
                     }
                 } else {
                     break;
