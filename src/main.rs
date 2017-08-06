@@ -12,6 +12,7 @@ mod material;
 mod brdf;
 mod random;
 mod color;
+mod texture;
 
 use vector::Vector3;
 use scene::{Scene, CameraBuilder, Sphere, Plane, Skybox};

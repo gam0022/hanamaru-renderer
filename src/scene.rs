@@ -1,13 +1,7 @@
-extern crate image;
-
-use image::{DynamicImage, GenericImage};
-use std::fs::File;
-use std::path::Path;
-
 use consts;
 use vector::{Vector3, Vector2};
 use material::Material;
-use color;
+use texture::Texture;
 
 #[derive(Clone, Debug)]
 pub struct Ray {
@@ -158,54 +152,50 @@ impl CameraBuilder {
 }
 
 pub struct Skybox {
-    pub px_image: DynamicImage,
-    pub nx_image: DynamicImage,
-    pub py_image: DynamicImage,
-    pub ny_image: DynamicImage,
-    pub pz_image: DynamicImage,
-    pub nz_image: DynamicImage,
+    pub px_texture: Texture,
+    pub nx_texture: Texture,
+    pub py_texture: Texture,
+    pub ny_texture: Texture,
+    pub pz_texture: Texture,
+    pub nz_texture: Texture,
 }
 
 impl Skybox {
     pub fn new(px_path: &str, nx_path: &str, py_path: &str, ny_path: &str, pz_path: &str, nz_path: &str) -> Skybox {
         Skybox {
-            px_image: image::open(&Path::new(px_path)).unwrap(),
-            nx_image: image::open(&Path::new(nx_path)).unwrap(),
-            py_image: image::open(&Path::new(py_path)).unwrap(),
-            ny_image: image::open(&Path::new(ny_path)).unwrap(),
-            pz_image: image::open(&Path::new(pz_path)).unwrap(),
-            nz_image: image::open(&Path::new(nz_path)).unwrap(),
+            px_texture: Texture::new(px_path),
+            nx_texture: Texture::new(nx_path),
+            py_texture: Texture::new(py_path),
+            ny_texture: Texture::new(ny_path),
+            pz_texture: Texture::new(pz_path),
+            nz_texture: Texture::new(nz_path),
         }
     }
 
-    pub fn trace(&self, direction: &Vector3) -> Vector3 {
+    pub fn sample(&self, direction: &Vector3) -> Vector3 {
         let abs_x = direction.x.abs();
         let abs_y = direction.y.abs();
         let abs_z = direction.z.abs();
 
         if abs_x > abs_y && abs_x > abs_z {
-            if direction.x.is_positive() {
-                self.get_color(&self.px_image, -direction.z / direction.x, -direction.y / direction.x)
+            if direction.x.is_sign_positive() {
+                self.px_texture.sample_bilinear_0center(-direction.z / direction.x, -direction.y / direction.x)
             } else {
-                self.get_color(&self.nx_image, -direction.z / direction.x, direction.y / direction.x)
+                self.nx_texture.sample_bilinear_0center(-direction.z / direction.x, direction.y / direction.x)
             }
         } else if abs_y > abs_x && abs_y > abs_z {
-            if direction.y.is_positive() {
-                self.get_color(&self.py_image, direction.x / direction.y, direction.z / direction.y)
+            if direction.y.is_sign_positive() {
+                self.py_texture.sample_bilinear_0center(direction.x / direction.y, direction.z / direction.y)
             } else {
-                self.get_color(&self.ny_image, -direction.x / direction.y, direction.z / direction.y)
+                self.ny_texture.sample_bilinear_0center(-direction.x / direction.y, direction.z / direction.y)
             }
         } else {
-            if direction.z.is_positive() {
-                self.get_color(&self.pz_image, direction.x / direction.z, -direction.y / direction.z)
+            if direction.z.is_sign_positive() {
+                self.pz_texture.sample_bilinear_0center(direction.x / direction.z, -direction.y / direction.z)
             } else {
-                self.get_color(&self.nz_image, direction.x / direction.z, direction.y / direction.z)
+                self.nz_texture.sample_bilinear_0center(direction.x / direction.z, direction.y / direction.z)
             }
         }
-    }
-
-    fn get_color(&self, image: &DynamicImage, u: f64, v: f64) -> Vector3 {
-        color::rgba_to_vector3(image.get_pixel(((image.width() - 1) as f64 * (u + 1.0) * 0.5) as u32, ((image.height() - 1) as f64 * (v + 1.0) * 0.5) as u32))
     }
 }
 
@@ -221,7 +211,7 @@ impl Scene {
             element.intersect(&ray, &mut intersection);
         }
         if !intersection.hit {
-            intersection.material.emission = self.skybox.trace(&ray.direction);
+            intersection.material.emission = self.skybox.sample(&ray.direction);
         }
         intersection
     }
