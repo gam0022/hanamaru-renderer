@@ -1,5 +1,6 @@
 use consts;
 use vector::Vector3;
+use scene::{Intersection, Ray};
 
 // 法線を基準とした空間の基底ベクトルを計算
 fn get_tangent_space_basis(normal: &Vector3) -> (Vector3, Vector3) {
@@ -51,4 +52,38 @@ pub fn importance_sample_ggx(random: (f64, f64), normal: &Vector3, roughness: f6
 
     let h = Vector3::new(sin_theta * phi.cos(), sin_theta * phi.sin(), cos_theta);
     tangent * h.x + binormal * h.y + *normal * h.z
+}
+
+pub fn sample_refraction(random: (f64, f64), refractive_index: f64, intersection: &Intersection, ray: &mut Ray) {
+    let is_incoming = ray.direction.dot(&intersection.normal).is_sign_negative();
+    let oriented_normal = if is_incoming { intersection.normal } else { -intersection.normal };
+    let nnt = if is_incoming { 1.0 / refractive_index } else { refractive_index };
+    let reflect_direction = ray.direction.reflect(&oriented_normal);
+    let refract_direction = ray.direction.refract(&oriented_normal, nnt);
+    if refract_direction == Vector3::zero() {
+        // 完全反射のケース
+        ray.direction = reflect_direction;
+    } else {
+        // フレネル反射率rの計算
+        // 入射角をI、屈折角をT、r_sをS波の反射率、r_pをP波の反射率、rをフレネル反射率とする
+        let cos_i = ray.direction.dot(&-oriented_normal);
+        //float cos_t = sqrt(1.0 - nnt * nnt * (1.0 - cos_i * cos_i));
+        let cos_t = refract_direction.dot(&-oriented_normal);
+        let r_s = (nnt * cos_i - cos_t) * (nnt * cos_i - cos_t) / ((nnt * cos_i + cos_t) * (nnt * cos_i + cos_t));
+        let r_p = (nnt * cos_t - cos_i) * (nnt * cos_t - cos_i) / ((nnt * cos_t + cos_i) * (nnt * cos_t + cos_i));
+        let r = 0.5 * (r_s + r_p);
+        if random.0 <= r {
+            // 反射
+            ray.direction = reflect_direction;
+        } else {
+            // 屈折
+
+            // 立体角の変化に伴う放射輝度の補正を入れたら暗くなったのでコメントアウト
+            //intersection.material.albedo = intersection.material.albedo * nnt.powf(2.0);
+
+            // 物体内部にレイの原点を移動する
+            ray.origin = intersection.position - consts::OFFSET * intersection.normal;
+            ray.direction = refract_direction;
+        }
+    }
 }

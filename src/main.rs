@@ -40,13 +40,18 @@ fn render() {
             }}),
             Box::new(Sphere{ center: Vector3::new(2.0, 0.5, -1.0), radius: 0.5, material: Material {
                 albedo: Vector3::new(0.5, 0.5, 1.0),
-                emission: Vector3::from_one(0.0),
-                surface: SurfaceType::Diffuse {},
+                emission: Vector3::zero(),
+                surface: SurfaceType::Refraction { refractive_index: 1.5 },
             }}),
             Box::new(Sphere{ center: Vector3::new(-3.0, 1.5, -1.0), radius: 1.5, material: Material {
                 albedo: Vector3::new(1.0, 1.0, 1.0),
                 emission: Vector3::zero(),
                 surface: SurfaceType::Specular {},
+            }}),
+            Box::new(Sphere{ center: Vector3::new(1.0, 0.8, 1.1), radius: 0.8, material: Material {
+                albedo: Vector3::new(0.7, 1.0, 0.7),
+                emission: Vector3::zero(),
+                surface: SurfaceType::Refraction { refractive_index: 1.2 },
             }}),
             Box::new(Plane{ center: Vector3::new(0.0, 0.0, 0.0), normal: Vector3::new(0.0, 1.0, 0.0), material: Material {
                 albedo: Vector3::new(0.8, 0.8, 0.8),

@@ -1,4 +1,5 @@
 use std::ops::{Add, Sub, Mul, Div, Neg};
+use std::cmp::PartialEq;
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]
@@ -55,6 +56,15 @@ impl Vector3 {
 
     pub fn reflect(&self, normal: &Vector3) -> Vector3 {
         *self - 2.0 * self.dot(&normal) * *normal
+    }
+
+    pub fn refract(&self, normal: &Vector3, refractive_index: f64) -> Vector3 {
+        let k = 1.0 - refractive_index * refractive_index * (1.0 - normal.dot(self) * self.dot(normal));
+        if k < 0.0 {
+            Vector3::zero()
+        } else {
+            refractive_index * *self - (refractive_index * self.dot(normal) + k.sqrt()) * *normal
+        }
     }
 }
 
@@ -159,6 +169,12 @@ impl Neg for Vector3 {
             y: -self.y,
             z: -self.z,
         }
+    }
+}
+
+impl PartialEq for Vector3 {
+    fn eq(&self, other: &Vector3) -> bool {
+        self.x == other.x && self.y == other.y && self.z == other.z
     }
 }
 
