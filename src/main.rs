@@ -64,8 +64,8 @@ fn render() {
         ),
     };
 
-    //let renderer = DebugRenderer{};
-    let renderer = PathTracingRenderer{};
+    let renderer = DebugRenderer{};
+    //let renderer = PathTracingRenderer{};
     renderer.render(&scene, &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();

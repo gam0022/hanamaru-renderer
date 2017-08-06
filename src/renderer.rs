@@ -77,25 +77,25 @@ impl Renderer for DebugRenderer {
             let shadow_intersection = scene.intersect(&shadow_ray);
             let shadow = if shadow_intersection.hit { 0.5 } else { 1.0 };
 
-            match intersection.material.surface {
-                SurfaceType::Diffuse => {
-                    let diffuse = intersection.normal.dot(&light_direction).max(0.0);
-                    let color = intersection.material.emission + intersection.material.albedo * diffuse * shadow;
-                    reflection = reflection * color;
-                    accumulation = accumulation + reflection;
-                    break;
-                },
-                SurfaceType::Specular => {
-                    ray.origin = intersection.position + intersection.normal * consts::OFFSET;
-                    ray.direction = ray.direction.reflect(&intersection.normal);
-                    reflection = reflection * intersection.material.albedo;
-                },
-                SurfaceType::Reflection { refractiveIndex: refractiveIndex } => {},
-                SurfaceType::GGX { roughness: roughness } => {},
-                SurfaceType::GGXReflection { refractiveIndex: refractiveIndex, roughness: roughness } => {},
-            }
-
-            if !intersection.hit {
+            if intersection.hit {
+                match intersection.material.surface {
+                    SurfaceType::Specular => {
+                        ray.origin = intersection.position + intersection.normal * consts::OFFSET;
+                        ray.direction = ray.direction.reflect(&intersection.normal);
+                        reflection = reflection * intersection.material.albedo;
+                    },
+                    // 鏡面以外は拡散面として処理する
+                    _ => {
+                        let diffuse = intersection.normal.dot(&light_direction).max(0.0);
+                        let color = intersection.material.emission + intersection.material.albedo * diffuse * shadow;
+                        reflection = reflection * color;
+                        accumulation = accumulation + reflection;
+                        break;
+                    },
+                }
+            } else {
+                reflection = reflection * intersection.material.emission;
+                accumulation = accumulation + reflection;
                 break;
             }
         }
@@ -131,9 +131,9 @@ impl Renderer for PathTracingRenderer {
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                             ray.direction = ray.direction.reflect(&intersection.normal);
                         },
-                        SurfaceType::Reflection { refractiveIndex: refractiveIndex } => {},
+                        SurfaceType::Reflection { refractive_index: refractive_index } => {},
                         SurfaceType::GGX { roughness: roughness } => {},
-                        SurfaceType::GGXReflection { refractiveIndex: refractiveIndex, roughness: roughness } => {},
+                        SurfaceType::GGXReflection { refractive_index: refractive_index, roughness: roughness } => {},
                     }
                 } else {
                     break;

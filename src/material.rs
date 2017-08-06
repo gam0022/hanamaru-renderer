@@ -4,9 +4,9 @@ use vector::Vector3;
 pub enum SurfaceType {
     Diffuse,
     Specular,
-    Reflection { refractiveIndex: f64 },
+    Reflection { refractive_index: f64 },
     GGX { roughness: f64 },
-    GGXReflection { roughness: f64, refractiveIndex: f64 },
+    GGXReflection { roughness: f64, refractive_index: f64 },
 }
 
 #[derive(Clone, Debug)]
