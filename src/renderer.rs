@@ -116,7 +116,7 @@ impl Renderer for PathTracingRenderer {
 
             for bounce in 1..consts::PATHTRACING_BOUNCE_LIMIT {
                 let random = random::get_random(&mut rng);
-                let intersection = scene.intersect(&ray);
+                let mut intersection = scene.intersect(&ray);
 
                 accumulation = accumulation + reflection * intersection.material.emission;
                 reflection = reflection * intersection.material.albedo;
@@ -132,7 +132,17 @@ impl Renderer for PathTracingRenderer {
                             ray.direction = ray.direction.reflect(&intersection.normal);
                         },
                         SurfaceType::Reflection { refractive_index: refractive_index } => {},
-                        SurfaceType::GGX { roughness: roughness } => {},
+                        SurfaceType::GGX { roughness: roughness } => {
+                            ray.origin = intersection.position + intersection.normal * consts::OFFSET;
+                            let half = brdf::importance_sample_ggx(random, intersection.normal, roughness);
+                            ray.direction = ray.direction.reflect(&half);
+
+                            // 半球外が選ばれた場合はBRDFを0にする
+                            // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
+                            if intersection.normal.dot(&ray.direction).is_sign_negative() {
+                                intersection.material.albedo = Vector3::zero();
+                            }
+                        },
                         SurfaceType::GGXReflection { refractive_index: refractive_index, roughness: roughness } => {},
                     }
                 } else {

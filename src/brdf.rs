@@ -1,6 +1,8 @@
 use consts;
 use vector::Vector3;
 
+// 完全拡散反射のcos項による重点サンプリング
+// https://github.com/githole/edupt/blob/master/radiance.h
 pub fn importance_sample_diffuse(random: (f64, f64), normal: Vector3) -> Vector3 {
     let up = if normal.x.abs() > consts::EPS { Vector3::new(0.0, 1.0, 0.0) } else { Vector3::new(1.0, 0.0, 0.0) };
     let tangent = up.cross(&normal).normalize();
@@ -22,4 +24,23 @@ pub fn importance_sample_diffuse(random: (f64, f64), normal: Vector3) -> Vector3
     // - cos(theta) = sqrt(1.0 - sin(theta) * sin(theta)) = sqrt(1.0 - r)
     let r = random.1;
     return (tangent * phi.cos() + binormal * phi.sin()) * r.sqrt() + normal * (1.0 - r).sqrt();
+}
+
+// Unreal Engine 4 で利用されている ImportanceSampleGGX を移植
+// cos項による重点サンプリングのためのハーフベクトルを計算
+// http://project-asura.com/blog/?p=3124
+pub fn importance_sample_ggx(random: (f64, f64), normal: Vector3, roughness: f64) -> Vector3 {
+    let a = roughness * roughness;
+    let phi = consts::PI2 * random.0;
+    let cos_theta = ((1.0 - random.1) / (1.0 + (a * a - 1.0) * random.1)).sqrt();
+    let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
+
+    let h = Vector3::new(sin_theta * phi.cos(), sin_theta * phi.sin(), cos_theta);
+
+    let up = if normal.x.abs() > consts::EPS { Vector3::new(0.0, 1.0, 0.0) } else { Vector3::new(1.0, 0.0, 0.0) };
+    let tangent_x = up.cross(&normal).normalize();
+    let tangent_y = normal.cross(&tangent_x);
+
+    // Tangent to world space
+    return tangent_x * h.x + tangent_y * h.y + normal * h.z;
 }

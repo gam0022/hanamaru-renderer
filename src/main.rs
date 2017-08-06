@@ -36,7 +36,7 @@ fn render() {
             Box::new(Sphere{ center: Vector3::new(0.0, 1.0, 0.0), radius: 1.0, material: Material {
                 albedo: Vector3::new(1.0, 0.5, 0.5),
                 emission: Vector3::zero(),
-                surface: SurfaceType::Diffuse {},
+                surface: SurfaceType::GGX { roughness: 0.2 },
             }}),
             Box::new(Sphere{ center: Vector3::new(2.0, 0.5, -1.0), radius: 0.5, material: Material {
                 albedo: Vector3::new(0.5, 0.5, 1.0),
@@ -64,8 +64,8 @@ fn render() {
         ),
     };
 
-    let renderer = DebugRenderer{};
-    //let renderer = PathTracingRenderer{};
+    //let renderer = DebugRenderer{};
+    let renderer = PathTracingRenderer{};
     renderer.render(&scene, &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
