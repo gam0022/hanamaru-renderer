@@ -10,3 +10,5 @@ pub const PATHTRACING_BOUNCE_LIMIT: u32 = 10;
 pub const PATHTRACING_SAMPLING: u32 = 30;
 
 pub const SUPERSAMPLING: u32 = 2;
+
+pub const WHITE_TEXTURE_PATH: &str = "textures/2d/white.png";

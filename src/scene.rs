@@ -10,22 +10,24 @@ pub struct Ray {
 }
 
 #[derive(Debug)]
-pub struct Intersection {
+pub struct Intersection<'a> {
     pub hit: bool,
     pub position: Vector3,
     pub distance: f64,
     pub normal: Vector3,
-    pub material: Material,
+    pub material: Material<'a>,
+    pub uv: Vector2,
 }
 
-impl Intersection {
-    pub fn new() -> Intersection {
+impl<'a> Intersection<'a> {
+    pub fn new() -> Intersection<'a> {
         Intersection {
             hit: false,
             position: Vector3::zero(),
             distance: consts::INF,
             normal: Vector3::zero(),
             material: Material::new(),
+            uv: Vector2::zero(),
         }
     }
 }
@@ -34,13 +36,13 @@ pub trait Intersectable: Sync {
     fn intersect(&self, ray: &Ray, intersection: &mut Intersection);
 }
 
-pub struct Sphere {
+pub struct Sphere<'a> {
     pub center: Vector3,
     pub radius: f64,
-    pub material: Material,
+    pub material: Material<'a>,
 }
 
-impl Intersectable for Sphere {
+impl<'a> Intersectable for Sphere<'a> {
     fn intersect(&self, ray: &Ray, intersection: &mut Intersection) {
         let a : Vector3 = ray.origin - self.center;
         let b = a.dot(&ray.direction);
@@ -57,13 +59,13 @@ impl Intersectable for Sphere {
     }
 }
 
-pub struct Plane {
+pub struct Plane<'a> {
     pub center: Vector3,
     pub normal: Vector3,
-    pub material: Material,
+    pub material: Material<'a>,
 }
 
-impl Intersectable for Plane {
+impl<'a> Intersectable for Plane<'a> {
     fn intersect(&self, ray: &Ray, intersection: &mut Intersection) {
         let d = -self.center.dot(&self.normal);
         let v = ray.direction.dot(&self.normal);
@@ -74,6 +76,9 @@ impl Intersectable for Plane {
             intersection.normal = self.normal;
             intersection.distance = t;
             intersection.material = self.material.clone();
+
+            // normalがY軸なことを前提にUVを計算
+            intersection.uv = Vector2::new(intersection.position.x % 1.0, intersection.position.z % 1.0);
         }
     }
 }

@@ -1,4 +1,6 @@
+use consts;
 use vector::Vector3;
+use texture::Texture;
 
 #[derive(Clone, Debug)]
 pub enum SurfaceType {
@@ -10,18 +12,20 @@ pub enum SurfaceType {
 }
 
 #[derive(Clone, Debug)]
-pub struct Material {
+pub struct Material<'a> {
+    pub surface: SurfaceType,
     pub albedo: Vector3,
     pub emission: Vector3,
-    pub surface: SurfaceType,
+    pub albedo_texture: &'a Texture,
 }
 
-impl Material {
-    pub fn new() -> Material {
+impl<'a> Material<'a> {
+    pub fn new() -> Material<'a> {
         Material {
+            surface: SurfaceType::Diffuse {},
             albedo: Vector3::from_one(1.0),
             emission: Vector3::from_one(1.0),
-            surface: SurfaceType::Diffuse {}
+            albedo_texture: &Texture::new(consts::WHITE_TEXTURE_PATH),
         }
     }
 }
