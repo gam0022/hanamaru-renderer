@@ -125,7 +125,7 @@ impl Renderer for PathTracingRenderer {
                     match intersection.material.surface {
                         SurfaceType::Diffuse => {
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
-                            ray.direction = brdf::importance_sample_diffuse(random, intersection.normal);
+                            ray.direction = brdf::importance_sample_diffuse(random, &intersection.normal);
                         },
                         SurfaceType::Specular => {
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
@@ -134,7 +134,7 @@ impl Renderer for PathTracingRenderer {
                         SurfaceType::Reflection { refractive_index: refractive_index } => {},
                         SurfaceType::GGX { roughness: roughness } => {
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
-                            let half = brdf::importance_sample_ggx(random, intersection.normal, roughness);
+                            let half = brdf::importance_sample_ggx(random, &intersection.normal, roughness);
                             ray.direction = ray.direction.reflect(&half);
 
                             // 半球外が選ばれた場合はBRDFを0にする
