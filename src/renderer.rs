@@ -78,23 +78,23 @@ impl Renderer for DebugRenderer {
             let shadow = if shadow_intersection.hit { 0.5 } else { 1.0 };
 
             if intersection.hit {
-                match intersection.material.surface {
+                match intersection.element.material.surface {
                     SurfaceType::Specular => {
                         ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                         ray.direction = ray.direction.reflect(&intersection.normal);
-                        reflection = reflection * intersection.material.albedo;
+                        reflection = reflection * intersection.element.material.albedo;
                     },
                     // 鏡面以外は拡散面として処理する
                     _ => {
                         let diffuse = intersection.normal.dot(&light_direction).max(0.0);
-                        let color = intersection.material.emission + intersection.material.albedo * diffuse * shadow;
+                        let color = intersection.element.material.emission + intersection.element.material.albedo * diffuse * shadow;
                         reflection = reflection * color;
                         accumulation = accumulation + reflection;
                         break;
                     },
                 }
             } else {
-                reflection = reflection * intersection.material.emission;
+                reflection = reflection * intersection.element.material.emission;
                 accumulation = accumulation + reflection;
                 break;
             }
@@ -118,11 +118,11 @@ impl Renderer for PathTracingRenderer {
                 let random = random::get_random(&mut rng);
                 let mut intersection = scene.intersect(&ray);
 
-                accumulation = accumulation + reflection * intersection.material.emission;
+                accumulation = accumulation + reflection * intersection.element.material.emission;
                 reflection = reflection * intersection.material.albedo;
 
                 if intersection.hit {
-                    match intersection.material.surface {
+                    match intersection.element.material.surface {
                         SurfaceType::Diffuse => {
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                             ray.direction = brdf::importance_sample_diffuse(random, &intersection.normal);
@@ -142,7 +142,7 @@ impl Renderer for PathTracingRenderer {
                             // 半球外が選ばれた場合はBRDFを0にする
                             // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
                             if intersection.normal.dot(&ray.direction).is_sign_negative() {
-                                intersection.material.albedo = Vector3::zero();
+                                intersection.element.material.albedo = Vector3::zero();
                             }
                         },
                         SurfaceType::GGXReflection { refractive_index, roughness } => {

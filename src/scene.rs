@@ -9,77 +9,87 @@ pub struct Ray {
     pub direction: Vector3,
 }
 
-#[derive(Debug)]
-pub struct Intersection<'a> {
-    pub hit: bool,
+pub struct Intersection {
     pub position: Vector3,
     pub distance: f64,
     pub normal: Vector3,
-    pub material: Material<'a>,
     pub uv: Vector2,
 }
 
-impl<'a> Intersection<'a> {
-    pub fn new() -> Intersection<'a> {
+impl Intersection {
+    pub fn new() -> Intersection {
         Intersection {
-            hit: false,
             position: Vector3::zero(),
             distance: consts::INF,
             normal: Vector3::zero(),
-            material: Material::new(),
             uv: Vector2::zero(),
         }
     }
 }
 
 pub trait Intersectable: Sync {
-    fn intersect(&self, ray: &Ray, intersection: &mut Intersection);
+    fn intersect(&self, ray: &Ray) -> Option<Intersection>;
+    fn material(&self) -> &Material;
 }
 
-pub struct Sphere<'a> {
+pub struct Sphere {
     pub center: Vector3,
     pub radius: f64,
-    pub material: Material<'a>,
+    pub material: Material,
 }
 
-impl<'a> Intersectable for Sphere<'a> {
-    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) {
+impl Intersectable for Sphere {
+    fn intersect(&self, ray: &Ray) -> Option<Intersection> {
         let a : Vector3 = ray.origin - self.center;
         let b = a.dot(&ray.direction);
         let c = a.dot(&a) - self.radius * self.radius;
         let d = b * b - c;
         let t = -b - d.sqrt();
-        if d > 0.0 && t > 0.0 && t < intersection.distance {
-            intersection.hit = true;
-            intersection.position = ray.origin + ray.direction * t;
-            intersection.distance = t;
-            intersection.normal = (intersection.position - self.center).normalize();
-            intersection.material = self.material.clone();
+        if d > 0.0 && t > 0.0 {
+            let position = ray.origin + ray.direction * t;
+            Some(Intersection {
+                position: position,
+                distance: t,
+                normal: (position - self.center).normalize(),
+                uv: Vector2::zero(),
+            })
+        } else {
+            None
         }
+    }
+
+    fn material(&self) -> &Material {
+        &self.material
     }
 }
 
-pub struct Plane<'a> {
+pub struct Plane {
     pub center: Vector3,
     pub normal: Vector3,
-    pub material: Material<'a>,
+    pub material: Material,
 }
 
-impl<'a> Intersectable for Plane<'a> {
-    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) {
+impl Intersectable for Plane {
+    fn intersect(&self, ray: &Ray) -> Option<Intersection> {
         let d = -self.center.dot(&self.normal);
         let v = ray.direction.dot(&self.normal);
         let t = -(ray.origin.dot(&self.normal) + d) / v;
-        if t > 0.0 && t < intersection.distance {
-            intersection.hit = true;
-            intersection.position = ray.origin + ray.direction * t;
-            intersection.normal = self.normal;
-            intersection.distance = t;
-            intersection.material = self.material.clone();
-
-            // normalがY軸なことを前提にUVを計算
-            intersection.uv = Vector2::new(intersection.position.x % 1.0, intersection.position.z % 1.0);
+        if t > 0.0 {
+            let position = ray.origin + ray.direction * t;
+            Some(Intersection {
+                position: position,
+                normal: self.normal,
+                distance: t,
+                // normalがY軸なことを前提にUVを計算
+                uv: Vector2::new(position.x % 1.0, position.z % 1.0),
+            })
+        } else {
+            None
         }
+    }
+
+    fn material(&self) -> &Material {
+        &self.material
     }
 }
 
@@ -210,14 +220,22 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn intersect(&self, ray: &Ray) -> Intersection {
-        let mut intersection = Intersection::new();
+    pub fn intersect(&self, ray: &Ray) -> Option<(Option<Intersection>, &Material)> {
+        /*let mut intersection = Intersection::new(self.elements[0]);
         for element in &self.elements {
             element.intersect(&ray, &mut intersection);
         }
         if !intersection.hit {
             intersection.material.emission = self.skybox.sample(&ray.direction);
         }
-        intersection
+        intersection*/
+
+        self.elements.iter()
+            .map(|e| (e.intersect(ray), e.material()))
+            .filter(|t| match t.0 {
+                Some(intersection) => true,
+                None => false
+            })
+            .min_by(|t1, t2| t1.0.unwrap().distance.partial_cmp(&t2.0.unwrap().distance).unwrap())
     }
 }
