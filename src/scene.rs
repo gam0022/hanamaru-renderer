@@ -220,7 +220,9 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn intersect(&self, ray: &Ray) -> Option<(Option<Intersection>, &Material)> {
+    // (bool, Intersection, Vector3, Vector3)
+    // Option<(Option<Intersection>, &Material)>
+    pub fn intersect(&self, ray: &Ray) -> (Option<Intersection>, Vector3, Vector3, Option<&Material>) {
         /*let mut intersection = Intersection::new(self.elements[0]);
         for element in &self.elements {
             element.intersect(&ray, &mut intersection);
@@ -230,12 +232,22 @@ impl Scene {
         }
         intersection*/
 
-        self.elements.iter()
+        let nearest = self.elements.iter()
             .map(|e| (e.intersect(ray), e.material()))
             .filter(|t| match t.0 {
-                Some(intersection) => true,
+                Some(ref intersection) => true,
                 None => false
             })
-            .min_by(|t1, t2| t1.0.unwrap().distance.partial_cmp(&t2.0.unwrap().distance).unwrap())
+            .min_by(|t1, t2| t1.0.unwrap().distance.partial_cmp(&t2.0.unwrap().distance).unwrap());
+
+        match nearest {
+            Some(tuple) => {
+                let material = tuple.1;
+                (tuple.0, material.albedo, material.emission, Some(material))
+            },
+            None => {
+                (None, Vector3::zero(), self.skybox.sample(&ray.direction), None)
+            }
+        }
     }
 }

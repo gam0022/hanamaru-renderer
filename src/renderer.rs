@@ -57,7 +57,7 @@ pub trait Renderer: Sync {
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Vector3;
 }
 
-pub struct DebugRenderer;
+/*pub struct DebugRenderer;
 impl Renderer for DebugRenderer {
     #[allow(unused_variables)]
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Vector3 {
@@ -102,7 +102,8 @@ impl Renderer for DebugRenderer {
 
         accumulation
    }
-}
+}*/
+
 pub struct PathTracingRenderer;
 impl Renderer for PathTracingRenderer {
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Vector3 {
@@ -116,42 +117,43 @@ impl Renderer for PathTracingRenderer {
 
             for bounce in 1..consts::PATHTRACING_BOUNCE_LIMIT {
                 let random = random::get_random(&mut rng);
-                let mut intersection = scene.intersect(&ray);
+                let (intersection, albedo, emission, material) = scene.intersect(&ray);
 
-                accumulation = accumulation + reflection * intersection.element.material.emission;
-                reflection = reflection * intersection.material.albedo;
+                accumulation = accumulation + reflection * emission;
+                reflection = reflection * albedo;
 
-                if intersection.hit {
-                    match intersection.element.material.surface {
-                        SurfaceType::Diffuse => {
-                            ray.origin = intersection.position + intersection.normal * consts::OFFSET;
-                            ray.direction = brdf::importance_sample_diffuse(random, &intersection.normal);
-                        },
-                        SurfaceType::Specular => {
-                            ray.origin = intersection.position + intersection.normal * consts::OFFSET;
-                            ray.direction = ray.direction.reflect(&intersection.normal);
-                        },
-                        SurfaceType::Refraction { refractive_index } => {
-                            brdf::sample_refraction(random, &intersection.normal, refractive_index, &intersection, &mut ray);
-                        },
-                        SurfaceType::GGX { roughness } => {
-                            ray.origin = intersection.position + intersection.normal * consts::OFFSET;
-                            let half = brdf::importance_sample_ggx(random, &intersection.normal, roughness);
-                            ray.direction = ray.direction.reflect(&half);
+                match intersection {
+                    Some(intersection) => {
+                        match material.unwrap().surface {
+                            SurfaceType::Diffuse => {
+                                ray.origin = intersection.position + intersection.normal * consts::OFFSET;
+                                ray.direction = brdf::importance_sample_diffuse(random, &intersection.normal);
+                            },
+                            SurfaceType::Specular => {
+                                ray.origin = intersection.position + intersection.normal * consts::OFFSET;
+                                ray.direction = ray.direction.reflect(&intersection.normal);
+                            },
+                            SurfaceType::Refraction { refractive_index } => {
+                                brdf::sample_refraction(random, &intersection.normal, refractive_index, &intersection, &mut ray);
+                            },
+                            SurfaceType::GGX { roughness } => {
+                                ray.origin = intersection.position + intersection.normal * consts::OFFSET;
+                                let half = brdf::importance_sample_ggx(random, &intersection.normal, roughness);
+                                ray.direction = ray.direction.reflect(&half);
 
-                            // 半球外が選ばれた場合はBRDFを0にする
-                            // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
-                            if intersection.normal.dot(&ray.direction).is_sign_negative() {
-                                intersection.element.material.albedo = Vector3::zero();
-                            }
-                        },
-                        SurfaceType::GGXReflection { refractive_index, roughness } => {
-                            let half = brdf::importance_sample_ggx(random, &intersection.normal, roughness);
-                            brdf::sample_refraction(random, &half, refractive_index, &intersection, &mut ray);
-                        },
-                    }
-                } else {
-                    break;
+                                // 半球外が選ばれた場合はBRDFを0にする
+                                // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
+                                if intersection.normal.dot(&ray.direction).is_sign_negative() {
+                                    reflection = Vector3::zero();
+                                }
+                            },
+                            SurfaceType::GGXReflection { refractive_index, roughness } => {
+                                let half = brdf::importance_sample_ggx(random, &intersection.normal, roughness);
+                                brdf::sample_refraction(random, &half, refractive_index, &intersection, &mut ray);
+                            },
+                        }
+                    },
+                    None => { break }
                 }
             }
             all_accumulation = all_accumulation + accumulation;

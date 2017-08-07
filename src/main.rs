@@ -17,7 +17,7 @@ mod texture;
 use vector::Vector3;
 use scene::{Scene, CameraBuilder, Sphere, Plane, Skybox};
 use material::{Material, SurfaceType};
-use renderer::{Renderer, DebugRenderer, PathTracingRenderer};
+use renderer::{Renderer, /*DebugRenderer, */ PathTracingRenderer};
 use texture::Texture;
 
 fn render() {
