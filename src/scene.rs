@@ -2,6 +2,7 @@ use consts;
 use vector::{Vector3, Vector2};
 use material::Material;
 use texture::Texture;
+use material::SurfaceType;
 
 #[derive(Clone, Debug)]
 pub struct Ray {
@@ -222,32 +223,35 @@ pub struct Scene {
 impl Scene {
     // (bool, Intersection, Vector3, Vector3)
     // Option<(Option<Intersection>, &Material)>
-    pub fn intersect(&self, ray: &Ray) -> (Option<Intersection>, Vector3, Vector3, Option<&Material>) {
-        /*let mut intersection = Intersection::new(self.elements[0]);
+    pub fn intersect(&self, ray: &Ray) -> (Option<Intersection>, &Material) {
+
+        let mut hit = false;
+        let mut intersection = Intersection::new();
+        let mut material = &Material::new();
+
         for element in &self.elements {
-            element.intersect(&ray, &mut intersection);
-        }
-        if !intersection.hit {
-            intersection.material.emission = self.skybox.sample(&ray.direction);
-        }
-        intersection*/
-
-        let nearest = self.elements.iter()
-            .map(|e| (e.intersect(ray), e.material()))
-            .filter(|t| match t.0 {
-                Some(ref intersection) => true,
-                None => false
-            })
-            .min_by(|t1, t2| t1.0.unwrap().distance.partial_cmp(&t2.0.unwrap().distance).unwrap());
-
-        match nearest {
-            Some(tuple) => {
-                let material = tuple.1;
-                (tuple.0, material.albedo, material.emission, Some(material))
-            },
-            None => {
-                (None, Vector3::zero(), self.skybox.sample(&ray.direction), None)
+            let i = element.intersect(ray);
+            match i {
+                Some(ii) => {
+                    if ii.distance < intersection.distance {
+                        hit = true;
+                        intersection = ii;
+                        material = element.material();
+                    }
+                },
+                None => {},
             }
+        }
+
+        if hit {
+            (Some(intersection), &material)
+        } else {
+            (None, &Material {
+                surface: SurfaceType::Diffuse {},
+                albedo: Vector3::zero(),
+                emission: self.skybox.sample(&ray.direction),
+                albedo_texture: Texture::new(consts::WHITE_TEXTURE_PATH),
+            })
         }
     }
 }

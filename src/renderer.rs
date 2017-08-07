@@ -117,14 +117,14 @@ impl Renderer for PathTracingRenderer {
 
             for bounce in 1..consts::PATHTRACING_BOUNCE_LIMIT {
                 let random = random::get_random(&mut rng);
-                let (intersection, albedo, emission, material) = scene.intersect(&ray);
+                let (intersection, material) = scene.intersect(&ray);
 
-                accumulation = accumulation + reflection * emission;
-                reflection = reflection * albedo;
+                accumulation = accumulation + reflection * material.emission;
+                reflection = reflection * material.albedo;
 
                 match intersection {
                     Some(intersection) => {
-                        match material.unwrap().surface {
+                        match material.surface {
                             SurfaceType::Diffuse => {
                                 ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                                 ray.direction = brdf::importance_sample_diffuse(random, &intersection.normal);
