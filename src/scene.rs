@@ -1,7 +1,8 @@
 use consts;
 use vector::{Vector3, Vector2};
-use material::Material;
+use material::{Material, PointMaterial};
 use texture::Texture;
+use math;
 
 #[derive(Clone, Debug)]
 pub struct Ray {
@@ -15,23 +16,26 @@ pub struct Intersection {
     pub position: Vector3,
     pub distance: f64,
     pub normal: Vector3,
-    pub material: Material,
+    pub uv: Vector2,
+    pub material: PointMaterial,
 }
 
 impl Intersection {
-    pub fn new() -> Intersection {
+    pub fn empty() -> Intersection {
         Intersection {
             hit: false,
             position: Vector3::zero(),
             distance: consts::INF,
             normal: Vector3::zero(),
-            material: Material::new(),
+            uv: Vector2::zero(),
+            material: PointMaterial::new(),
         }
     }
 }
 
 pub trait Intersectable: Sync {
-    fn intersect(&self, ray: &Ray, intersection: &mut Intersection);
+    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool;
+    fn material(&self) -> &Material;
 }
 
 pub struct Sphere {
@@ -41,7 +45,7 @@ pub struct Sphere {
 }
 
 impl Intersectable for Sphere {
-    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) {
+    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
         let a : Vector3 = ray.origin - self.center;
         let b = a.dot(&ray.direction);
         let c = a.dot(&a) - self.radius * self.radius;
@@ -52,8 +56,14 @@ impl Intersectable for Sphere {
             intersection.position = ray.origin + ray.direction * t;
             intersection.distance = t;
             intersection.normal = (intersection.position - self.center).normalize();
-            intersection.material = self.material.clone();
+            true
+        } else {
+            false
         }
+    }
+
+    fn material(&self) -> &Material {
+        &self.material
     }
 }
 
@@ -64,7 +74,7 @@ pub struct Plane {
 }
 
 impl Intersectable for Plane {
-    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) {
+    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
         let d = -self.center.dot(&self.normal);
         let v = ray.direction.dot(&self.normal);
         let t = -(ray.origin.dot(&self.normal) + d) / v;
@@ -73,8 +83,17 @@ impl Intersectable for Plane {
             intersection.position = ray.origin + ray.direction * t;
             intersection.normal = self.normal;
             intersection.distance = t;
-            intersection.material = self.material.clone();
+
+            // normalがY軸なことを前提にUVを計算
+            intersection.uv = Vector2::new(math::modulo(intersection.position.x, 1.0), math::modulo(intersection.position.z, 1.0));
+            true
+        } else {
+            false
         }
+    }
+
+    fn material(&self) -> &Material {
+        &self.material
     }
 }
 
@@ -206,11 +225,20 @@ pub struct Scene {
 
 impl Scene {
     pub fn intersect(&self, ray: &Ray) -> Intersection {
-        let mut intersection = Intersection::new();
-        for element in &self.elements {
-            element.intersect(&ray, &mut intersection);
+        let mut intersection = Intersection::empty();
+        let mut element = &self.elements[0];
+        for e in &self.elements {
+            if e.intersect(&ray, &mut intersection) {
+                element = &e;
+            }
         }
-        if !intersection.hit {
+
+        if intersection.hit {
+            let material: &Material = element.material();
+            intersection.material.surface = material.surface.clone();
+            intersection.material.albedo = material.albedo * material.albedo_texture.sample_bilinear(intersection.uv.x, intersection.uv.y);
+            intersection.material.emission = material.emission;
+        } else {
             intersection.material.emission = self.skybox.sample(&ray.direction);
         }
         intersection

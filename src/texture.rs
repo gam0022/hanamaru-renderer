@@ -2,6 +2,7 @@ extern crate image;
 
 use image::{DynamicImage, GenericImage};
 use std::path::Path;
+use std::fmt;
 
 use vector::Vector3;
 use color;
@@ -59,5 +60,11 @@ impl Texture {
         let x = clamp(x,0, self.image.width() - 1);
         let y = clamp(y, 0, self.image.height() - 1);
         color::rgba_to_vector3(self.image.get_pixel(x, y))
+    }
+}
+
+impl fmt::Debug for Texture {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Texture {{ width: {}, height: {} }}", self.image.width(), self.image.height())
     }
 }
