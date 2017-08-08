@@ -5,15 +5,11 @@ use std::path::Path;
 use std::fmt;
 
 use vector::{Vector3, Vector2};
-use color::Color;
-use color;
+use color::{Color, rgba_to_color};
+use math::clamp_u32;
 
 pub struct ImageTexture {
     pub image: DynamicImage,
-}
-
-fn clamp(x: u32, min: u32, max: u32) -> u32 {
-    if x < min { min } else if x > max { max } else { x }
 }
 
 impl ImageTexture {
@@ -58,9 +54,9 @@ impl ImageTexture {
     }
 
     fn sample_nearest_screen(&self, x: u32, y: u32) -> Vector3 {
-        let x = clamp(x,0, self.image.width() - 1);
-        let y = clamp(y, 0, self.image.height() - 1);
-        color::rgba_to_color(self.image.get_pixel(x, y))
+        let x = clamp_u32(x,0, self.image.width() - 1);
+        let y = clamp_u32(y, 0, self.image.height() - 1);
+        rgba_to_color(self.image.get_pixel(x, y))
     }
 }
 

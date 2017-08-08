@@ -13,14 +13,14 @@ use material::SurfaceType;
 use brdf;
 use random;
 use color;
-use color::Color;
+use color::{Color, color_to_rgb};
 
 pub trait Renderer: Sync {
     fn render_single_thread(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
             let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
-            *pixel = color::color_to_rgb(self.supersampling(scene, camera, &frag_coord, &resolution));
+            *pixel = color_to_rgb(self.supersampling(scene, camera, &frag_coord, &resolution));
         }
     }
 
@@ -32,7 +32,7 @@ pub trait Renderer: Sync {
             input.par_iter()
                 .map(|&x| {
                     let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
-                    color::color_to_rgb(self.supersampling(scene, camera, &frag_coord, &resolution))
+                    color_to_rgb(self.supersampling(scene, camera, &frag_coord, &resolution))
                 }).collect_into(&mut output);
             for (x, pixel) in output.iter().enumerate() {
                 imgbuf.put_pixel(x as u32, y, *pixel);
