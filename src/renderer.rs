@@ -77,7 +77,7 @@ impl Renderer for DebugRenderer {
             let (shadow_hit, shadow_intersection) = scene.intersect(&shadow_ray);
             let shadow = if shadow_hit { 0.5 } else { 1.0 };
 
-            if intersection.hit {
+            if hit {
                 match intersection.material.surface {
                     SurfaceType::Specular => {
                         ray.origin = intersection.position + intersection.normal * consts::OFFSET;
@@ -121,7 +121,7 @@ impl Renderer for PathTracingRenderer {
                 accumulation = accumulation + reflection * intersection.material.emission;
                 reflection = reflection * intersection.material.albedo;
 
-                if intersection.hit {
+                if hit {
                     match intersection.material.surface {
                         SurfaceType::Diffuse => {
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;

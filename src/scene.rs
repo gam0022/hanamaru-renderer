@@ -12,7 +12,6 @@ pub struct Ray {
 
 #[derive(Debug)]
 pub struct Intersection {
-    pub hit: bool,
     pub position: Vector3,
     pub distance: f64,
     pub normal: Vector3,
@@ -23,7 +22,6 @@ pub struct Intersection {
 impl Intersection {
     pub fn empty() -> Intersection {
         Intersection {
-            hit: false,
             position: Vector3::zero(),
             distance: consts::INF,
             normal: Vector3::zero(),
@@ -52,7 +50,6 @@ impl Intersectable for Sphere {
         let d = b * b - c;
         let t = -b - d.sqrt();
         if d > 0.0 && t > 0.0 && t < intersection.distance {
-            intersection.hit = true;
             intersection.position = ray.origin + ray.direction * t;
             intersection.distance = t;
             intersection.normal = (intersection.position - self.center).normalize();
@@ -79,7 +76,6 @@ impl Intersectable for Plane {
         let v = ray.direction.dot(&self.normal);
         let t = -(ray.origin.dot(&self.normal) + d) / v;
         if t > 0.0 && t < intersection.distance {
-            intersection.hit = true;
             intersection.position = ray.origin + ray.direction * t;
             intersection.normal = self.normal;
             intersection.distance = t;
