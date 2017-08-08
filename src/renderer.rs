@@ -68,14 +68,14 @@ impl Renderer for DebugRenderer {
         let mut reflection = Vector3::one();
 
         for bounce in 1..consts::DEBUG_BOUNCE_LIMIT {
-            let intersection = scene.intersect(&ray);
+            let (hit, mut intersection) = scene.intersect(&ray);
 
             let shadow_ray = Ray {
                 origin: intersection.position + intersection.normal * consts::OFFSET,
                 direction: light_direction,
             };
-            let shadow_intersection = scene.intersect(&shadow_ray);
-            let shadow = if shadow_intersection.hit { 0.5 } else { 1.0 };
+            let (shadow_hit, shadow_intersection) = scene.intersect(&shadow_ray);
+            let shadow = if shadow_hit { 0.5 } else { 1.0 };
 
             if intersection.hit {
                 match intersection.material.surface {
@@ -116,7 +116,7 @@ impl Renderer for PathTracingRenderer {
 
             for bounce in 1..consts::PATHTRACING_BOUNCE_LIMIT {
                 let random = random::get_random(&mut rng);
-                let mut intersection = scene.intersect(&ray);
+                let (hit, mut intersection) = scene.intersect(&ray);
 
                 accumulation = accumulation + reflection * intersection.material.emission;
                 reflection = reflection * intersection.material.albedo;

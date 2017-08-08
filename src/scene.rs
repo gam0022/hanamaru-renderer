@@ -224,23 +224,28 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn intersect(&self, ray: &Ray) -> Intersection {
+    pub fn intersect(&self, ray: &Ray) -> (bool, Intersection) {
         let mut intersection = Intersection::empty();
-        let mut element = &self.elements[0];
+        let mut nearest: Option<&Box<Intersectable>> = None;
+
         for e in &self.elements {
             if e.intersect(&ray, &mut intersection) {
-                element = &e;
+                nearest = Some(&e);
             }
         }
 
-        if intersection.hit {
-            let material: &Material = element.material();
-            intersection.material.surface = material.surface.clone();
-            intersection.material.albedo = material.albedo * material.albedo_texture.sample_bilinear(intersection.uv.x, intersection.uv.y);
-            intersection.material.emission = material.emission;
-        } else {
-            intersection.material.emission = self.skybox.sample(&ray.direction);
+        match nearest {
+            Some(element) => {
+                let material = element.material();
+                intersection.material.surface = material.surface.clone();
+                intersection.material.albedo = material.albedo * material.albedo_texture.sample_bilinear(intersection.uv.x, intersection.uv.y);
+                intersection.material.emission = material.emission;
+                (true, intersection)
+            },
+            None => {
+                intersection.material.emission = self.skybox.sample(&ray.direction);
+                (false, intersection)
+            }
         }
-        intersection
     }
 }
