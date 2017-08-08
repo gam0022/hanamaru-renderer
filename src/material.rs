@@ -1,5 +1,6 @@
 use vector::Vector3;
 use texture::Texture;
+use color::Color;
 
 #[derive(Clone, Debug)]
 pub enum SurfaceType {
@@ -13,24 +14,23 @@ pub enum SurfaceType {
 #[derive(Debug)]
 pub struct Material {
     pub surface: SurfaceType,
-    pub albedo: Vector3,
-    pub emission: Vector3,
-    pub albedo_texture: Texture,
+    pub albedo: Texture,
+    pub emission: Texture,
 }
 
 #[derive(Clone, Debug)]
 pub struct PointMaterial {
     pub surface: SurfaceType,
-    pub albedo: Vector3,
-    pub emission: Vector3,
+    pub albedo: Color,
+    pub emission: Color,
 }
 
 impl PointMaterial {
     pub fn new() -> PointMaterial {
         PointMaterial {
             surface: SurfaceType::Diffuse,
-            albedo: Vector3::one(),
-            emission: Vector3::zero(),
+            albedo: Color::one(),
+            emission: Color::zero(),
         }
     }
 }

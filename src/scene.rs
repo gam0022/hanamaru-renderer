@@ -1,7 +1,7 @@
 use consts;
 use vector::{Vector3, Vector2};
 use material::{Material, PointMaterial};
-use texture::Texture;
+use texture::ImageTexture;
 use math;
 
 #[derive(Clone, Debug)]
@@ -167,23 +167,23 @@ impl CameraBuilder {
 }
 
 pub struct Skybox {
-    pub px_texture: Texture,
-    pub nx_texture: Texture,
-    pub py_texture: Texture,
-    pub ny_texture: Texture,
-    pub pz_texture: Texture,
-    pub nz_texture: Texture,
+    pub px_texture: ImageTexture,
+    pub nx_texture: ImageTexture,
+    pub py_texture: ImageTexture,
+    pub ny_texture: ImageTexture,
+    pub pz_texture: ImageTexture,
+    pub nz_texture: ImageTexture,
 }
 
 impl Skybox {
     pub fn new(px_path: &str, nx_path: &str, py_path: &str, ny_path: &str, pz_path: &str, nz_path: &str) -> Skybox {
         Skybox {
-            px_texture: Texture::new(px_path),
-            nx_texture: Texture::new(nx_path),
-            py_texture: Texture::new(py_path),
-            ny_texture: Texture::new(ny_path),
-            pz_texture: Texture::new(pz_path),
-            nz_texture: Texture::new(nz_path),
+            px_texture: ImageTexture::new(px_path),
+            nx_texture: ImageTexture::new(nx_path),
+            py_texture: ImageTexture::new(py_path),
+            ny_texture: ImageTexture::new(ny_path),
+            pz_texture: ImageTexture::new(pz_path),
+            nz_texture: ImageTexture::new(nz_path),
         }
     }
 
@@ -234,8 +234,8 @@ impl Scene {
             Some(element) => {
                 let material = element.material();
                 intersection.material.surface = material.surface.clone();
-                intersection.material.albedo = material.albedo * material.albedo_texture.sample_bilinear(intersection.uv.x, intersection.uv.y);
-                intersection.material.emission = material.emission;
+                intersection.material.albedo = material.albedo.sample(intersection.uv);
+                intersection.material.emission = material.emission.sample(intersection.uv);
                 (true, intersection)
             },
             None => {
