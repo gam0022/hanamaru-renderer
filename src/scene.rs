@@ -230,18 +230,15 @@ impl Scene {
             }
         }
 
-        match nearest {
-            Some(element) => {
-                let material = element.material();
-                intersection.material.surface = material.surface.clone();
-                intersection.material.albedo = material.albedo.sample(intersection.uv);
-                intersection.material.emission = material.emission.sample(intersection.uv);
-                (true, intersection)
-            },
-            None => {
-                intersection.material.emission = self.skybox.sample(&ray.direction);
-                (false, intersection)
-            }
+        if let Some(element) = nearest {
+            let material = element.material();
+            intersection.material.surface = material.surface.clone();
+            intersection.material.albedo = material.albedo.sample(intersection.uv);
+            intersection.material.emission = material.emission.sample(intersection.uv);
+            (true, intersection)
+        } else {
+            intersection.material.emission = self.skybox.sample(&ray.direction);
+            (false, intersection)
         }
     }
 }
