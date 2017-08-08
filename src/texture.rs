@@ -2,21 +2,19 @@ extern crate image;
 
 use image::{DynamicImage, GenericImage};
 use std::path::Path;
+use std::fmt;
 
-use vector::Vector3;
-use color;
+use vector::{Vector3, Vector2};
+use color::{Color, rgba_to_color};
+use math::clamp_u32;
 
-pub struct Texture {
+pub struct ImageTexture {
     pub image: DynamicImage,
 }
 
-fn clamp(x: u32, min: u32, max: u32) -> u32 {
-    if x < min { min } else if x > max { max } else { x }
-}
-
-impl Texture {
-    pub fn new(path: &str) -> Texture {
-        Texture {
+impl ImageTexture {
+    pub fn new(path: &str) -> ImageTexture {
+        ImageTexture {
             image: image::open(&Path::new(path)).unwrap(),
         }
     }
@@ -56,8 +54,59 @@ impl Texture {
     }
 
     fn sample_nearest_screen(&self, x: u32, y: u32) -> Vector3 {
-        let x = clamp(x,0, self.image.width() - 1);
-        let y = clamp(y, 0, self.image.height() - 1);
-        color::rgba_to_vector3(self.image.get_pixel(x, y))
+        let x = clamp_u32(x,0, self.image.width() - 1);
+        let y = clamp_u32(y, 0, self.image.height() - 1);
+        rgba_to_color(self.image.get_pixel(x, y))
+    }
+}
+
+impl fmt::Debug for ImageTexture {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Texture {{ width: {}, height: {} }}", self.image.width(), self.image.height())
+    }
+}
+
+#[derive(Debug)]
+pub struct Texture {
+    pub image_texture: Option<ImageTexture>,
+    pub color: Color,
+}
+
+impl Texture {
+    pub fn new(path: &str, color: Color) -> Texture {
+        Texture {
+            image_texture: Some(ImageTexture::new(path)),
+            color: color,
+        }
+    }
+
+    pub fn from_path(path: &str) -> Texture {
+        Texture {
+            image_texture: Some(ImageTexture::new(path)),
+            color: Vector3::one(),
+        }
+    }
+
+    pub fn from_color(color: Color) -> Texture {
+        Texture {
+            image_texture: None,
+            color: color,
+        }
+    }
+
+    pub fn white() -> Texture {
+        Texture::from_color(Color::one())
+    }
+
+    pub fn black() -> Texture {
+        Texture::from_color(Color::zero())
+    }
+
+    pub fn sample(&self, uv: Vector2) -> Color {
+        if let Some(ref tex) = self.image_texture {
+            tex.sample_bilinear(uv.x, uv.y) * self.color
+        } else {
+            self.color
+        }
     }
 }

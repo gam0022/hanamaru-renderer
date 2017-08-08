@@ -1,4 +1,5 @@
-use vector::Vector3;
+use texture::Texture;
+use color::Color;
 
 #[derive(Clone, Debug)]
 pub enum SurfaceType {
@@ -9,19 +10,16 @@ pub enum SurfaceType {
     GGXReflection { roughness: f64, refractive_index: f64 },
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Material {
-    pub albedo: Vector3,
-    pub emission: Vector3,
     pub surface: SurfaceType,
+    pub albedo: Texture,
+    pub emission: Texture,
 }
 
-impl Material {
-    pub fn new() -> Material {
-        Material {
-            albedo: Vector3::from_one(1.0),
-            emission: Vector3::from_one(1.0),
-            surface: SurfaceType::Diffuse {}
-        }
-    }
+#[derive(Clone, Debug)]
+pub struct PointMaterial {
+    pub surface: SurfaceType,
+    pub albedo: Color,
+    pub emission: Color,
 }

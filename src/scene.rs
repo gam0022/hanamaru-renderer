@@ -1,7 +1,9 @@
 use consts;
 use vector::{Vector3, Vector2};
-use material::Material;
-use texture::Texture;
+use material::{Material, PointMaterial, SurfaceType};
+use texture::ImageTexture;
+use math;
+use color::Color;
 
 #[derive(Clone, Debug)]
 pub struct Ray {
@@ -11,27 +13,32 @@ pub struct Ray {
 
 #[derive(Debug)]
 pub struct Intersection {
-    pub hit: bool,
     pub position: Vector3,
     pub distance: f64,
     pub normal: Vector3,
-    pub material: Material,
+    pub uv: Vector2,
+    pub material: PointMaterial,
 }
 
 impl Intersection {
-    pub fn new() -> Intersection {
+    pub fn empty() -> Intersection {
         Intersection {
-            hit: false,
             position: Vector3::zero(),
             distance: consts::INF,
             normal: Vector3::zero(),
-            material: Material::new(),
+            uv: Vector2::zero(),
+            material: PointMaterial {
+                surface: SurfaceType::Diffuse,
+                albedo: Color::one(),
+                emission: Color::zero(),
+            },
         }
     }
 }
 
 pub trait Intersectable: Sync {
-    fn intersect(&self, ray: &Ray, intersection: &mut Intersection);
+    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool;
+    fn material(&self) -> &Material;
 }
 
 pub struct Sphere {
@@ -41,19 +48,24 @@ pub struct Sphere {
 }
 
 impl Intersectable for Sphere {
-    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) {
+    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
         let a : Vector3 = ray.origin - self.center;
         let b = a.dot(&ray.direction);
         let c = a.dot(&a) - self.radius * self.radius;
         let d = b * b - c;
         let t = -b - d.sqrt();
         if d > 0.0 && t > 0.0 && t < intersection.distance {
-            intersection.hit = true;
             intersection.position = ray.origin + ray.direction * t;
             intersection.distance = t;
             intersection.normal = (intersection.position - self.center).normalize();
-            intersection.material = self.material.clone();
+            true
+        } else {
+            false
         }
+    }
+
+    fn material(&self) -> &Material {
+        &self.material
     }
 }
 
@@ -64,17 +76,25 @@ pub struct Plane {
 }
 
 impl Intersectable for Plane {
-    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) {
+    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
         let d = -self.center.dot(&self.normal);
         let v = ray.direction.dot(&self.normal);
         let t = -(ray.origin.dot(&self.normal) + d) / v;
         if t > 0.0 && t < intersection.distance {
-            intersection.hit = true;
             intersection.position = ray.origin + ray.direction * t;
             intersection.normal = self.normal;
             intersection.distance = t;
-            intersection.material = self.material.clone();
+
+            // normalがY軸なことを前提にUVを計算
+            intersection.uv = Vector2::new(math::modulo(intersection.position.x, 1.0), math::modulo(intersection.position.z, 1.0));
+            true
+        } else {
+            false
         }
+    }
+
+    fn material(&self) -> &Material {
+        &self.material
     }
 }
 
@@ -101,7 +121,7 @@ impl Camera {
         }
     }
 
-    pub fn shoot_ray(&self, normalized_coord: &Vector2) -> Ray {
+    pub fn ray(&self, normalized_coord: &Vector2) -> Ray {
         Ray {
             origin: self.eye,
             direction: (normalized_coord.x * self.right + normalized_coord.y * self.up + self.zoom * self.forward).normalize(),
@@ -152,23 +172,23 @@ impl CameraBuilder {
 }
 
 pub struct Skybox {
-    pub px_texture: Texture,
-    pub nx_texture: Texture,
-    pub py_texture: Texture,
-    pub ny_texture: Texture,
-    pub pz_texture: Texture,
-    pub nz_texture: Texture,
+    pub px_texture: ImageTexture,
+    pub nx_texture: ImageTexture,
+    pub py_texture: ImageTexture,
+    pub ny_texture: ImageTexture,
+    pub pz_texture: ImageTexture,
+    pub nz_texture: ImageTexture,
 }
 
 impl Skybox {
     pub fn new(px_path: &str, nx_path: &str, py_path: &str, ny_path: &str, pz_path: &str, nz_path: &str) -> Skybox {
         Skybox {
-            px_texture: Texture::new(px_path),
-            nx_texture: Texture::new(nx_path),
-            py_texture: Texture::new(py_path),
-            ny_texture: Texture::new(ny_path),
-            pz_texture: Texture::new(pz_path),
-            nz_texture: Texture::new(nz_path),
+            px_texture: ImageTexture::new(px_path),
+            nx_texture: ImageTexture::new(nx_path),
+            py_texture: ImageTexture::new(py_path),
+            ny_texture: ImageTexture::new(ny_path),
+            pz_texture: ImageTexture::new(pz_path),
+            nz_texture: ImageTexture::new(nz_path),
         }
     }
 
@@ -205,14 +225,25 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn intersect(&self, ray: &Ray) -> Intersection {
-        let mut intersection = Intersection::new();
-        for element in &self.elements {
-            element.intersect(&ray, &mut intersection);
+    pub fn intersect(&self, ray: &Ray) -> (bool, Intersection) {
+        let mut intersection = Intersection::empty();
+        let mut nearest: Option<&Box<Intersectable>> = None;
+
+        for e in &self.elements {
+            if e.intersect(&ray, &mut intersection) {
+                nearest = Some(&e);
+            }
         }
-        if !intersection.hit {
+
+        if let Some(element) = nearest {
+            let material = element.material();
+            intersection.material.surface = material.surface.clone();
+            intersection.material.albedo = material.albedo.sample(intersection.uv);
+            intersection.material.emission = material.emission.sample(intersection.uv);
+            (true, intersection)
+        } else {
             intersection.material.emission = self.skybox.sample(&ray.direction);
+            (false, intersection)
         }
-        intersection
     }
 }
