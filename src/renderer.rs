@@ -13,6 +13,7 @@ use material::SurfaceType;
 use brdf;
 use random;
 use color;
+use color::Color;
 
 pub trait Renderer: Sync {
     fn render_single_thread(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
@@ -39,8 +40,8 @@ pub trait Renderer: Sync {
         }
     }
 
-    fn supersampling(&self, scene: &Scene, camera: &Camera, frag_coord: &Vector2, resolution: &Vector2) -> Vector3 {
-        let mut accumulation = Vector3::zero();
+    fn supersampling(&self, scene: &Scene, camera: &Camera, frag_coord: &Vector2, resolution: &Vector2) -> Color {
+        let mut accumulation = Color::zero();
 
         for sy in 0..consts::SUPERSAMPLING {
             for sx in 0..consts::SUPERSAMPLING {
@@ -54,21 +55,21 @@ pub trait Renderer: Sync {
         accumulation / (consts::SUPERSAMPLING * consts::SUPERSAMPLING) as f64
     }
 
-    fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Vector3;
+    fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Color;
 }
 
 pub struct DebugRenderer;
 impl Renderer for DebugRenderer {
     #[allow(unused_variables)]
-    fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Vector3 {
-        let mut ray = camera.shoot_ray(&normalized_coord);
+    fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Color {
+        let mut ray = camera.ray(&normalized_coord);
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
 
-        let mut accumulation = Vector3::zero();
-        let mut reflection = Vector3::one();
+        let mut accumulation = Color::zero();
+        let mut reflection = Color::one();
 
         for bounce in 1..consts::DEBUG_BOUNCE_LIMIT {
-            let (hit, mut intersection) = scene.intersect(&ray);
+            let (hit, intersection) = scene.intersect(&ray);
 
             let shadow_ray = Ray {
                 origin: intersection.position + intersection.normal * consts::OFFSET,
@@ -105,14 +106,14 @@ impl Renderer for DebugRenderer {
 }
 pub struct PathTracingRenderer;
 impl Renderer for PathTracingRenderer {
-    fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Vector3 {
-        let original_ray = camera.shoot_ray(&normalized_coord);
+    fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Color {
+        let original_ray = camera.ray(&normalized_coord);
         let mut all_accumulation = Vector3::zero();
         let mut rng = thread_rng();
         for sampling in 1..consts::PATHTRACING_SAMPLING {
             let mut ray = original_ray.clone();
-            let mut accumulation = Vector3::zero();
-            let mut reflection = Vector3::one();
+            let mut accumulation = Color::zero();
+            let mut reflection = Color::one();
 
             for bounce in 1..consts::PATHTRACING_BOUNCE_LIMIT {
                 let random = random::get_random(&mut rng);

@@ -1,8 +1,9 @@
 use consts;
 use vector::{Vector3, Vector2};
-use material::{Material, PointMaterial};
+use material::{Material, PointMaterial, SurfaceType};
 use texture::ImageTexture;
 use math;
+use color::Color;
 
 #[derive(Clone, Debug)]
 pub struct Ray {
@@ -26,7 +27,11 @@ impl Intersection {
             distance: consts::INF,
             normal: Vector3::zero(),
             uv: Vector2::zero(),
-            material: PointMaterial::new(),
+            material: PointMaterial {
+                surface: SurfaceType::Diffuse,
+                albedo: Color::one(),
+                emission: Color::zero(),
+            },
         }
     }
 }
@@ -116,7 +121,7 @@ impl Camera {
         }
     }
 
-    pub fn shoot_ray(&self, normalized_coord: &Vector2) -> Ray {
+    pub fn ray(&self, normalized_coord: &Vector2) -> Ray {
         Ray {
             origin: self.eye,
             direction: (normalized_coord.x * self.right + normalized_coord.y * self.up + self.zoom * self.forward).normalize(),

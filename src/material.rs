@@ -1,4 +1,3 @@
-use vector::Vector3;
 use texture::Texture;
 use color::Color;
 
@@ -23,14 +22,4 @@ pub struct PointMaterial {
     pub surface: SurfaceType,
     pub albedo: Color,
     pub emission: Color,
-}
-
-impl PointMaterial {
-    pub fn new() -> PointMaterial {
-        PointMaterial {
-            surface: SurfaceType::Diffuse,
-            albedo: Color::one(),
-            emission: Color::zero(),
-        }
-    }
 }
