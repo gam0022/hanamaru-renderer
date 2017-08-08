@@ -12,7 +12,6 @@ use scene::{Scene, Camera, Ray};
 use material::SurfaceType;
 use brdf;
 use random;
-use color;
 use color::{Color, color_to_rgb};
 
 pub trait Renderer: Sync {
