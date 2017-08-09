@@ -138,7 +138,7 @@ impl Renderer for PathTracingRenderer {
 
                             let v_dot_n = -ray.direction.dot(&intersection.normal);
                             ray.direction = ray.direction.reflect(&half);
-                            let l_dot_n = -ray.direction.dot(&intersection.normal);
+                            let l_dot_n = ray.direction.dot(&intersection.normal);
                             intersection.material.albedo = intersection.material.albedo * brdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
 
                             // 半球外が選ばれた場合はBRDFを0にする
