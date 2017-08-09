@@ -132,9 +132,14 @@ impl Renderer for PathTracingRenderer {
                             brdf::sample_refraction(random, &intersection.normal, refractive_index, &intersection, &mut ray);
                         },
                         SurfaceType::GGX { roughness } => {
+                            let alpha2 = brdf::roughness_to_alpha2(roughness);
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
-                            let half = brdf::importance_sample_ggx(random, &intersection.normal, roughness);
+                            let half = brdf::importance_sample_ggx(random, &intersection.normal, alpha2);
+
+                            let v_dot_n = -ray.direction.dot(&intersection.normal);
                             ray.direction = ray.direction.reflect(&half);
+                            let l_dot_n = -ray.direction.dot(&intersection.normal);
+                            intersection.material.albedo = intersection.material.albedo * brdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
 
                             // 半球外が選ばれた場合はBRDFを0にする
                             // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
@@ -143,7 +148,8 @@ impl Renderer for PathTracingRenderer {
                             }
                         },
                         SurfaceType::GGXReflection { refractive_index, roughness } => {
-                            let half = brdf::importance_sample_ggx(random, &intersection.normal, roughness);
+                            let alpha2 = brdf::roughness_to_alpha2(roughness);
+                            let half = brdf::importance_sample_ggx(random, &intersection.normal, alpha2);
                             brdf::sample_refraction(random, &half, refractive_index, &intersection, &mut ray);
                         },
                     }
