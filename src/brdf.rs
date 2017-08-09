@@ -60,7 +60,7 @@ pub fn importance_sample_ggx(random: (f64, f64), normal: &Vector3, alpha2: f64) 
 }
 
 fn g_smith_joint_sub(x_dot_n: f64, alpha2: f64) -> f64 {
-    0.5 * (-1.0 + (1.0 + alpha2 * ((x_dot_n * x_dot_n).recip() - 1.0)))
+    0.5 * (-1.0 + (1.0 + alpha2 * ((x_dot_n * x_dot_n).recip() - 1.0)).sqrt())
 }
 
 pub fn g_smith_joint(l_dot_n :f64, v_dot_n: f64, alpha2: f64) -> f64 {

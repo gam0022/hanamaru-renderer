@@ -13,6 +13,7 @@ use material::SurfaceType;
 use brdf;
 use random;
 use color::{Color, color_to_rgb};
+use math::saturate;
 
 pub trait Renderer: Sync {
     fn render_single_thread(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
@@ -133,13 +134,15 @@ impl Renderer for PathTracingRenderer {
                         },
                         SurfaceType::GGX { roughness } => {
                             let alpha2 = brdf::roughness_to_alpha2(roughness);
-                            ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                             let half = brdf::importance_sample_ggx(random, &intersection.normal, alpha2);
+                            let next_direction = ray.direction.reflect(&half);
 
-                            let v_dot_n = -ray.direction.dot(&intersection.normal);
-                            ray.direction = ray.direction.reflect(&half);
-                            let l_dot_n = ray.direction.dot(&intersection.normal);
+                            let v_dot_n = saturate(-ray.direction.dot(&intersection.normal));
+                            let l_dot_n = saturate(next_direction.dot(&intersection.normal));
                             intersection.material.albedo = intersection.material.albedo * brdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
+
+                            ray.origin = intersection.position + intersection.normal * consts::OFFSET;
+                            ray.direction = next_direction;
 
                             // 半球外が選ばれた場合はBRDFを0にする
                             // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
