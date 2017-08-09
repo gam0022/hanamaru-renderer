@@ -118,9 +118,6 @@ impl Renderer for PathTracingRenderer {
                 let random = random::get_random(&mut rng);
                 let (hit, mut intersection) = scene.intersect(&ray);
 
-                accumulation = accumulation + reflection * intersection.material.emission;
-                reflection = reflection * intersection.material.albedo;
-
                 if hit {
                     match intersection.material.surface {
                         SurfaceType::Diffuse => {
@@ -150,9 +147,12 @@ impl Renderer for PathTracingRenderer {
                             brdf::sample_refraction(random, &half, refractive_index, &intersection, &mut ray);
                         },
                     }
-                } else {
-                    break;
                 }
+
+                accumulation = accumulation + reflection * intersection.material.emission;
+                reflection = reflection * intersection.material.albedo;
+
+                if !hit { break; }
             }
             all_accumulation = all_accumulation + accumulation;
         }
