@@ -137,24 +137,25 @@ impl Renderer for PathTracingRenderer {
                             let half = brdf::importance_sample_ggx(random, &intersection.normal, alpha2);
                             let next_direction = ray.direction.reflect(&half);
 
-                            let v_dot_n = saturate(-(ray.direction.dot(&intersection.normal)));
-                            let l_dot_n = saturate(next_direction.dot(&intersection.normal));
-                            let v_dot_h = saturate(-(ray.direction.dot(&half)));
-                            let h_dot_n = saturate(half.dot(&intersection.normal));
+                            // 半球外が選ばれた場合はBRDFを0にする
+                            // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
+                            if intersection.normal.dot(&next_direction).is_sign_negative() {
+                                intersection.material.albedo = Vector3::zero();
+                            } else {
+                                let view = -ray.direction;
+                                let v_dot_n = saturate(view.dot(&intersection.normal));
+                                let l_dot_n = saturate(next_direction.dot(&intersection.normal));
+                                let v_dot_h = saturate(view.dot(&half));
+                                let h_dot_n = saturate(half.dot(&intersection.normal));
 
-                            let g = brdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
-                            let f = brdf::f_schlick(v_dot_h, 0.95);
-                            let weight = g * f * v_dot_h / (h_dot_n * v_dot_n);
-                            intersection.material.albedo = intersection.material.albedo * weight;
+                                let g = brdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
+                                let f = brdf::f_schlick(v_dot_h, 0.95);
+                                let weight = g * f * v_dot_h / (h_dot_n * v_dot_n);
+                                intersection.material.albedo = intersection.material.albedo * weight;
+                            }
 
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                             ray.direction = next_direction;
-
-                            // 半球外が選ばれた場合はBRDFを0にする
-                            // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
-                            if intersection.normal.dot(&ray.direction).is_sign_negative() {
-                                intersection.material.albedo = Vector3::zero();
-                            }
                         },
                         SurfaceType::GGXReflection { refractive_index, roughness } => {
                             let alpha2 = brdf::roughness_to_alpha2(roughness);
