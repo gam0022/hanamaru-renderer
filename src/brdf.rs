@@ -39,10 +39,9 @@ pub fn importance_sample_diffuse(random: (f64, f64), normal: &Vector3) -> Vector
     (tangent * phi.cos() + binormal * phi.sin()) * random.1.sqrt() + *normal * (1.0 - random.1).sqrt()
 }
 
-// alpha  = roughness^2
-// alpha2 = alpha^2
 pub fn roughness_to_alpha2(roughness: f64) -> f64 {
-    roughness * roughness * roughness * roughness
+    let alpha = roughness * roughness;
+    alpha * alpha
 }
 
 // Unreal Engine 4 で利用されている ImportanceSampleGGX を移植
@@ -59,14 +58,14 @@ pub fn importance_sample_ggx(random: (f64, f64), normal: &Vector3, alpha2: f64) 
     tangent * h.x + binormal * h.y + *normal * h.z
 }
 
-fn g_smith_joint_sub(x_dot_n: f64, alpha2: f64) -> f64 {
+fn g_smith_joint_lambda(x_dot_n: f64, alpha2: f64) -> f64 {
     let a = (x_dot_n * x_dot_n).recip() - 1.0;
     0.5 * (1.0 + alpha2 * a).sqrt() - 0.5
 }
 
 pub fn g_smith_joint(l_dot_n :f64, v_dot_n: f64, alpha2: f64) -> f64 {
-    let lambda_l = g_smith_joint_sub(l_dot_n, alpha2);
-    let lambda_v = g_smith_joint_sub(v_dot_n, alpha2);
+    let lambda_l = g_smith_joint_lambda(l_dot_n, alpha2);
+    let lambda_v = g_smith_joint_lambda(v_dot_n, alpha2);
     (1.0 + lambda_l + lambda_v).recip()
 }
 
