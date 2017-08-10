@@ -137,9 +137,15 @@ impl Renderer for PathTracingRenderer {
                             let half = brdf::importance_sample_ggx(random, &intersection.normal, alpha2);
                             let next_direction = ray.direction.reflect(&half);
 
-                            let v_dot_n = saturate(-ray.direction.dot(&intersection.normal));
+                            let v_dot_n = saturate(-(ray.direction.dot(&intersection.normal)));
                             let l_dot_n = saturate(next_direction.dot(&intersection.normal));
-                            intersection.material.albedo = intersection.material.albedo * brdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
+                            let v_dot_h = saturate(-(ray.direction.dot(&half)));
+                            let h_dot_n = saturate(half.dot(&intersection.normal));
+
+                            let g = brdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
+                            let f = brdf::f_schlick(v_dot_h, 0.95);
+                            let weight = g * f * v_dot_h / (h_dot_n * v_dot_n);
+                            intersection.material.albedo = intersection.material.albedo * weight;
 
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                             ray.direction = next_direction;
