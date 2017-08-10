@@ -60,11 +60,14 @@ pub fn importance_sample_ggx(random: (f64, f64), normal: &Vector3, alpha2: f64) 
 }
 
 fn g_smith_joint_sub(x_dot_n: f64, alpha2: f64) -> f64 {
-    0.5 * (-1.0 + (1.0 + alpha2 * ((x_dot_n * x_dot_n).recip() - 1.0)).sqrt())
+    let a = (x_dot_n * x_dot_n).recip() - 1.0;
+    0.5 * (1.0 + alpha2 * a).sqrt() - 0.5
 }
 
 pub fn g_smith_joint(l_dot_n :f64, v_dot_n: f64, alpha2: f64) -> f64 {
-    (1.0 + g_smith_joint_sub(l_dot_n, alpha2) + g_smith_joint_sub(v_dot_n, alpha2)).recip()
+    let lambda_l = g_smith_joint_sub(l_dot_n, alpha2);
+    let lambda_v = g_smith_joint_sub(v_dot_n, alpha2);
+    (1.0 + lambda_l + lambda_v).recip()
 }
 
 pub fn sample_refraction(random: (f64, f64), normal: &Vector3, refractive_index: f64, intersection: &Intersection, ray: &mut Ray) {
