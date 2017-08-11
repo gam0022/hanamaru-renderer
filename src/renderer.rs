@@ -12,7 +12,7 @@ use scene::{Scene, Camera, Ray};
 use material::SurfaceType;
 use brdf;
 use random;
-use color::{Color, color_to_rgb};
+use color::{Color, color_to_rgb, linear_to_gamma};
 use math::saturate;
 
 pub trait Renderer: Sync {
@@ -20,7 +20,9 @@ pub trait Renderer: Sync {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
             let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
-            *pixel = color_to_rgb(self.supersampling(scene, camera, &frag_coord, &resolution));
+            let liner = self.supersampling(scene, camera, &frag_coord, &resolution);
+            let gamma = linear_to_gamma(liner);
+            *pixel = color_to_rgb(gamma);
         }
     }
 
@@ -32,7 +34,9 @@ pub trait Renderer: Sync {
             input.par_iter()
                 .map(|&x| {
                     let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
-                    color_to_rgb(self.supersampling(scene, camera, &frag_coord, &resolution))
+                    let liner = self.supersampling(scene, camera, &frag_coord, &resolution);
+                    let gamma = linear_to_gamma(liner);
+                    color_to_rgb(gamma)
                 }).collect_into(&mut output);
             for (x, pixel) in output.iter().enumerate() {
                 imgbuf.put_pixel(x as u32, y, *pixel);
