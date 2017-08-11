@@ -5,7 +5,7 @@ use std::path::Path;
 use std::fmt;
 
 use vector::{Vector3, Vector2};
-use color::{Color, rgba_to_color};
+use color::{Color, rgba_to_color, gamma_to_linear};
 use math::clamp_u32;
 
 pub struct ImageTexture {
@@ -39,18 +39,20 @@ impl ImageTexture {
         let p21 = self.sample_nearest_screen(x2 as u32, y1 as u32);
         let p22 = self.sample_nearest_screen(x2 as u32, y2 as u32);
 
-        (
+        let gamma = (
             p11 * (x2 - x) * (y2 - y) +
             p21 * (x - x1) * (y2 - y) +
             p12 * (x2 - x) * (y - y1) +
             p22 * (x - x1) * (y - y1)
-        ) / ((x2- x1) * (y2 - y1))
+        ) / ((x2- x1) * (y2 - y1));
+        gamma_to_linear(gamma)
     }
 
     pub fn sample_nearest(&self, u: f64, v: f64) -> Vector3 {
         let x = u * self.image.width() as f64;
         let y = v * self.image.height() as f64;
-        self.sample_nearest_screen(x as u32, y as u32)
+        let gamma = self.sample_nearest_screen(x as u32, y as u32);
+        gamma_to_linear(gamma)
     }
 
     fn sample_nearest_screen(&self, x: u32, y: u32) -> Vector3 {
