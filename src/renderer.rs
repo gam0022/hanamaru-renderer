@@ -13,6 +13,7 @@ use material::SurfaceType;
 use brdf;
 use random;
 use color::{Color, color_to_rgb};
+use math::saturate;
 
 pub trait Renderer: Sync {
     fn render_single_thread(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
@@ -118,9 +119,6 @@ impl Renderer for PathTracingRenderer {
                 let random = random::get_random(&mut rng);
                 let (hit, mut intersection) = scene.intersect(&ray);
 
-                accumulation = accumulation + reflection * intersection.material.emission;
-                reflection = reflection * intersection.material.albedo;
-
                 if hit {
                     match intersection.material.surface {
                         SurfaceType::Diffuse => {
@@ -135,24 +133,42 @@ impl Renderer for PathTracingRenderer {
                             brdf::sample_refraction(random, &intersection.normal, refractive_index, &intersection, &mut ray);
                         },
                         SurfaceType::GGX { roughness } => {
-                            ray.origin = intersection.position + intersection.normal * consts::OFFSET;
-                            let half = brdf::importance_sample_ggx(random, &intersection.normal, roughness);
-                            ray.direction = ray.direction.reflect(&half);
+                            let alpha2 = brdf::roughness_to_alpha2(roughness);
+                            let half = brdf::importance_sample_ggx(random, &intersection.normal, alpha2);
+                            let next_direction = ray.direction.reflect(&half);
 
                             // 半球外が選ばれた場合はBRDFを0にする
                             // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
-                            if intersection.normal.dot(&ray.direction).is_sign_negative() {
-                                intersection.material.albedo = Vector3::zero();
+                            if intersection.normal.dot(&next_direction).is_sign_negative() {
+                                break;
+                            } else {
+                                let view = -ray.direction;
+                                let v_dot_n = saturate(view.dot(&intersection.normal));
+                                let l_dot_n = saturate(next_direction.dot(&intersection.normal));
+                                let v_dot_h = saturate(view.dot(&half));
+                                let h_dot_n = saturate(half.dot(&intersection.normal));
+
+                                let g = brdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
+                                let f = brdf::f_schlick(v_dot_h, 0.95);
+                                let weight = g * f * v_dot_h / (h_dot_n * v_dot_n);
+                                intersection.material.albedo = intersection.material.albedo * weight;
                             }
+
+                            ray.origin = intersection.position + intersection.normal * consts::OFFSET;
+                            ray.direction = next_direction;
                         },
                         SurfaceType::GGXReflection { refractive_index, roughness } => {
-                            let half = brdf::importance_sample_ggx(random, &intersection.normal, roughness);
+                            let alpha2 = brdf::roughness_to_alpha2(roughness);
+                            let half = brdf::importance_sample_ggx(random, &intersection.normal, alpha2);
                             brdf::sample_refraction(random, &half, refractive_index, &intersection, &mut ray);
                         },
                     }
-                } else {
-                    break;
                 }
+
+                accumulation = accumulation + reflection * intersection.material.emission;
+                reflection = reflection * intersection.material.albedo;
+
+                if !hit { break; }
             }
             all_accumulation = all_accumulation + accumulation;
         }

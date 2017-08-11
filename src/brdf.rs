@@ -39,19 +39,38 @@ pub fn importance_sample_diffuse(random: (f64, f64), normal: &Vector3) -> Vector
     (tangent * phi.cos() + binormal * phi.sin()) * random.1.sqrt() + *normal * (1.0 - random.1).sqrt()
 }
 
+pub fn roughness_to_alpha2(roughness: f64) -> f64 {
+    let alpha = roughness * roughness;
+    alpha * alpha
+}
+
 // Unreal Engine 4 で利用されている ImportanceSampleGGX を移植
 // cos項による重点サンプリングのためのハーフベクトルを計算
 // http://project-asura.com/blog/?p=3124
-pub fn importance_sample_ggx(random: (f64, f64), normal: &Vector3, roughness: f64) -> Vector3 {
+pub fn importance_sample_ggx(random: (f64, f64), normal: &Vector3, alpha2: f64) -> Vector3 {
     let (tangent, binormal) = get_tangent_space_basis(normal);
 
-    let a = roughness * roughness;
     let phi = consts::PI2 * random.0;
-    let cos_theta = ((1.0 - random.1) / (1.0 + (a * a - 1.0) * random.1)).sqrt();
+    let cos_theta = ((1.0 - random.1) / (1.0 + (alpha2 - 1.0) * random.1)).sqrt();
     let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
 
     let h = Vector3::new(sin_theta * phi.cos(), sin_theta * phi.sin(), cos_theta);
     tangent * h.x + binormal * h.y + *normal * h.z
+}
+
+fn g_smith_joint_lambda(x_dot_n: f64, alpha2: f64) -> f64 {
+    let a = (x_dot_n * x_dot_n).recip() - 1.0;
+    0.5 * (1.0 + alpha2 * a).sqrt() - 0.5
+}
+
+pub fn g_smith_joint(l_dot_n :f64, v_dot_n: f64, alpha2: f64) -> f64 {
+    let lambda_l = g_smith_joint_lambda(l_dot_n, alpha2);
+    let lambda_v = g_smith_joint_lambda(v_dot_n, alpha2);
+    (1.0 + lambda_l + lambda_v).recip()
+}
+
+pub fn f_schlick(v_dot_h: f64, f0: f64) -> f64 {
+    f0 + (1.0 - f0) * (1.0 - v_dot_h).powi(5)
 }
 
 pub fn sample_refraction(random: (f64, f64), normal: &Vector3, refractive_index: f64, intersection: &Intersection, ray: &mut Ray) {
