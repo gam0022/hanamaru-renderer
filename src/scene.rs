@@ -58,6 +58,12 @@ impl Intersectable for Sphere {
             intersection.position = ray.origin + ray.direction * t;
             intersection.distance = t;
             intersection.normal = (intersection.position - self.center).normalize();
+
+            intersection.uv.y = intersection.normal.y.acos() / consts::PI;
+            intersection.uv.x = 0.5
+                - intersection.normal.z.signum()
+                * (intersection.normal.x / Vector2::new(intersection.normal.x, intersection.normal.z).length()).acos()
+                / consts::PI2;
             true
         } else {
             false
