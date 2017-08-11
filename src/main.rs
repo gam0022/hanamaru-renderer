@@ -16,7 +16,7 @@ mod texture;
 mod math;
 
 use vector::Vector3;
-use scene::{Scene, CameraBuilder, Sphere, Plane, Skybox};
+use scene::{Scene, CameraBuilder, Sphere, Plane, AxisAlignedBoundingBox, Skybox};
 use material::{Material, SurfaceType};
 use texture::Texture;
 use renderer::{Renderer, DebugRenderer, PathTracingRenderer};
@@ -61,9 +61,14 @@ fn render() {
                 albedo: Texture::from_color(Color::new(1.0, 0.5, 1.0)),
                 emission: Texture::black(),
             }}),
-            Box::new(Plane{ center: Vector3::new(0.0, 0.0, 0.0), normal: Vector3::new(0.0, 1.0, 0.0), material: Material {
+            //Box::new(Plane{ center: Vector3::new(0.0, 0.0, 0.0), normal: Vector3::new(0.0, 1.0, 0.0), material: Material {
+            //    surface: SurfaceType::Diffuse {},
+            //    albedo: Texture::from_path("textures/2d/diamond_512.png"),
+            //    emission: Texture::black(),
+            //}}),
+            Box::new(AxisAlignedBoundingBox{ left_bottom: Vector3::new(-5.0, -1.0, -5.0), right_top: Vector3::new(5.0, 0.0, 5.0), material: Material {
                 surface: SurfaceType::Diffuse {},
-                albedo: Texture::from_path("textures/2d/diamond_512.png"),
+                albedo: Texture::from_path("textures/2d/checkered_512.jpg"),
                 emission: Texture::black(),
             }}),
         ],
