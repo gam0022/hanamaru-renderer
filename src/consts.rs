@@ -1,5 +1,7 @@
-pub const PI: f64 = 3.14159265359;
-pub const PI2: f64 = 6.28318530718;
+use std::f64;
+
+pub const PI: f64 = f64::consts::PI;
+pub const PI2: f64 = 2.0 * PI;
 
 pub const EPS: f64 = 1e-4;
 pub const OFFSET: f64 = 1e-2;

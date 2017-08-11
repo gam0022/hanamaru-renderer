@@ -66,6 +66,19 @@ impl Vector3 {
             refractive_index * *self - (refractive_index * self.dot(normal) + k.sqrt()) * *normal
         }
     }
+
+    pub fn xy(&self) -> Vector2 {
+        Vector2::new(self.x, self.y)
+    }
+
+
+    pub fn zy(&self) -> Vector2 {
+        Vector2::new(self.z, self.y)
+    }
+
+    pub fn xz(&self) -> Vector2 {
+        Vector2::new(self.x, self.z)
+    }
 }
 
 impl Add for Vector3 {

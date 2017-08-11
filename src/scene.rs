@@ -2,7 +2,7 @@ use consts;
 use vector::{Vector3, Vector2};
 use material::{Material, PointMaterial, SurfaceType};
 use texture::ImageTexture;
-use math;
+use math::{equals_eps, modulo};
 use color::Color;
 
 #[derive(Clone, Debug)]
@@ -49,7 +49,7 @@ pub struct Sphere {
 
 impl Intersectable for Sphere {
     fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
-        let a : Vector3 = ray.origin - self.center;
+        let a: Vector3 = ray.origin - self.center;
         let b = a.dot(&ray.direction);
         let c = a.dot(&a) - self.radius * self.radius;
         let d = b * b - c;
@@ -58,15 +58,19 @@ impl Intersectable for Sphere {
             intersection.position = ray.origin + ray.direction * t;
             intersection.distance = t;
             intersection.normal = (intersection.position - self.center).normalize();
+
+            intersection.uv.y = intersection.normal.y.acos() / consts::PI;
+            intersection.uv.x = 0.5
+                - intersection.normal.z.signum()
+                * (intersection.normal.x / intersection.normal.xz().length()).acos()
+                / consts::PI2;
             true
         } else {
             false
         }
     }
 
-    fn material(&self) -> &Material {
-        &self.material
-    }
+    fn material(&self) -> &Material { &self.material }
 }
 
 pub struct Plane {
@@ -86,25 +90,80 @@ impl Intersectable for Plane {
             intersection.distance = t;
 
             // normalがY軸なことを前提にUVを計算
-            intersection.uv = Vector2::new(math::modulo(intersection.position.x, 1.0), math::modulo(intersection.position.z, 1.0));
+            intersection.uv = Vector2::new(modulo(intersection.position.x, 1.0), modulo(intersection.position.z, 1.0));
             true
         } else {
             false
         }
     }
 
-    fn material(&self) -> &Material {
-        &self.material
+    fn material(&self) -> &Material { &self.material }
+}
+
+pub struct AxisAlignedBoundingBox {
+    pub left_bottom: Vector3,
+    pub right_top: Vector3,
+    pub material: Material,
+}
+
+impl Intersectable for AxisAlignedBoundingBox {
+    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
+        let dir_inv = Vector3::new(
+            ray.direction.x.recip(),
+            ray.direction.y.recip(),
+            ray.direction.z.recip(),
+        );
+
+        let t1 = (self.left_bottom.x - ray.origin.x) * dir_inv.x;
+        let t2 = (self.right_top.x - ray.origin.x) * dir_inv.x;
+        let t3 = (self.left_bottom.y - ray.origin.y) * dir_inv.y;
+        let t4 = (self.right_top.y - ray.origin.y) * dir_inv.y;
+        let t5 = (self.left_bottom.z - ray.origin.z) * dir_inv.z;
+        let t6 = (self.right_top.z - ray.origin.z) * dir_inv.z;
+        let tmin = (t1.min(t2).max(t3.min(t4))).max(t5.min(t6));
+        let tmax = (t1.max(t2).min(t3.max(t4))).min(t5.max(t6));
+
+        if tmin <= tmax && 0.0 <= tmin && tmin < intersection.distance {
+            intersection.position = ray.origin + ray.direction * tmin;
+            intersection.distance = tmin;
+            let uvw = (intersection.position - self.left_bottom) / (self.right_top - self.left_bottom);
+            // 交点座標から法線を求める
+            // 高速化のためにY軸から先に判定する
+            if equals_eps(intersection.position.y, self.right_top.y) {
+                intersection.normal = Vector3::new(0.0, 1.0, 0.0);
+                intersection.uv = uvw.xz();
+            } else if equals_eps(intersection.position.y, self.left_bottom.y) {
+                intersection.normal = Vector3::new(0.0, -1.0, 0.0);
+                intersection.uv = uvw.xz();
+            } else if equals_eps(intersection.position.x, self.left_bottom.x) {
+                intersection.normal = Vector3::new(-1.0, 0.0, 0.0);
+                intersection.uv = uvw.zy();
+            } else if equals_eps(intersection.position.x, self.right_top.x) {
+                intersection.normal = Vector3::new(1.0, 0.0, 0.0);
+                intersection.uv = uvw.zy();
+            } else if equals_eps(intersection.position.z, self.left_bottom.z) {
+                intersection.normal = Vector3::new(0.0, 0.0, -1.0);
+                intersection.uv = uvw.xy();
+            } else if equals_eps(intersection.position.z, self.right_top.z) {
+                intersection.normal = Vector3::new(0.0, 0.0, 1.0);
+                intersection.uv = uvw.xy();
+            }
+            true
+        } else {
+            false
+        }
     }
+
+    fn material(&self) -> &Material { &self.material }
 }
 
 #[derive(Debug)]
 pub struct Camera {
-    pub eye : Vector3,
-    pub forward : Vector3,
-    pub right : Vector3,
-    pub up : Vector3,
-    pub zoom : f64,
+    pub eye: Vector3,
+    pub forward: Vector3,
+    pub right: Vector3,
+    pub up: Vector3,
+    pub zoom: f64,
 }
 
 impl Camera {
