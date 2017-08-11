@@ -38,7 +38,7 @@ fn render() {
         elements: vec![
             Box::new(Sphere{ center: Vector3::new(0.0, 1.0, 0.0), radius: 1.0, material: Material {
                 surface: SurfaceType::GGX { roughness: 0.2 },
-                albedo: Texture::from_color(Color::new(1.0, 0.5, 0.5)),
+                albedo: Texture::from_color(Color::new(1.0, 0.1, 0.1)),
                 emission: Texture::black(),
             }}),
             Box::new(Sphere{ center: Vector3::new(2.0, 0.5, -1.0), radius: 0.5, material: Material {
@@ -47,7 +47,7 @@ fn render() {
                 emission: Texture::black(),
             }}),
             Box::new(Sphere{ center: Vector3::new(-3.0, 1.5, -1.0), radius: 1.5, material: Material {
-                surface: SurfaceType::Specular {},
+                surface: SurfaceType::GGX { roughness: 0.0 },
                 albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
                 emission: Texture::black(),
             }}),
