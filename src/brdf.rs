@@ -1,6 +1,7 @@
 use consts;
 use vector::Vector3;
 use scene::{Intersection, Ray};
+use color::Color;
 
 // 法線を基準とした空間の基底ベクトルを計算
 fn get_tangent_space_basis(normal: &Vector3) -> (Vector3, Vector3) {
@@ -69,8 +70,16 @@ pub fn g_smith_joint(l_dot_n :f64, v_dot_n: f64, alpha2: f64) -> f64 {
     (1.0 + lambda_l + lambda_v).recip()
 }
 
-pub fn f_schlick(v_dot_h: f64, f0: f64) -> f64 {
+fn f_schlick_f64(v_dot_h: f64, f0: f64) -> f64 {
     f0 + (1.0 - f0) * (1.0 - v_dot_h).powi(5)
+}
+
+pub fn f_schlick(v_dot_h: f64, f0: &Color) -> Color {
+    Color::new(
+        f_schlick_f64(v_dot_h,f0.x),
+        f_schlick_f64(v_dot_h,f0.y),
+        f_schlick_f64(v_dot_h,f0.z),
+    )
 }
 
 pub fn sample_refraction(random: (f64, f64), normal: &Vector3, refractive_index: f64, intersection: &Intersection, ray: &mut Ray) {

@@ -87,13 +87,13 @@ impl Renderer for DebugRenderer {
                     SurfaceType::Specular => {
                         ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                         ray.direction = ray.direction.reflect(&intersection.normal);
-                        reflection = reflection * intersection.material.albedo;
+                        reflection *= intersection.material.albedo;
                     },
                     // 鏡面以外は拡散面として処理する
                     _ => {
                         let diffuse = intersection.normal.dot(&light_direction).max(0.0);
                         let color = intersection.material.emission + intersection.material.albedo * diffuse * shadow;
-                        reflection = reflection * color;
+                        reflection += color;
                         accumulation += reflection;
                         break;
                     },
@@ -153,9 +153,10 @@ impl Renderer for PathTracingRenderer {
                                 let h_dot_n = saturate(half.dot(&intersection.normal));
 
                                 let g = brdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
-                                let f = brdf::f_schlick(v_dot_h, 0.95);
+                                // albedoをフレネル反射率のパラメータのF0として扱う
+                                let f = brdf::f_schlick(v_dot_h, &intersection.material.albedo);
                                 let weight = g * f * v_dot_h / (h_dot_n * v_dot_n);
-                                intersection.material.albedo = intersection.material.albedo * weight;
+                                intersection.material.albedo *= weight;
                             }
 
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
@@ -170,7 +171,7 @@ impl Renderer for PathTracingRenderer {
                 }
 
                 accumulation += reflection * intersection.material.emission;
-                reflection = reflection * intersection.material.albedo;
+                reflection *= intersection.material.albedo;
 
                 if !hit { break; }
             }

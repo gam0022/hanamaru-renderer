@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub, Mul, Div, Neg, AddAssign};
+use std::ops::{Add, Sub, Mul, Div, Neg, AddAssign, MulAssign};
 use std::cmp::PartialEq;
 
 #[derive(Copy, Clone, Debug)]
@@ -196,6 +196,14 @@ impl AddAssign for Vector3 {
         self.x += other.x;
         self.y += other.y;
         self.z += other.z;
+    }
+}
+
+impl MulAssign for Vector3 {
+    fn mul_assign(&mut self, other: Vector3) {
+        self.x *= other.x;
+        self.y *= other.y;
+        self.z *= other.z;
     }
 }
 
