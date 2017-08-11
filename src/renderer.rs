@@ -52,7 +52,7 @@ pub trait Renderer: Sync {
                 let offset = Vector2::new(sx as f64, sy as f64) / consts::SUPERSAMPLING as f64 - 0.5;
                 let normalized_coord = ((*frag_coord + offset) * 2.0 - *resolution) / resolution.x.min(resolution.y);
                 let color = self.calc_pixel(&scene, &camera, &normalized_coord);
-                accumulation = accumulation + color;
+                accumulation += color;
             }
         }
 
@@ -94,13 +94,13 @@ impl Renderer for DebugRenderer {
                         let diffuse = intersection.normal.dot(&light_direction).max(0.0);
                         let color = intersection.material.emission + intersection.material.albedo * diffuse * shadow;
                         reflection = reflection * color;
-                        accumulation = accumulation + reflection;
+                        accumulation += reflection;
                         break;
                     },
                 }
             } else {
                 reflection = reflection * intersection.material.emission;
-                accumulation = accumulation + reflection;
+                accumulation += reflection;
                 break;
             }
         }
@@ -169,12 +169,12 @@ impl Renderer for PathTracingRenderer {
                     }
                 }
 
-                accumulation = accumulation + reflection * intersection.material.emission;
+                accumulation += reflection * intersection.material.emission;
                 reflection = reflection * intersection.material.albedo;
 
                 if !hit { break; }
             }
-            all_accumulation = all_accumulation + accumulation;
+            all_accumulation += accumulation;
         }
 
         all_accumulation / consts::PATHTRACING_SAMPLING as f64

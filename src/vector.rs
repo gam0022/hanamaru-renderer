@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub, Mul, Div, Neg};
+use std::ops::{Add, Sub, Mul, Div, Neg, AddAssign};
 use std::cmp::PartialEq;
 
 #[derive(Copy, Clone, Debug)]
@@ -188,6 +188,14 @@ impl Neg for Vector3 {
 impl PartialEq for Vector3 {
     fn eq(&self, other: &Vector3) -> bool {
         self.x == other.x && self.y == other.y && self.z == other.z
+    }
+}
+
+impl AddAssign for Vector3 {
+    fn add_assign(&mut self, other: Vector3) {
+        self.x += other.x;
+        self.y += other.y;
+        self.z += other.z;
     }
 }
 
