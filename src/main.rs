@@ -17,7 +17,7 @@ mod texture;
 mod math;
 
 use vector::Vector3;
-use scene::{Scene, CameraBuilder, Sphere, Plane, AxisAlignedBoundingBox, Polygon, Skybox};
+use scene::{Scene, CameraBuilder, Sphere, Plane, AxisAlignedBoundingBox, Polygon, Mesh, Face, Skybox};
 use material::{Material, SurfaceType};
 use texture::Texture;
 use renderer::{Renderer, DebugRenderer, PathTracingRenderer};
@@ -103,6 +103,22 @@ fn render() {
                 material: Material {
                     surface: SurfaceType::GGXReflection { roughness: 0.2, refractive_index: 1.2 },
                     albedo: Texture::from_path("textures/2d/checkered_512.jpg"),
+                    emission: Texture::black(),
+                }
+            }),
+            Box::new(Mesh {
+                vertexes: vec![
+                    Vector3::new(-1.0 + 2.0, 1.5, 4.0),
+                    Vector3::new(1.0 + 2.0, 1.5, 4.0),
+                    Vector3::new(0.0 + 2.0, 1.5 + 2.0 * 0.86602540378, 4.0),
+                    Vector3::new(-1.0 - 2.0, 1.5, 4.0),
+                    Vector3::new(1.0 - 2.0, 1.5, 4.0),
+                    Vector3::new(0.0 - 2.0, 1.5 + 2.0 * 0.86602540378, 4.0)
+                ],
+                faces: vec![Face { v0: 0, v1: 1, v2: 2 }, Face { v0: 3, v1: 4, v2: 5 }],
+                material: Material {
+                    surface: SurfaceType::GGXReflection { roughness: 0.2, refractive_index: 1.2 },
+                    albedo: Texture::new("textures/2d/checkered_512.jpg", Color::new(1.0, 0.2, 0.2)),
                     emission: Texture::black(),
                 }
             }),

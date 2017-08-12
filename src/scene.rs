@@ -164,31 +164,61 @@ pub struct Polygon {
     pub material: Material,
 }
 
+fn intersect_polygon(v0: &Vector3, v1: &Vector3, v2: &Vector3, ray: &Ray, intersection: &mut Intersection) -> bool {
+    let ray_inv = -ray.direction;
+    let edge1 = *v1 - *v0;
+    let edge2 = *v2 - *v0;
+    let denominator = det(&edge1, &edge2, &ray_inv);
+    if denominator == 0.0 { return false; }
+
+    let denominator_inv = denominator.recip();
+    let d = ray.origin - *v0;
+
+    let u = det(&d, &edge2, &ray_inv) * denominator_inv;
+    if u < 0.0 || u > 1.0 { return false; }
+
+    let v = det(&edge1, &d, &ray_inv) * denominator_inv;
+    if v < 0.0 || u + v > 1.0 { return false; };
+
+    let t = det(&edge1, &edge2, &d) * denominator_inv;
+    if t < 0.0 || t > intersection.distance { return false; }
+
+    intersection.position = ray.origin + ray.direction * t;
+    intersection.normal = edge1.cross(&edge2).normalize() * denominator_inv.signum();
+    intersection.distance = t;
+    intersection.uv = Vector2::new(u, v);
+    true
+}
+
 impl Intersectable for Polygon {
     fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
-        let ray_inv = -ray.direction;
-        let edge1 = self.v1 - self.v0;
-        let edge2 = self.v2 - self.v0;
-        let denominator = det(&edge1, &edge2, &ray_inv);
-        if denominator == 0.0 { return false; }
+        intersect_polygon(&self.v0, &self.v1, &self.v2, ray, intersection)
+    }
 
-        let denominator_inv = denominator.recip();
-        let d = ray.origin - self.v0;
+    fn material(&self) -> &Material { &self.material }
+}
 
-        let u = det(&d, &edge2, &ray_inv) * denominator_inv;
-        if u < 0.0 || u > 1.0 { return false; }
+pub struct Face {
+    pub v0: usize,
+    pub v1: usize,
+    pub v2: usize,
+}
 
-        let v = det(&edge1, &d, &ray_inv) * denominator_inv;
-        if v < 0.0 || u + v > 1.0 { return false; };
+pub struct Mesh {
+    pub vertexes: Vec<Vector3>,
+    pub faces: Vec<Face>,
+    pub material: Material,
+}
 
-        let t = det(&edge1, &edge2, &d) * denominator_inv;
-        if t < 0.0 || t > intersection.distance { return false; }
-
-        intersection.position = ray.origin + ray.direction * t;
-        intersection.normal = edge1.cross(&edge2).normalize() * denominator_inv.signum();
-        intersection.distance = t;
-        intersection.uv = Vector2::new(u, v);
-        true
+impl Intersectable for Mesh {
+    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
+        let mut any_hit = false;
+        for face in &self.faces {
+            if intersect_polygon(&self.vertexes[face.v0], &self.vertexes[face.v1], &self.vertexes[face.v2], ray, intersection) {
+                any_hit = true;
+            }
+        }
+        any_hit
     }
 
     fn material(&self) -> &Material { &self.material }
