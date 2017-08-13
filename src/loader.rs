@@ -3,13 +3,14 @@ use std::path::Path;
 use std::io::{BufReader, BufRead};
 
 use vector::Vector3;
+use matrix::Matrix44;
 use scene::{Mesh, Face};
 use material::Material;
 
 pub struct ObjLoader;
 
 impl ObjLoader {
-    pub fn loadFile(path: &str, material: Material) -> Mesh {
+    pub fn loadFile(path: &str, matrix: Matrix44, material: Material) -> Mesh {
         let mut mesh = Mesh {
             vertexes: vec![],
             faces: vec![],
@@ -23,15 +24,15 @@ impl ObjLoader {
             let split_line: Vec<&str> = l.split(" ").collect();
             match split_line[0] {
                 "v" => {
-                    println!("{}", l);
-                    mesh.vertexes.push(Vector3::new(
+                    let local_vertex = Vector3::new(
                         split_line[1].parse::<f64>().unwrap(),
                         split_line[2].parse::<f64>().unwrap(),
                         split_line[3].parse::<f64>().unwrap(),
-                    ));
+                    );
+                    let world_vertex = matrix * local_vertex;
+                    mesh.vertexes.push(world_vertex);
                 }
                 "f" => {
-                    println!("{}", l);
                     mesh.faces.push(Face {
                         v0: split_line[1].parse::<usize>().unwrap() - 1,
                         v1: split_line[2].parse::<usize>().unwrap() - 1,

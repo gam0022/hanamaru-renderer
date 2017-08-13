@@ -7,6 +7,7 @@ use std::path::Path;
 
 mod consts;
 mod vector;
+mod matrix;
 mod scene;
 mod renderer;
 mod material;
@@ -18,6 +19,7 @@ mod math;
 mod loader;
 
 use vector::Vector3;
+use matrix::Matrix44;
 use scene::{Scene, CameraBuilder, Sphere, Plane, AxisAlignedBoundingBox, Polygon, Mesh, Face, Skybox};
 use material::{Material, SurfaceType};
 use texture::Texture;
@@ -112,6 +114,7 @@ fn render() {
 //            }),
             Box::new(ObjLoader::loadFile(
                 "models/bunny/bunny_face1000.obj",
+                Matrix44::scale_linear(2.0) * Matrix44::translate(0.0, 0.0, 1.0) * Matrix44::rotate_y(-0.5),
                 Material {
                     surface: SurfaceType::GGXReflection { roughness: 0.2, refractive_index: 1.2 },
                     albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
@@ -145,8 +148,8 @@ fn render() {
         ),
     };
 
-    //let renderer = DebugRenderer{};
-    let renderer = PathTracingRenderer {};
+    let renderer = DebugRenderer{};
+    //let renderer = PathTracingRenderer {};
     renderer.render(&scene, &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
