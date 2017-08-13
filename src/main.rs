@@ -15,6 +15,7 @@ mod random;
 mod color;
 mod texture;
 mod math;
+mod loader;
 
 use vector::Vector3;
 use scene::{Scene, CameraBuilder, Sphere, Plane, AxisAlignedBoundingBox, Polygon, Mesh, Face, Skybox};
@@ -22,6 +23,7 @@ use material::{Material, SurfaceType};
 use texture::Texture;
 use renderer::{Renderer, DebugRenderer, PathTracingRenderer};
 use color::Color;
+use loader::ObjLoader;
 
 fn render() {
     let width = 800;
@@ -132,7 +134,7 @@ fn render() {
             "textures/cube/pisa/nz.png",
         ),
     };
-
+    
     //let renderer = DebugRenderer{};
     let renderer = PathTracingRenderer {};
     renderer.render(&scene, &camera, &mut imgbuf);
@@ -141,9 +143,23 @@ fn render() {
     let _ = image::ImageRgb8(imgbuf).save(fout, image::PNG);
 }
 
+fn test_loader() {
+    let mut mesh = Mesh {
+        vertexes: vec![], faces: vec![],
+        material: Material {
+            surface: SurfaceType::GGXReflection { roughness: 0.2, refractive_index: 1.2 },
+            albedo: Texture::from_color(Color::new(0.2, 0.2, 1.0)),
+            emission: Texture::black(),
+        },
+    };
+
+    ObjLoader::loadFile("models/octahedron.obj", &mut mesh);
+}
+
 fn main() {
     let begin = time::now();
-    render();
+    //render();
+    test_loader();
     let end = time::now();
     println!("total {} sec.", (end - begin).num_milliseconds() as f64 * 0.001);
 }
