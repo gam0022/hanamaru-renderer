@@ -93,7 +93,7 @@ impl Renderer for DebugRenderer {
                     _ => {
                         let diffuse = intersection.normal.dot(&light_direction).max(0.0);
                         let color = intersection.material.emission + intersection.material.albedo * diffuse * shadow;
-                        reflection += color;
+                        reflection *= color;
                         accumulation += reflection;
                         break;
                     },

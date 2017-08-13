@@ -111,7 +111,7 @@ fn render() {
 //                }
 //            }),
             Box::new(ObjLoader::loadFile(
-                "models/round_brilliant.obj",
+                "models/bunny/bunny_face1000.obj",
                 Material {
                     surface: SurfaceType::GGXReflection { roughness: 0.2, refractive_index: 1.2 },
                     albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
