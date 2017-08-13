@@ -1,6 +1,6 @@
 target/
 **/*.rs.bk
-.swp
+*.swp
 
 #
 # https://github.com/github/gitignore/blob/master/Global/JetBrains.gitignore

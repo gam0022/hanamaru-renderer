@@ -7,6 +7,7 @@ use scene;
 use scene::{Mesh, Intersection, Ray};
 use consts;
 
+#[derive(Debug)]
 pub struct BvhNode {
     pub left_bottom: Vector3,
     pub right_top: Vector3,
@@ -40,9 +41,9 @@ impl BvhNode {
             self.left_bottom.y = self.left_bottom.y.min(v0.y).min(v1.y).min(v2.y);
             self.left_bottom.z = self.left_bottom.z.min(v0.z).min(v1.z).min(v2.z);
 
-            self.right_top.x = self.left_bottom.x.max(v0.x).max(v1.x).max(v2.x);
-            self.right_top.y = self.left_bottom.y.max(v0.y).max(v1.y).max(v2.y);
-            self.right_top.z = self.left_bottom.z.max(v0.z).max(v1.z).max(v2.z);
+            self.right_top.x = self.right_top.x.max(v0.x).max(v1.x).max(v2.x);
+            self.right_top.y = self.right_top.y.max(v0.y).max(v1.y).max(v2.y);
+            self.right_top.z = self.right_top.z.max(v0.z).max(v1.z).max(v2.z);
         }
     }
 
@@ -103,6 +104,10 @@ impl BvhNode {
     }
 
     pub fn intersect(&self, mesh: &Mesh, ray: &Ray, intersection: &mut Intersection) -> bool {
+        if !intersect_aabb(&self.left_bottom, &self.right_top, ray) {
+            return false;
+        }
+
         let mut any_hit = false;
         if self.children.is_empty() {
             // leaf node
@@ -115,8 +120,8 @@ impl BvhNode {
         } else {
             // intermediate node
             for child in &self.children {
-                if intersect_aabb(&child.left_bottom, &child.right_top, ray) {
-                    any_hit = child.intersect(mesh, ray, intersection);
+                if child.intersect(mesh, ray, intersection) {
+                    any_hit = true;
                 }
             }
         }

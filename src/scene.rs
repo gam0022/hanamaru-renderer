@@ -225,8 +225,10 @@ impl Intersectable for BvhMesh {
 
 impl BvhMesh {
     pub fn from_mesh(mesh: Mesh) -> BvhMesh {
+        let bvh = BvhNode::from_mesh(&mesh);
+        //println!("bvh: {:?}", bvh);
         BvhMesh {
-            bvh: BvhNode::from_mesh(&mesh),
+            bvh: bvh,
             mesh: mesh,
         }
     }

@@ -87,27 +87,12 @@ fn render() {
 //                    emission: Texture::black(),
 //                }
 //            }),
-//            Box::new(Mesh {
-//                vertexes: vec![
-//                    Vector3::new(-1.0 + 2.0, 1.5, 4.0),
-//                    Vector3::new(1.0 + 2.0, 1.5, 4.0),
-//                    Vector3::new(0.0 + 2.0, 1.5 + 2.0 * 0.86602540378, 4.0),
-//                    Vector3::new(-1.0 - 2.0, 1.5, 4.0),
-//                    Vector3::new(1.0 - 2.0, 1.5, 4.0),
-//                    Vector3::new(0.0 - 2.0, 1.5 + 2.0 * 0.86602540378, 4.0)
-//                ],
-//                faces: vec![Face { v0: 0, v1: 1, v2: 2 }, Face { v0: 3, v1: 4, v2: 5 }],
-//                material: Material {
-//                    surface: SurfaceType::GGXReflection { roughness: 0.2, refractive_index: 1.2 },
-//                    albedo: Texture::new("textures/2d/checkered_512.jpg", Color::new(1.0, 0.2, 0.2)),
-//                    emission: Texture::black(),
-//                }
-//            }),
             Box::new(BvhMesh::from_mesh(ObjLoader::loadFile(
                 "models/bunny/bunny_face1000.obj",
-                Matrix44::scale_linear(2.0) * Matrix44::translate(0.0, 0.0, 1.0) * Matrix44::rotate_y(-0.5),
+                //"models/octahedron.obj",
+                Matrix44::scale_linear(2.0) * Matrix44::translate(0.0, 0.0, 0.5) * Matrix44::rotate_y(-0.5),
                 Material {
-                    surface: SurfaceType::GGXReflection { roughness: 0.1, refractive_index: 1.1 },
+                    surface: SurfaceType::GGX { roughness: 0.1 },
                     albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
                     emission: Texture::black(),
                 },
@@ -139,8 +124,8 @@ fn render() {
         ),
     };
 
-    let renderer = DebugRenderer{};
-    //let renderer = PathTracingRenderer {};
+    //let renderer = DebugRenderer{};
+    let renderer = PathTracingRenderer {};
     renderer.render(&scene, &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
