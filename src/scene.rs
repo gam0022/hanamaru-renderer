@@ -157,13 +157,6 @@ impl Intersectable for AxisAlignedBoundingBox {
     fn material(&self) -> &Material { &self.material }
 }
 
-pub struct Polygon {
-    pub v0: Vector3,
-    pub v1: Vector3,
-    pub v2: Vector3,
-    pub material: Material,
-}
-
 fn intersect_polygon(v0: &Vector3, v1: &Vector3, v2: &Vector3, ray: &Ray, intersection: &mut Intersection) -> bool {
     let ray_inv = -ray.direction;
     let edge1 = *v1 - *v0;
@@ -188,14 +181,6 @@ fn intersect_polygon(v0: &Vector3, v1: &Vector3, v2: &Vector3, ray: &Ray, inters
     intersection.distance = t;
     intersection.uv = Vector2::new(u, v);
     true
-}
-
-impl Intersectable for Polygon {
-    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
-        intersect_polygon(&self.v0, &self.v1, &self.v2, ray, intersection)
-    }
-
-    fn material(&self) -> &Material { &self.material }
 }
 
 pub struct Face {
