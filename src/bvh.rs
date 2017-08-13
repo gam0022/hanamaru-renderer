@@ -3,7 +3,8 @@ extern crate rand;
 use self::rand::{thread_rng, Rng, ThreadRng};
 
 use vector::Vector3;
-use scene::Mesh;
+use scene;
+use scene::{Mesh, Intersection, Ray};
 use consts;
 
 pub struct BvhNode {
@@ -100,4 +101,45 @@ impl BvhNode {
         let mut face_indexes: Vec<usize> = (0..mesh.faces.len()).collect();
         BvhNode::from_face_indexes(mesh, &mut face_indexes, &mut rng)
     }
+
+    pub fn intersect(&self, mesh: &Mesh, ray: &Ray, intersection: &mut Intersection) -> bool {
+        let mut any_hit = false;
+        if self.children.is_empty() {
+            // leaf node
+            for face_index in &self.face_indexes {
+                let face = &mesh.faces[*face_index];
+                if scene::intersect_polygon(&mesh.vertexes[face.v0], &mesh.vertexes[face.v1], &mesh.vertexes[face.v2], ray, intersection) {
+                    any_hit = true;
+                }
+            }
+        } else {
+            // intermediate node
+            for child in &self.children {
+                if intersect_aabb(&child.left_bottom, &child.right_top, ray) {
+                    any_hit = child.intersect(mesh, ray, intersection);
+                }
+            }
+        }
+        any_hit
+    }
+}
+
+// TODO: scene::AxisAlignedBoundingBox.intersect と共通化
+fn intersect_aabb(left_bottom: &Vector3, right_top: &Vector3, ray: &Ray) -> bool {
+    let dir_inv = Vector3::new(
+        ray.direction.x.recip(),
+        ray.direction.y.recip(),
+        ray.direction.z.recip(),
+    );
+
+    let t1 = (left_bottom.x - ray.origin.x) * dir_inv.x;
+    let t2 = (right_top.x - ray.origin.x) * dir_inv.x;
+    let t3 = (left_bottom.y - ray.origin.y) * dir_inv.y;
+    let t4 = (right_top.y - ray.origin.y) * dir_inv.y;
+    let t5 = (left_bottom.z - ray.origin.z) * dir_inv.z;
+    let t6 = (right_top.z - ray.origin.z) * dir_inv.z;
+    let tmin = (t1.min(t2).max(t3.min(t4))).max(t5.min(t6));
+    let tmax = (t1.max(t2).min(t3.max(t4))).min(t5.max(t6));
+
+    tmin <= tmax && 0.0 <= tmin
 }

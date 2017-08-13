@@ -1,5 +1,4 @@
 use std::fs::File;
-use std::path::Path;
 use std::io::{BufReader, BufRead};
 
 use vector::Vector3;
@@ -19,7 +18,7 @@ impl ObjLoader {
 
         let f = File::open(path).unwrap();
         let file = BufReader::new(&f);
-        for (num, line) in file.lines().enumerate() {
+        for (_, line) in file.lines().enumerate() {
             let l = line.unwrap();
             let split_line: Vec<&str> = l.split(" ").collect();
             match split_line[0] {

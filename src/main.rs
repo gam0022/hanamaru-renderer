@@ -21,7 +21,7 @@ mod bvh;
 
 use vector::Vector3;
 use matrix::Matrix44;
-use scene::{Scene, CameraBuilder, Sphere, Plane, AxisAlignedBoundingBox, Mesh, Face, Skybox};
+use scene::{Scene, CameraBuilder, Sphere, AxisAlignedBoundingBox, Mesh, BvhMesh, Skybox};
 use material::{Material, SurfaceType};
 use texture::Texture;
 use renderer::{Renderer, DebugRenderer, PathTracingRenderer};
@@ -103,15 +103,15 @@ fn render() {
 //                    emission: Texture::black(),
 //                }
 //            }),
-            Box::new(ObjLoader::loadFile(
+            Box::new(BvhMesh::from_mesh(ObjLoader::loadFile(
                 "models/bunny/bunny_face1000.obj",
                 Matrix44::scale_linear(2.0) * Matrix44::translate(0.0, 0.0, 1.0) * Matrix44::rotate_y(-0.5),
                 Material {
-                    surface: SurfaceType::GGXReflection { roughness: 0.2, refractive_index: 1.2 },
+                    surface: SurfaceType::GGXReflection { roughness: 0.1, refractive_index: 1.1 },
                     albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
                     emission: Texture::black(),
                 },
-            )),
+            ))),
 
             // 床
             Box::new(AxisAlignedBoundingBox {
