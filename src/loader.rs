@@ -9,7 +9,13 @@ use material::Material;
 pub struct ObjLoader;
 
 impl ObjLoader {
-    pub fn loadFile(path: &str, mesh: &mut Mesh) {
+    pub fn loadFile(path: &str, material: Material) -> Mesh {
+        let mut mesh = Mesh {
+            vertexes: vec![],
+            faces: vec![],
+            material: material,
+        };
+
         let f = File::open(path).unwrap();
         let file = BufReader::new(&f);
         for (num, line) in file.lines().enumerate() {
@@ -35,5 +41,7 @@ impl ObjLoader {
                 _ => {}
             }
         }
+
+        mesh
     }
 }

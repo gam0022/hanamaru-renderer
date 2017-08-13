@@ -37,16 +37,6 @@ fn render() {
         .zoom(3.0)
         .finalize();
 
-    let mut obj_mesh = Mesh {
-        vertexes: vec![], faces: vec![],
-        material: Material {
-            surface: SurfaceType::GGXReflection { roughness: 0.2, refractive_index: 1.2 },
-            albedo: Texture::from_color(Color::new(0.2, 0.2, 1.0)),
-            emission: Texture::black(),
-        },
-    };
-    ObjLoader::loadFile("models/octahedron.obj", &mut obj_mesh);
-
     let scene = Scene {
         elements: vec![
 //            Box::new(Sphere {
@@ -120,7 +110,14 @@ fn render() {
 //                    emission: Texture::black(),
 //                }
 //            }),
-            Box::new(obj_mesh),
+            Box::new(ObjLoader::loadFile(
+                "models/round_brilliant.obj",
+                Material {
+                    surface: SurfaceType::GGXReflection { roughness: 0.2, refractive_index: 1.2 },
+                    albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
+                    emission: Texture::black(),
+                },
+            )),
 
             // 床
             Box::new(AxisAlignedBoundingBox {
