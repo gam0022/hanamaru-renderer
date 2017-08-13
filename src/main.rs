@@ -17,6 +17,7 @@ mod color;
 mod texture;
 mod math;
 mod loader;
+mod bvh;
 
 use vector::Vector3;
 use matrix::Matrix44;
