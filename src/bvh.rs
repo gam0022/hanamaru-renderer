@@ -118,6 +118,7 @@ impl BvhNode {
                 }
             }
         }
+
         any_hit
     }
 }
