@@ -87,7 +87,7 @@ fn render() {
 //                    emission: Texture::black(),
 //                }
 //            }),
-            Box::new(BvhMesh::from_mesh(ObjLoader::loadFile(
+            Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/bunny/bunny_face1000.obj",
                 //"models/octahedron.obj",
                 Matrix44::scale_linear(2.0) * Matrix44::translate(0.0, 0.0, 0.5) * Matrix44::rotate_y(-0.5),

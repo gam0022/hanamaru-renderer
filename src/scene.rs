@@ -2,9 +2,9 @@ use consts;
 use vector::{Vector3, Vector2};
 use material::{Material, PointMaterial, SurfaceType};
 use texture::ImageTexture;
-use math::{equals_eps, modulo, det};
+use math::{equals_eps, modulo};
 use color::Color;
-use bvh::BvhNode;
+use bvh::{BvhNode, intersect_polygon};
 
 #[derive(Clone, Debug)]
 pub struct Ray {
@@ -156,32 +156,6 @@ impl Intersectable for AxisAlignedBoundingBox {
     }
 
     fn material(&self) -> &Material { &self.material }
-}
-
-pub fn intersect_polygon(v0: &Vector3, v1: &Vector3, v2: &Vector3, ray: &Ray, intersection: &mut Intersection) -> bool {
-    let ray_inv = -ray.direction;
-    let edge1 = *v1 - *v0;
-    let edge2 = *v2 - *v0;
-    let denominator = det(&edge1, &edge2, &ray_inv);
-    if denominator == 0.0 { return false; }
-
-    let denominator_inv = denominator.recip();
-    let d = ray.origin - *v0;
-
-    let u = det(&d, &edge2, &ray_inv) * denominator_inv;
-    if u < 0.0 || u > 1.0 { return false; }
-
-    let v = det(&edge1, &d, &ray_inv) * denominator_inv;
-    if v < 0.0 || u + v > 1.0 { return false; };
-
-    let t = det(&edge1, &edge2, &d) * denominator_inv;
-    if t < 0.0 || t > intersection.distance { return false; }
-
-    intersection.position = ray.origin + ray.direction * t;
-    intersection.normal = edge1.cross(&edge2).normalize() * denominator_inv.signum();
-    intersection.distance = t;
-    intersection.uv = Vector2::new(u, v);
-    true
 }
 
 pub struct Face {

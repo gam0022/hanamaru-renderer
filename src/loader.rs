@@ -9,7 +9,7 @@ use material::Material;
 pub struct ObjLoader;
 
 impl ObjLoader {
-    pub fn loadFile(path: &str, matrix: Matrix44, material: Material) -> Mesh {
+    pub fn load(path: &str, matrix: Matrix44, material: Material) -> Mesh {
         let mut mesh = Mesh {
             vertexes: vec![],
             faces: vec![],

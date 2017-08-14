@@ -1,11 +1,7 @@
-extern crate rand;
-
-use self::rand::{thread_rng, Rng, ThreadRng};
-
-use vector::Vector3;
-use scene;
+use vector::{Vector3, Vector2};
 use scene::{Mesh, Intersection, Ray};
 use consts;
+use math::det;
 
 #[derive(Debug)]
 pub struct BvhNode {
@@ -33,9 +29,9 @@ impl BvhNode {
     fn set_aabb(&mut self, mesh: &Mesh, face_indexes: &Vec<usize>) {
         for face_index in face_indexes {
             let face = &mesh.faces[*face_index];
-            let v0 = mesh.vertexes[face.v0];
-            let v1 = mesh.vertexes[face.v1];
-            let v2 = mesh.vertexes[face.v2];
+            let v0 = &mesh.vertexes[face.v0];
+            let v1 = &mesh.vertexes[face.v1];
+            let v2 = &mesh.vertexes[face.v2];
 
             self.left_bottom.x = self.left_bottom.x.min(v0.x).min(v1.x).min(v2.x);
             self.left_bottom.y = self.left_bottom.y.min(v0.y).min(v1.y).min(v2.y);
@@ -47,12 +43,15 @@ impl BvhNode {
         }
     }
 
-    fn from_face_indexes(mesh: &Mesh, face_indexes: &mut Vec<usize>, rng: &mut ThreadRng) -> BvhNode {
+    fn from_face_indexes(mesh: &Mesh, face_indexes: &mut Vec<usize>) -> BvhNode {
         let mut node = BvhNode::empty();
         node.set_aabb(mesh, face_indexes);
 
         let mid = face_indexes.len() / 2;
-        if mid > 2 {
+        if mid <= 2 {
+            // set leaf node
+            node.face_indexes = face_indexes.clone();
+        } else {
             // set intermediate node
             let lx = node.right_top.x - node.left_bottom.x;
             let ly = node.right_top.y - node.left_bottom.y;
@@ -85,20 +84,16 @@ impl BvhNode {
             }
 
             let mut left_face_indexes = face_indexes.split_off(mid);
-            node.children.push(Box::new(BvhNode::from_face_indexes(mesh, face_indexes, rng)));
-            node.children.push(Box::new(BvhNode::from_face_indexes(mesh, &mut left_face_indexes, rng)));
-        } else {
-            // set leaf node
-            node.face_indexes = face_indexes.clone();
+            node.children.push(Box::new(BvhNode::from_face_indexes(mesh, face_indexes)));
+            node.children.push(Box::new(BvhNode::from_face_indexes(mesh, &mut left_face_indexes)));
         }
 
         node
     }
 
     pub fn from_mesh(mesh: &Mesh) -> BvhNode {
-        let mut rng = thread_rng();
         let mut face_indexes: Vec<usize> = (0..mesh.faces.len()).collect();
-        BvhNode::from_face_indexes(mesh, &mut face_indexes, &mut rng)
+        BvhNode::from_face_indexes(mesh, &mut face_indexes)
     }
 
     pub fn intersect(&self, mesh: &Mesh, ray: &Ray, intersection: &mut Intersection) -> bool {
@@ -111,7 +106,7 @@ impl BvhNode {
             // leaf node
             for face_index in &self.face_indexes {
                 let face = &mesh.faces[*face_index];
-                if scene::intersect_polygon(&mesh.vertexes[face.v0], &mesh.vertexes[face.v1], &mesh.vertexes[face.v2], ray, intersection) {
+                if intersect_polygon(&mesh.vertexes[face.v0], &mesh.vertexes[face.v1], &mesh.vertexes[face.v2], ray, intersection) {
                     any_hit = true;
                 }
             }
@@ -145,4 +140,30 @@ fn intersect_aabb(left_bottom: &Vector3, right_top: &Vector3, ray: &Ray) -> bool
     let tmax = (t1.max(t2).min(t3.max(t4))).min(t5.max(t6));
 
     tmin <= tmax && 0.0 <= tmin
+}
+
+pub fn intersect_polygon(v0: &Vector3, v1: &Vector3, v2: &Vector3, ray: &Ray, intersection: &mut Intersection) -> bool {
+    let ray_inv = -ray.direction;
+    let edge1 = *v1 - *v0;
+    let edge2 = *v2 - *v0;
+    let denominator = det(&edge1, &edge2, &ray_inv);
+    if denominator == 0.0 { return false; }
+
+    let denominator_inv = denominator.recip();
+    let d = ray.origin - *v0;
+
+    let u = det(&d, &edge2, &ray_inv) * denominator_inv;
+    if u < 0.0 || u > 1.0 { return false; }
+
+    let v = det(&edge1, &d, &ray_inv) * denominator_inv;
+    if v < 0.0 || u + v > 1.0 { return false; };
+
+    let t = det(&edge1, &edge2, &d) * denominator_inv;
+    if t < 0.0 || t > intersection.distance { return false; }
+
+    intersection.position = ray.origin + ray.direction * t;
+    intersection.normal = edge1.cross(&edge2).normalize() * denominator_inv.signum();
+    intersection.distance = t;
+    intersection.uv = Vector2::new(u, v);
+    true
 }

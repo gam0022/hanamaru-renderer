@@ -72,7 +72,7 @@ impl Renderer for DebugRenderer {
         let mut accumulation = Color::zero();
         let mut reflection = Color::one();
 
-        for bounce in 1..consts::DEBUG_BOUNCE_LIMIT {
+        for _ in 1..consts::DEBUG_BOUNCE_LIMIT {
             let (hit, intersection) = scene.intersect(&ray);
 
             let shadow_ray = Ray {
@@ -114,12 +114,12 @@ impl Renderer for PathTracingRenderer {
         let original_ray = camera.ray(&normalized_coord);
         let mut all_accumulation = Vector3::zero();
         let mut rng = thread_rng();
-        for sampling in 1..consts::PATHTRACING_SAMPLING {
+        for _ in 1..consts::PATHTRACING_SAMPLING {
             let mut ray = original_ray.clone();
             let mut accumulation = Color::zero();
             let mut reflection = Color::one();
 
-            for bounce in 1..consts::PATHTRACING_BOUNCE_LIMIT {
+            for _ in 1..consts::PATHTRACING_BOUNCE_LIMIT {
                 let random = random::get_random(&mut rng);
                 let (hit, mut intersection) = scene.intersect(&ray);
 
