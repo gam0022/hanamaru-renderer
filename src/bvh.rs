@@ -53,44 +53,42 @@ impl BvhNode {
 
         let mid = face_indexes.len() / 2;
         if mid > 2 {
-            let axis = rng.gen_range(0, 2);// 乱数で分割する軸を選ぶ
-            match axis {
-                // X
-                0 => {
-                    face_indexes.sort_by(|a, b| {
-                        let a_face = &mesh.faces[*a];
-                        let b_face = &mesh.faces[*b];
-                        let a_sum = mesh.vertexes[a_face.v0].x + mesh.vertexes[a_face.v1].x + mesh.vertexes[a_face.v2].x;
-                        let b_sum = mesh.vertexes[b_face.v0].x + mesh.vertexes[b_face.v1].x + mesh.vertexes[b_face.v2].x;
-                        a_sum.partial_cmp(&b_sum).unwrap()
-                    });
-                }
-                // Y
-                1 => {
-                    face_indexes.sort_by(|a, b| {
-                        let a_face = &mesh.faces[*a];
-                        let b_face = &mesh.faces[*b];
-                        let a_sum = mesh.vertexes[a_face.v0].y + mesh.vertexes[a_face.v1].y + mesh.vertexes[a_face.v2].y;
-                        let b_sum = mesh.vertexes[b_face.v0].y + mesh.vertexes[b_face.v1].y + mesh.vertexes[b_face.v2].y;
-                        a_sum.partial_cmp(&b_sum).unwrap()
-                    });
-                }
-                // Z
-                _ => {
-                    face_indexes.sort_by(|a, b| {
-                        let a_face = &mesh.faces[*a];
-                        let b_face = &mesh.faces[*b];
-                        let a_sum = mesh.vertexes[a_face.v0].z + mesh.vertexes[a_face.v1].z + mesh.vertexes[a_face.v2].z;
-                        let b_sum = mesh.vertexes[b_face.v0].z + mesh.vertexes[b_face.v1].z + mesh.vertexes[b_face.v2].z;
-                        a_sum.partial_cmp(&b_sum).unwrap()
-                    });
-                }
-            };
+            // set intermediate node
+            let lx = node.right_top.x - node.left_bottom.x;
+            let ly = node.right_top.y - node.left_bottom.y;
+            let lz = node.right_top.z - node.left_bottom.z;
+
+            if lx > ly && lx > lz {
+                face_indexes.sort_by(|a, b| {
+                    let a_face = &mesh.faces[*a];
+                    let b_face = &mesh.faces[*b];
+                    let a_sum = mesh.vertexes[a_face.v0].x + mesh.vertexes[a_face.v1].x + mesh.vertexes[a_face.v2].x;
+                    let b_sum = mesh.vertexes[b_face.v0].x + mesh.vertexes[b_face.v1].x + mesh.vertexes[b_face.v2].x;
+                    a_sum.partial_cmp(&b_sum).unwrap()
+                });
+            } else if ly > lx && ly > lz {
+                face_indexes.sort_by(|a, b| {
+                    let a_face = &mesh.faces[*a];
+                    let b_face = &mesh.faces[*b];
+                    let a_sum = mesh.vertexes[a_face.v0].y + mesh.vertexes[a_face.v1].y + mesh.vertexes[a_face.v2].y;
+                    let b_sum = mesh.vertexes[b_face.v0].y + mesh.vertexes[b_face.v1].y + mesh.vertexes[b_face.v2].y;
+                    a_sum.partial_cmp(&b_sum).unwrap()
+                });
+            } else {
+                face_indexes.sort_by(|a, b| {
+                    let a_face = &mesh.faces[*a];
+                    let b_face = &mesh.faces[*b];
+                    let a_sum = mesh.vertexes[a_face.v0].z + mesh.vertexes[a_face.v1].z + mesh.vertexes[a_face.v2].z;
+                    let b_sum = mesh.vertexes[b_face.v0].z + mesh.vertexes[b_face.v1].z + mesh.vertexes[b_face.v2].z;
+                    a_sum.partial_cmp(&b_sum).unwrap()
+                });
+            }
 
             let mut left_face_indexes = face_indexes.split_off(mid);
             node.children.push(Box::new(BvhNode::from_face_indexes(mesh, face_indexes, rng)));
             node.children.push(Box::new(BvhNode::from_face_indexes(mesh, &mut left_face_indexes, rng)));
         } else {
+            // set leaf node
             node.face_indexes = face_indexes.clone();
         }
 
