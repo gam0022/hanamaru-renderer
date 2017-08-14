@@ -1,4 +1,5 @@
 use consts;
+use vector::Vector3;
 
 pub fn modulo(a: f64, b: f64) -> f64 {
     let ret = a % b;
@@ -19,4 +20,13 @@ pub fn saturate(v: f64) -> f64 {
 
 pub fn equals_eps(a: f64, b: f64) -> bool {
     (a - b).abs() < consts::EPS
+}
+
+pub fn det(a: &Vector3, b: &Vector3, c: &Vector3) -> f64 {
+    (a.x * b.y * c.z)
+        + (a.y * b.z * c.x)
+        + (a.z * b.x * c.y)
+        - (a.x * b.z * c.y)
+        - (a.y * b.x * c.z)
+        - (a.z * b.y * c.x)
 }

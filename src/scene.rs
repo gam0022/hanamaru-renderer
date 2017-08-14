@@ -4,6 +4,7 @@ use material::{Material, PointMaterial, SurfaceType};
 use texture::ImageTexture;
 use math::{equals_eps, modulo};
 use color::Color;
+use bvh::{BvhNode, intersect_polygon};
 
 #[derive(Clone, Debug)]
 pub struct Ray {
@@ -155,6 +156,56 @@ impl Intersectable for AxisAlignedBoundingBox {
     }
 
     fn material(&self) -> &Material { &self.material }
+}
+
+pub struct Face {
+    pub v0: usize,
+    pub v1: usize,
+    pub v2: usize,
+}
+
+pub struct Mesh {
+    pub vertexes: Vec<Vector3>,
+    pub faces: Vec<Face>,
+    pub material: Material,
+}
+
+impl Intersectable for Mesh {
+    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
+        let mut any_hit = false;
+        for face in &self.faces {
+            if intersect_polygon(&self.vertexes[face.v0], &self.vertexes[face.v1], &self.vertexes[face.v2], ray, intersection) {
+                any_hit = true;
+            }
+        }
+        any_hit
+    }
+
+    fn material(&self) -> &Material { &self.material }
+}
+
+pub struct BvhMesh {
+    pub mesh: Mesh,
+    pub bvh: BvhNode,
+}
+
+impl Intersectable for BvhMesh {
+    fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
+        self.bvh.intersect(&self.mesh, ray, intersection)
+    }
+
+    fn material(&self) -> &Material { &self.mesh.material }
+}
+
+impl BvhMesh {
+    pub fn from_mesh(mesh: Mesh) -> BvhMesh {
+        let bvh = BvhNode::from_mesh(&mesh);
+        //println!("bvh: {:?}", bvh);
+        BvhMesh {
+            bvh: bvh,
+            mesh: mesh,
+        }
+    }
 }
 
 #[derive(Debug)]
