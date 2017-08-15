@@ -3,12 +3,13 @@ extern crate rand;
 extern crate rayon;
 extern crate time;
 
+use std::fs::File;
+use std::path::Path;
+use std::process;
+use time::Tm;
 use image::{ImageBuffer, Rgb};
 use self::rand::thread_rng;
 use self::rayon::prelude::*;
-use std::fs::File;
-use std::path::Path;
-use time::Tm;
 
 use consts;
 use vector::{Vector3, Vector2};
@@ -209,12 +210,19 @@ impl Renderer for PathTracingRenderer {
         println!("rendering: {:.2} % {:.3} sec.", progress, passed_time);
 
         if (now - self.last_report_image).num_seconds() > consts::REPORT_INTERVAL_SEC {
+            // save progress image
             let path = format!("progress_{:>03}.png", self.report_image_counter);
             println!("output progress image: {}", path);
             let ref mut fout = File::create(&Path::new(&path)).unwrap();
             let _ = image::ImageRgb8(imgbuf.clone()).save(fout, image::PNG);
             self.report_image_counter += 1;
             self.last_report_image = now;
+        }
+
+        if passed_time > consts::TIME_LIMIT_SEC {
+            // die when time limit exceeded
+            println!("time limit exceeded: {:.3} sec.", passed_time);
+            process::exit(1);
         }
     }
 }
