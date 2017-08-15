@@ -1,10 +1,8 @@
 extern crate rand;
 
-use self::rand::thread_rng;
 use self::rand::{Rng, ThreadRng};
 
 use vector::{Vector3, Vector2};
-use random;
 
 #[derive(Debug)]
 pub struct Camera {
@@ -53,13 +51,12 @@ impl Camera {
     }
 
     fn sample_square(mut rng: &mut ThreadRng) -> Vector2 {
-        let random = random::get_random(&mut rng);
-        Vector2::new(random.0 + 0.5, random.1 + 0.5)
+        let (u, v) = rng.gen::<(f64, f64)>();
+        Vector2::new(u + 0.5, v + 0.5)
     }
 
-    pub fn ray(&self, normalized_coord: &Vector2) -> Ray {
-        let mut rng = thread_rng();
-        let lens_uv = Camera::sample_square(&mut rng) * self.lens_radius;
+    pub fn ray_with_dof(&self, normalized_coord: &Vector2, rng: &mut ThreadRng) -> Ray {
+        let lens_uv = Camera::sample_square(rng) * self.lens_radius;
         let lens_pos = self.right * lens_uv.x + self.up * lens_uv.y;
 
         Ray {
@@ -69,6 +66,17 @@ impl Camera {
                     + normalized_coord.y * self.plane_half_up
                     + self.focus_distance * self.forward
                     - lens_pos
+            ).normalize(),
+        }
+    }
+
+    pub fn ray(&self, normalized_coord: &Vector2) -> Ray {
+        Ray {
+            origin: self.eye,
+            direction: (
+                normalized_coord.x * self.plane_half_right
+                    + normalized_coord.y * self.plane_half_up
+                    + self.focus_distance * self.forward
             ).normalize(),
         }
     }

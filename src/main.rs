@@ -13,7 +13,6 @@ mod camera;
 mod renderer;
 mod material;
 mod brdf;
-mod random;
 mod color;
 mod texture;
 mod math;
