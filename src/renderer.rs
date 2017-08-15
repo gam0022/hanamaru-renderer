@@ -205,7 +205,9 @@ impl Renderer for PathTracingRenderer {
 
         let now = time::now();
         if (now - self.last_report_image).num_seconds() > consts::REPORT_INTERVAL_SEC {
-            let ref mut fout = File::create(&Path::new(&format!("progress_{:>03}.png", self.report_image_counter))).unwrap();
+            let path = format!("progress_{:>03}.png", self.report_image_counter);
+            println!("output progress image: {}", path);
+            let ref mut fout = File::create(&Path::new(&path)).unwrap();
             let _ = image::ImageRgb8(imgbuf.clone()).save(fout, image::PNG);
             self.report_image_counter += 1;
             self.last_report_image = now;
