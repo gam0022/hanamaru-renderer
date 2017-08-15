@@ -4,9 +4,20 @@ use vector::{Vector3, Vector2};
 pub struct Camera {
     pub eye: Vector3,
     pub forward: Vector3,
+
+    // レンズの半径
+    pub lens_radius: f64,
+
+    // 焦点距離
+    pub focus_distance: f64,
+
+    // 焦点面の基底ベクトル（正規化されている）
     pub right: Vector3,
     pub up: Vector3,
-    pub zoom: f64,
+
+    // 焦点面の基底ベクトル（スクリーンの大きさが掛けられている）
+    pub plane_half_right: Vector3,
+    pub plane_half_up: Vector3,
 }
 
 #[derive(Clone, Debug)]
@@ -16,28 +27,38 @@ pub struct Ray {
 }
 
 impl Camera {
-    pub fn new(eye: Vector3, target: Vector3, y_up: Vector3, zoom: f64) -> Camera {
+    pub fn new(eye: Vector3, target: Vector3, y_up: Vector3, v_fov: f64, aperture: f64, focus_distance: f64) -> Camera {
+        let lens_radius = 0.5 * aperture;
+        let plane_half_height = v_fov.to_radians().tan();
         let forward = (target - eye).normalize();
         let right = forward.cross(&y_up).normalize();
+        let up = right.cross(&forward).normalize();
 
         Camera {
             eye: eye,
+            lens_radius: lens_radius,
+            focus_distance: focus_distance,
             forward: forward,
             right: right,
-            up: right.cross(&forward).normalize(),
-            zoom: zoom,
+            up: up,
+            plane_half_right: right * plane_half_height * focus_distance,
+            plane_half_up: up * plane_half_height * focus_distance,
         }
     }
 
     pub fn ray(&self, normalized_coord: &Vector2) -> Ray {
         Ray {
             origin: self.eye,
-            direction: (normalized_coord.x * self.right + normalized_coord.y * self.up + self.zoom * self.forward).normalize(),
+            direction: (
+                normalized_coord.x * self.plane_half_right
+                    + normalized_coord.y * self.plane_half_up
+                    + self.focus_distance * self.forward
+            ).normalize(),
         }
     }
 }
 
-pub struct CameraBuilder {
+/*pub struct CameraBuilder {
     eye: Vector3,
     target: Vector3,
     y_up: Vector3,
@@ -77,4 +98,4 @@ impl CameraBuilder {
     pub fn finalize(&self) -> Camera {
         Camera::new(self.eye, self.target, self.y_up, self.zoom)
     }
-}
+}*/

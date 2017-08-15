@@ -23,7 +23,7 @@ mod bvh;
 use vector::Vector3;
 use matrix::Matrix44;
 use scene::{Scene, Sphere, AxisAlignedBoundingBox, Mesh, BvhMesh, Skybox};
-use camera::CameraBuilder;
+use camera::Camera;
 use material::{Material, SurfaceType};
 use texture::Texture;
 use renderer::{Renderer, DebugRenderer, PathTracingRenderer};
@@ -35,12 +35,21 @@ fn render() {
     let height = 600;
     let mut imgbuf = image::ImageBuffer::new(width, height);
 
-    let camera = CameraBuilder::new()
+    /*let camera = CameraBuilder::new()
         .eye(Vector3::new(0.0, 3.0, 9.0))
         .target(Vector3::new(0.0, 1.0, 0.0))
         .y_up(Vector3::new(0.0, 1.0, 0.0))
         .zoom(3.0)
-        .finalize();
+        .finalize();*/
+
+    let camera = Camera::new(
+        Vector3::new(0.0, 3.0, 9.0),// eye
+        Vector3::new(0.0, 1.0, 0.0),// target
+        Vector3::new(0.0, 1.0, 0.0),// y_up
+        20.0,// fov
+        1.0,// aperture
+        3.0// focus_distance
+    );
 
     let scene = Scene {
         elements: vec![
