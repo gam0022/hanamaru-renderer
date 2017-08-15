@@ -138,10 +138,9 @@ pub struct PathTracingRenderer {
 impl Renderer for PathTracingRenderer {
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Color {
         let mut rng = thread_rng();
-        let original_ray = camera.ray_with_dof(&normalized_coord, &mut rng);
         let mut all_accumulation = Vector3::zero();
         for _ in 1..consts::PATHTRACING_SAMPLING {
-            let mut ray = original_ray.clone();
+            let mut ray = camera.ray_with_dof(&normalized_coord, &mut rng);
             let mut accumulation = Color::zero();
             let mut reflection = Color::one();
 

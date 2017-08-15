@@ -66,15 +66,6 @@ fn render() {
 //                }
 //            }),
 //            Box::new(Sphere {
-//                center: Vector3::new(-3.0, 1.5, -1.0),
-//                radius: 1.5,
-//                material: Material {
-//                    surface: SurfaceType::GGX { roughness: 0.0 },
-//                    albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
-//                    emission: Texture::black(),
-//                }
-//            }),
-//            Box::new(Sphere {
 //                center: Vector3::new(1.0, 0.8, 1.1),
 //                radius: 0.8,
 //                material: Material {
@@ -92,6 +83,15 @@ fn render() {
 //                    emission: Texture::black(),
 //                }
 //            }),
+            Box::new(Sphere {
+                center: Vector3::new(3.0, 3.0, -30.0),
+                radius: 0.5,
+                material: Material {
+                    surface: SurfaceType::GGX { roughness: 0.0 },
+                    albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
+                    emission: Texture::from_color(Color::new(10.0, 7.0, 1.0)),
+                }
+            }),
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/bunny/bunny_face1000.obj",
                 //"models/octahedron.obj",
