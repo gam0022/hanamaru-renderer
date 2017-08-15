@@ -13,7 +13,8 @@ use self::rayon::prelude::*;
 
 use consts;
 use vector::{Vector3, Vector2};
-use scene::{Scene, Camera, Ray};
+use scene::Scene;
+use camera::{Camera, Ray};
 use material::SurfaceType;
 use brdf;
 use random;

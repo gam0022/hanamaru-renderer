@@ -1,6 +1,7 @@
 use consts;
 use vector::Vector3;
-use scene::{Intersection, Ray};
+use scene::Intersection;
+use camera::Ray;
 use color::Color;
 
 // 法線を基準とした空間の基底ベクトルを計算

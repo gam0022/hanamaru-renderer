@@ -9,6 +9,7 @@ mod consts;
 mod vector;
 mod matrix;
 mod scene;
+mod camera;
 mod renderer;
 mod material;
 mod brdf;
@@ -21,7 +22,8 @@ mod bvh;
 
 use vector::Vector3;
 use matrix::Matrix44;
-use scene::{Scene, CameraBuilder, Sphere, AxisAlignedBoundingBox, Mesh, BvhMesh, Skybox};
+use scene::{Scene, Sphere, AxisAlignedBoundingBox, Mesh, BvhMesh, Skybox};
+use camera::CameraBuilder;
 use material::{Material, SurfaceType};
 use texture::Texture;
 use renderer::{Renderer, DebugRenderer, PathTracingRenderer};
