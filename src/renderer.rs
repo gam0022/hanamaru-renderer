@@ -123,6 +123,7 @@ impl Renderer for DebugRenderer {
         accumulation
     }
 
+    #[allow(unused_variables)]
     fn report_progress(&mut self, y: u32, height: f64, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>) {
         // Nop
     }
