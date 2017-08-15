@@ -1,10 +1,14 @@
 extern crate image;
 extern crate rand;
 extern crate rayon;
+extern crate time;
 
 use image::{ImageBuffer, Rgb};
 use self::rand::thread_rng;
 use self::rayon::prelude::*;
+use std::fs::File;
+use std::path::Path;
+use time::Tm;
 
 use consts;
 use vector::{Vector3, Vector2};
@@ -16,7 +20,7 @@ use color::{Color, color_to_rgb, linear_to_gamma};
 use math::saturate;
 
 pub trait Renderer: Sync {
-    fn render_single_thread(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+    fn render_single_thread(&mut self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
             let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
@@ -26,7 +30,7 @@ pub trait Renderer: Sync {
         }
     }
 
-    fn render(&self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+    fn render(&mut self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         for y in 0..imgbuf.height() {
             let input: Vec<u32> = (0..imgbuf.width()).collect();
@@ -41,8 +45,12 @@ pub trait Renderer: Sync {
             for (x, pixel) in output.iter().enumerate() {
                 imgbuf.put_pixel(x as u32, y, *pixel);
             }
+
+            self.report_progress(y, resolution.y, imgbuf);
         }
     }
+
+    fn report_progress(&mut self, y: u32, height: f64, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>);
 
     fn supersampling(&self, scene: &Scene, camera: &Camera, frag_coord: &Vector2, resolution: &Vector2) -> Color {
         let mut accumulation = Color::zero();
@@ -63,6 +71,7 @@ pub trait Renderer: Sync {
 }
 
 pub struct DebugRenderer;
+
 impl Renderer for DebugRenderer {
     #[allow(unused_variables)]
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Color {
@@ -88,7 +97,7 @@ impl Renderer for DebugRenderer {
                         ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                         ray.direction = ray.direction.reflect(&intersection.normal);
                         reflection *= intersection.material.albedo;
-                    },
+                    }
                     // 鏡面以外は拡散面として処理する
                     _ => {
                         let diffuse = intersection.normal.dot(&light_direction).max(0.0);
@@ -96,7 +105,7 @@ impl Renderer for DebugRenderer {
                         reflection *= color;
                         accumulation += reflection;
                         break;
-                    },
+                    }
                 }
             } else {
                 reflection = reflection * intersection.material.emission;
@@ -106,9 +115,19 @@ impl Renderer for DebugRenderer {
         }
 
         accumulation
-   }
+    }
+
+    fn report_progress(&mut self, y: u32, height: f64, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>) {
+        // Nop
+    }
 }
-pub struct PathTracingRenderer;
+
+pub struct PathTracingRenderer {
+    begin: Tm,
+    last_report_image: Tm,
+    report_image_counter: u32,
+}
+
 impl Renderer for PathTracingRenderer {
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Color {
         let original_ray = camera.ray(&normalized_coord);
@@ -128,14 +147,14 @@ impl Renderer for PathTracingRenderer {
                         SurfaceType::Diffuse => {
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                             ray.direction = brdf::importance_sample_diffuse(random, &intersection.normal);
-                        },
+                        }
                         SurfaceType::Specular => {
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                             ray.direction = ray.direction.reflect(&intersection.normal);
-                        },
+                        }
                         SurfaceType::Refraction { refractive_index } => {
                             brdf::sample_refraction(random, &intersection.normal, refractive_index, &intersection, &mut ray);
-                        },
+                        }
                         SurfaceType::GGX { roughness } => {
                             let alpha2 = brdf::roughness_to_alpha2(roughness);
                             let half = brdf::importance_sample_ggx(random, &intersection.normal, alpha2);
@@ -161,12 +180,12 @@ impl Renderer for PathTracingRenderer {
 
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                             ray.direction = next_direction;
-                        },
+                        }
                         SurfaceType::GGXReflection { refractive_index, roughness } => {
                             let alpha2 = brdf::roughness_to_alpha2(roughness);
                             let half = brdf::importance_sample_ggx(random, &intersection.normal, alpha2);
                             brdf::sample_refraction(random, &half, refractive_index, &intersection, &mut ray);
-                        },
+                        }
                     }
                 }
 
@@ -179,5 +198,28 @@ impl Renderer for PathTracingRenderer {
         }
 
         all_accumulation / consts::PATHTRACING_SAMPLING as f64
+    }
+
+    fn report_progress(&mut self, y: u32, height: f64, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>) {
+        println!("rendering: {}%", (y as f64 + 1.0) / height * 100.0);
+
+        let now = time::now();
+        if (now - self.last_report_image).num_seconds() > consts::REPORT_INTERVAL_SEC {
+            let ref mut fout = File::create(&Path::new(&format!("progress_{:>03}.png", self.report_image_counter))).unwrap();
+            let _ = image::ImageRgb8(imgbuf.clone()).save(fout, image::PNG);
+            self.report_image_counter += 1;
+            self.last_report_image = now;
+        }
+    }
+}
+
+impl PathTracingRenderer {
+    pub fn new() -> PathTracingRenderer {
+        let now = time::now();
+        PathTracingRenderer {
+            begin: now,
+            last_report_image: now,
+            report_image_counter: 0,
+        }
     }
 }

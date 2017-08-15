@@ -2,6 +2,8 @@ target/
 **/*.rs.bk
 *.swp
 
+progress_*.png
+
 #
 # https://github.com/github/gitignore/blob/master/Global/JetBrains.gitignore
 #
