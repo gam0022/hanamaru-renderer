@@ -6,7 +6,10 @@ use vector::{Vector3, Vector2};
 
 #[derive(Debug)]
 pub struct Camera {
+    // カメラの位置
     pub eye: Vector3,
+
+    // カメラのターゲット
     pub forward: Vector3,
 
     // レンズの半径
@@ -19,7 +22,7 @@ pub struct Camera {
     pub right: Vector3,
     pub up: Vector3,
 
-    // 焦点面の基底ベクトル（スクリーンの大きさが掛けられている）
+    // 焦点面の基底ベクトル（スクリーンの半分の大きさを乗算済み）
     pub plane_half_right: Vector3,
     pub plane_half_up: Vector3,
 }
@@ -81,45 +84,3 @@ impl Camera {
         }
     }
 }
-
-/*pub struct CameraBuilder {
-    eye: Vector3,
-    target: Vector3,
-    y_up: Vector3,
-    zoom: f64,
-}
-
-impl CameraBuilder {
-    pub fn new() -> CameraBuilder {
-        CameraBuilder {
-            eye: Vector3::zero(),
-            target: Vector3::new(0.0, 0.0, 1.0),
-            y_up: Vector3::new(0.0, 1.0, 0.0),
-            zoom: 2.0,
-        }
-    }
-
-    pub fn eye(&mut self, coordinate: Vector3) -> &mut CameraBuilder {
-        self.eye = coordinate;
-        self
-    }
-
-    pub fn target(&mut self, coordinate: Vector3) -> &mut CameraBuilder {
-        self.target = coordinate;
-        self
-    }
-
-    pub fn y_up(&mut self, coordinate: Vector3) -> &mut CameraBuilder {
-        self.y_up = coordinate;
-        self
-    }
-
-    pub fn zoom(&mut self, coordinate: f64) -> &mut CameraBuilder {
-        self.zoom = coordinate;
-        self
-    }
-
-    pub fn finalize(&self) -> Camera {
-        Camera::new(self.eye, self.target, self.y_up, self.zoom)
-    }
-}*/

@@ -34,13 +34,6 @@ fn render() {
     let height = 600;
     let mut imgbuf = image::ImageBuffer::new(width, height);
 
-    /*let camera = CameraBuilder::new()
-        .eye(Vector3::new(0.0, 3.0, 9.0))
-        .target(Vector3::new(0.0, 1.0, 0.0))
-        .y_up(Vector3::new(0.0, 1.0, 0.0))
-        .zoom(3.0)
-        .finalize();*/
-
     let camera = Camera::new(
         Vector3::new(0.0, 3.0, 9.0),// eye
         Vector3::new(0.0, 1.0, 0.0),// target
