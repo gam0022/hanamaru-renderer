@@ -201,9 +201,13 @@ impl Renderer for PathTracingRenderer {
     }
 
     fn report_progress(&mut self, y: u32, height: f64, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>) {
-        println!("rendering: {}%", (y as f64 + 1.0) / height * 100.0);
+        let progress = (y as f64 + 1.0) / height * 100.0;
 
         let now = time::now();
+        let passed_time = (now - self.begin).num_milliseconds() as f64 * 0.001;
+
+        println!("rendering: {:.2} % {:.3} sec.", progress, passed_time);
+
         if (now - self.last_report_image).num_seconds() > consts::REPORT_INTERVAL_SEC {
             let path = format!("progress_{:>03}.png", self.report_image_counter);
             println!("output progress image: {}", path);
