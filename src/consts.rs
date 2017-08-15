@@ -17,5 +17,5 @@ pub const GAMMA_FACTOR: f64 = 2.2;
 
 // レイトレ合宿5のレギュレーション用
 // https://sites.google.com/site/raytracingcamp5/
-pub const REPORT_INTERVAL_SEC: f64 = 3.0;// 30秒ごとに途中結果を出力
-pub const TIME_LIMIT_SEC: f64 = 10.0;//(4 * 60 + 33) as f64;// 4分33秒以内に自動で終了
+pub const REPORT_INTERVAL_SEC: f64 = 30.0;// 30秒ごとに途中結果を出力
+pub const TIME_LIMIT_SEC: f64 = (4 * 60 + 33) as f64;// 4分33秒以内に自動で終了
