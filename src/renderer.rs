@@ -53,6 +53,11 @@ pub trait Renderer: Sync {
 
     fn report_progress(&mut self, y: u32, height: f64, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>);
 
+    fn save_progress_image(path: &str, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>) {
+        let ref mut fout = File::create(&Path::new(path)).unwrap();
+        let _ = image::ImageRgb8(imgbuf.clone()).save(fout, image::PNG);
+    }
+
     fn supersampling(&self, scene: &Scene, camera: &Camera, frag_coord: &Vector2, resolution: &Vector2) -> Color {
         let mut accumulation = Color::zero();
 
@@ -214,15 +219,16 @@ impl Renderer for PathTracingRenderer {
             // save progress image
             let path = format!("progress_{:>03}.png", self.report_image_counter);
             println!("output progress image: {}", path);
-            let ref mut fout = File::create(&Path::new(&path)).unwrap();
-            let _ = image::ImageRgb8(imgbuf.clone()).save(fout, image::PNG);
+            PathTracingRenderer::save_progress_image(&path, imgbuf);
             self.report_image_counter += 1;
             self.last_report_image = now;
         }
 
         if passed_time > consts::TIME_LIMIT_SEC {
             // die when time limit exceeded
-            println!("time limit exceeded: {:.3} sec.", passed_time);
+            let path = "result_tle.png";
+            println!("time limit exceeded: {:.3} sec. {}", passed_time, path);
+            PathTracingRenderer::save_progress_image(path, imgbuf);
             process::exit(1);
         }
     }
