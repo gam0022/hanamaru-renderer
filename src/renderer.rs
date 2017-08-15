@@ -209,7 +209,8 @@ impl Renderer for PathTracingRenderer {
 
         println!("rendering: {:.2} % {:.3} sec.", progress, passed_time);
 
-        if (now - self.last_report_image).num_seconds() > consts::REPORT_INTERVAL_SEC {
+        let interval_time = (now - self.last_report_image).num_milliseconds() as f64 * 0.001;
+        if interval_time >= consts::REPORT_INTERVAL_SEC {
             // save progress image
             let path = format!("progress_{:>03}.png", self.report_image_counter);
             println!("output progress image: {}", path);
