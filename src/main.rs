@@ -47,8 +47,8 @@ fn render() {
         Vector3::new(0.0, 1.0, 0.0),// target
         Vector3::new(0.0, 1.0, 0.0),// y_up
         20.0,// fov
-        1.0,// aperture
-        3.0// focus_distance
+        0.3,// aperture
+        6.5// focus_distance
     );
 
     let scene = Scene {
