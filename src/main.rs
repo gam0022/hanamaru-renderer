@@ -22,7 +22,7 @@ mod bvh;
 use vector::Vector3;
 use matrix::Matrix44;
 use scene::{Scene, Sphere, AxisAlignedBoundingBox, Mesh, BvhMesh, Skybox};
-use camera::Camera;
+use camera::{Camera, LensShape};
 use material::{Material, SurfaceType};
 use texture::Texture;
 use renderer::{Renderer, DebugRenderer, PathTracingRenderer};
@@ -39,7 +39,9 @@ fn render() {
         Vector3::new(0.0, 1.0, 0.0),// target
         Vector3::new(0.0, 1.0, 0.0),// y_up
         20.0,// fov
-        0.3,// aperture
+
+        LensShape::Circle,// lens shape
+        0.15,// aperture
         6.5// focus_distance
     );
 
