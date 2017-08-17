@@ -16,7 +16,7 @@ use vector::{Vector3, Vector2};
 use scene::Scene;
 use camera::{Camera, Ray};
 use material::SurfaceType;
-use brdf;
+use bsdf;
 use color::{Color, color_to_rgb, linear_to_gamma};
 use math::saturate;
 
@@ -152,18 +152,18 @@ impl Renderer for PathTracingRenderer {
                     match intersection.material.surface {
                         SurfaceType::Diffuse => {
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
-                            ray.direction = brdf::importance_sample_diffuse(random, &intersection.normal);
+                            ray.direction = bsdf::importance_sample_diffuse(random, &intersection.normal);
                         }
                         SurfaceType::Specular => {
                             ray.origin = intersection.position + intersection.normal * consts::OFFSET;
                             ray.direction = ray.direction.reflect(&intersection.normal);
                         }
                         SurfaceType::Refraction { refractive_index } => {
-                            brdf::sample_refraction(random, &intersection.normal, refractive_index, &intersection, &mut ray);
+                            bsdf::sample_refraction(random, &intersection.normal, refractive_index, &intersection, &mut ray);
                         }
                         SurfaceType::GGX { roughness } => {
-                            let alpha2 = brdf::roughness_to_alpha2(roughness);
-                            let half = brdf::importance_sample_ggx(random, &intersection.normal, alpha2);
+                            let alpha2 = bsdf::roughness_to_alpha2(roughness);
+                            let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
                             let next_direction = ray.direction.reflect(&half);
 
                             // 半球外が選ばれた場合はBRDFを0にする
@@ -177,9 +177,9 @@ impl Renderer for PathTracingRenderer {
                                 let v_dot_h = saturate(view.dot(&half));
                                 let h_dot_n = saturate(half.dot(&intersection.normal));
 
-                                let g = brdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
+                                let g = bsdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
                                 // albedoをフレネル反射率のパラメータのF0として扱う
-                                let f = brdf::f_schlick(v_dot_h, &intersection.material.albedo);
+                                let f = bsdf::f_schlick(v_dot_h, &intersection.material.albedo);
                                 let weight = g * f * v_dot_h / (h_dot_n * v_dot_n);
                                 intersection.material.albedo *= weight;
                             }
@@ -188,9 +188,9 @@ impl Renderer for PathTracingRenderer {
                             ray.direction = next_direction;
                         }
                         SurfaceType::GGXReflection { refractive_index, roughness } => {
-                            let alpha2 = brdf::roughness_to_alpha2(roughness);
-                            let half = brdf::importance_sample_ggx(random, &intersection.normal, alpha2);
-                            brdf::sample_refraction(random, &half, refractive_index, &intersection, &mut ray);
+                            let alpha2 = bsdf::roughness_to_alpha2(roughness);
+                            let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
+                            bsdf::sample_refraction(random, &half, refractive_index, &intersection, &mut ray);
                         }
                     }
                 }

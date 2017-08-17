@@ -12,7 +12,7 @@ mod scene;
 mod camera;
 mod renderer;
 mod material;
-mod brdf;
+mod bsdf;
 mod color;
 mod texture;
 mod math;
