@@ -27,6 +27,7 @@ impl Intersection {
                 surface: SurfaceType::Diffuse,
                 albedo: Color::one(),
                 emission: Color::zero(),
+                roughness: 0.2,
             },
         }
     }
@@ -69,6 +70,7 @@ impl Intersectable for Sphere {
     fn material(&self) -> &Material { &self.material }
 }
 
+#[allow(dead_code)]
 pub struct Plane {
     pub center: Vector3,
     pub normal: Vector3,
@@ -272,6 +274,7 @@ impl Scene {
             intersection.material.surface = material.surface.clone();
             intersection.material.albedo = material.albedo.sample(intersection.uv);
             intersection.material.emission = material.emission.sample(intersection.uv);
+            intersection.material.roughness = material.roughness.sample(intersection.uv).x;
             (true, intersection)
         } else {
             intersection.material.emission = self.skybox.sample(&ray.direction);

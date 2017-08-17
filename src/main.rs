@@ -21,7 +21,7 @@ mod bvh;
 
 use vector::Vector3;
 use matrix::Matrix44;
-use scene::{Scene, Sphere, AxisAlignedBoundingBox, Mesh, BvhMesh, Skybox};
+use scene::{Scene, Sphere, AxisAlignedBoundingBox, BvhMesh, Skybox};
 use camera::{Camera, LensShape};
 use material::{Material, SurfaceType};
 use texture::Texture;
@@ -47,77 +47,52 @@ fn render() {
 
     let scene = Scene {
         elements: vec![
-//            Box::new(Sphere {
-//                center: Vector3::new(0.0, 1.0, 0.0),
-//                radius: 1.0,
-//                material: Material {
-//                    surface: SurfaceType::GGX { roughness: 0.2 },
-//                    albedo: Texture::from_color(Color::new(1.0, 0.1, 0.1)),
-//                    emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
-//                }
-//            }),
-//            Box::new(Sphere {
-//                center: Vector3::new(2.0, 0.5, -1.0),
-//                radius: 0.5,
-//                material: Material {
-//                    surface: SurfaceType::Refraction { refractive_index: 1.5 },
-//                    albedo: Texture::from_color(Color::new(0.5, 0.5, 1.0)),
-//                    emission: Texture::black(),
-//                }
-//            }),
-//            Box::new(Sphere {
-//                center: Vector3::new(1.0, 0.8, 1.1),
-//                radius: 0.8,
-//                material: Material {
-//                    surface: SurfaceType::Refraction { refractive_index: 1.2 },
-//                    albedo: Texture::from_color(Color::new(0.7, 1.0, 0.7)),
-//                    emission: Texture::black(),
-//                }
-//            }),
-//            Box::new(Sphere {
-//                center: Vector3::new(3.0, 1.0, 0.0),
-//                radius: 1.0,
-//                material: Material {
-//                    surface: SurfaceType::GGXReflection { roughness: 0.2, refractive_index: 1.2 },
-//                    albedo: Texture::from_color(Color::new(1.0, 0.5, 1.0)),
-//                    emission: Texture::black(),
-//                }
-//            }),
-            Box::new(Sphere {
-                center: Vector3::new(3.0, 3.0, -30.0),
-                radius: 0.5,
-                material: Material {
-                    surface: SurfaceType::GGX { roughness: 0.0 },
-                    albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
-                    emission: Texture::from_color(Color::new(10.0, 7.0, 1.0)),
-                }
-            }),
+            // うさぎ
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/bunny/bunny_face1000.obj",
-                //"models/octahedron.obj",
                 Matrix44::scale_linear(2.0) * Matrix44::translate(0.0, 0.0, 0.5) * Matrix44::rotate_y(-0.5),
                 Material {
-                    surface: SurfaceType::GGX { roughness: 0.1 },
+                    surface: SurfaceType::GGX,
                     albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
                     emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
                 },
             ))),
+
+            Box::new(Sphere {
+                center: Vector3::new(3.0, 1.0, 0.0),
+                radius: 1.0,
+                material: Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(Color::new(1.0, 0.1, 0.1)),
+                    emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
+                    roughness: Texture::from_color(Color::from_one(0.2)),
+                }
+            }),
+
+            // 背後にあるガラス
+            Box::new(AxisAlignedBoundingBox {
+                left_bottom: Vector3::new(-4.0, 0.0, -3.3),
+                right_top: Vector3::new(4.0, 3.0, -3.0),
+                material: Material {
+                    surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
+                    albedo: Texture::white(),
+                    emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
+                    roughness: Texture::black(),
+                }
+            }),
 
             // 床
             Box::new(AxisAlignedBoundingBox {
                 left_bottom: Vector3::new(-5.0, -1.0, -5.0),
                 right_top: Vector3::new(5.0, 0.0, 5.0),
                 material: Material {
-                    surface: SurfaceType::Diffuse {},
+                    surface: SurfaceType::GGX,
                     albedo: Texture::from_path("textures/2d/checkered_512.jpg"),
                     emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.9)),
                 }
             }),
-            //Box::new(Plane{ center: Vector3::new(0.0, 0.0, 0.0), normal: Vector3::new(0.0, 1.0, 0.0), material: Material {
-            //    surface: SurfaceType::Diffuse {},
-            //    albedo: Texture::from_path("textures/2d/diamond_512.png"),
-            //    emission: Texture::black(),
-            //}}),
         ],
         skybox: Skybox::new(
             "textures/cube/pisa/px.png",
@@ -129,7 +104,7 @@ fn render() {
         ),
     };
 
-    //let mut renderer = DebugRenderer{};
+    let mut renderer = DebugRenderer{};
     let mut renderer = PathTracingRenderer::new();
     renderer.render(&scene, &camera, &mut imgbuf);
 
