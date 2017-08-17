@@ -5,14 +5,14 @@ extern crate time;
 use std::fs::File;
 use std::path::Path;
 
-mod consts;
+mod config;
 mod vector;
 mod matrix;
 mod scene;
 mod camera;
 mod renderer;
 mod material;
-mod brdf;
+mod bsdf;
 mod color;
 mod texture;
 mod math;

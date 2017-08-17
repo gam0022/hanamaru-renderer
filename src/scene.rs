@@ -1,4 +1,4 @@
-use consts;
+use config;
 use vector::{Vector3, Vector2};
 use material::{Material, PointMaterial, SurfaceType};
 use camera::Ray;
@@ -20,7 +20,7 @@ impl Intersection {
     pub fn empty() -> Intersection {
         Intersection {
             position: Vector3::zero(),
-            distance: consts::INF,
+            distance: config::INF,
             normal: Vector3::zero(),
             uv: Vector2::zero(),
             material: PointMaterial {
@@ -55,11 +55,11 @@ impl Intersectable for Sphere {
             intersection.distance = t;
             intersection.normal = (intersection.position - self.center).normalize();
 
-            intersection.uv.y = intersection.normal.y.acos() / consts::PI;
+            intersection.uv.y = intersection.normal.y.acos() / config::PI;
             intersection.uv.x = 0.5
                 - intersection.normal.z.signum()
                 * (intersection.normal.x / intersection.normal.xz().length()).acos()
-                / consts::PI2;
+                / config::PI2;
             true
         } else {
             false
