@@ -11,7 +11,7 @@ use image::{ImageBuffer, Rgb};
 use self::rand::{thread_rng, Rng};
 use self::rayon::prelude::*;
 
-use consts;
+use config;
 use vector::{Vector3, Vector2};
 use scene::Scene;
 use camera::{Camera, Ray};
@@ -61,16 +61,16 @@ pub trait Renderer: Sync {
     fn supersampling(&self, scene: &Scene, camera: &Camera, frag_coord: &Vector2, resolution: &Vector2) -> Color {
         let mut accumulation = Color::zero();
 
-        for sy in 0..consts::SUPERSAMPLING {
-            for sx in 0..consts::SUPERSAMPLING {
-                let offset = Vector2::new(sx as f64, sy as f64) / consts::SUPERSAMPLING as f64 - 0.5;
+        for sy in 0..config::SUPERSAMPLING {
+            for sx in 0..config::SUPERSAMPLING {
+                let offset = Vector2::new(sx as f64, sy as f64) / config::SUPERSAMPLING as f64 - 0.5;
                 let normalized_coord = ((*frag_coord + offset) * 2.0 - *resolution) / resolution.x.min(resolution.y);
                 let color = self.calc_pixel(&scene, &camera, &normalized_coord);
                 accumulation += color;
             }
         }
 
-        accumulation / (consts::SUPERSAMPLING * consts::SUPERSAMPLING) as f64
+        accumulation / (config::SUPERSAMPLING * config::SUPERSAMPLING) as f64
     }
 
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Color;
@@ -87,11 +87,11 @@ impl Renderer for DebugRenderer {
         let mut accumulation = Color::zero();
         let mut reflection = Color::one();
 
-        for _ in 1..consts::DEBUG_BOUNCE_LIMIT {
+        for _ in 1..config::DEBUG_BOUNCE_LIMIT {
             let (hit, intersection) = scene.intersect(&ray);
 
             let shadow_ray = Ray {
-                origin: intersection.position + intersection.normal * consts::OFFSET,
+                origin: intersection.position + intersection.normal * config::OFFSET,
                 direction: light_direction,
             };
             let (shadow_hit, shadow_intersection) = scene.intersect(&shadow_ray);
@@ -100,7 +100,7 @@ impl Renderer for DebugRenderer {
             if hit {
                 match intersection.material.surface {
                     SurfaceType::Specular => {
-                        ray.origin = intersection.position + intersection.normal * consts::OFFSET;
+                        ray.origin = intersection.position + intersection.normal * config::OFFSET;
                         ray.direction = ray.direction.reflect(&intersection.normal);
                         reflection *= intersection.material.albedo;
                     }
@@ -139,23 +139,23 @@ impl Renderer for PathTracingRenderer {
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Color {
         let mut rng = thread_rng();
         let mut all_accumulation = Vector3::zero();
-        for _ in 1..consts::PATHTRACING_SAMPLING {
+        for _ in 1..config::PATHTRACING_SAMPLING {
             let mut ray = camera.ray_with_dof(&normalized_coord, &mut rng);
             let mut accumulation = Color::zero();
             let mut reflection = Color::one();
 
-            for _ in 1..consts::PATHTRACING_BOUNCE_LIMIT {
+            for _ in 1..config::PATHTRACING_BOUNCE_LIMIT {
                 let random = rng.gen::<(f64, f64)>();
                 let (hit, mut intersection) = scene.intersect(&ray);
 
                 if hit {
                     match intersection.material.surface {
                         SurfaceType::Diffuse => {
-                            ray.origin = intersection.position + intersection.normal * consts::OFFSET;
+                            ray.origin = intersection.position + intersection.normal * config::OFFSET;
                             ray.direction = bsdf::importance_sample_diffuse(random, &intersection.normal);
                         }
                         SurfaceType::Specular => {
-                            ray.origin = intersection.position + intersection.normal * consts::OFFSET;
+                            ray.origin = intersection.position + intersection.normal * config::OFFSET;
                             ray.direction = ray.direction.reflect(&intersection.normal);
                         }
                         SurfaceType::Refraction { refractive_index } => {
@@ -184,7 +184,7 @@ impl Renderer for PathTracingRenderer {
                                 intersection.material.albedo *= weight;
                             }
 
-                            ray.origin = intersection.position + intersection.normal * consts::OFFSET;
+                            ray.origin = intersection.position + intersection.normal * config::OFFSET;
                             ray.direction = next_direction;
                         }
                         SurfaceType::GGXReflection { refractive_index, roughness } => {
@@ -203,7 +203,7 @@ impl Renderer for PathTracingRenderer {
             all_accumulation += accumulation;
         }
 
-        all_accumulation / consts::PATHTRACING_SAMPLING as f64
+        all_accumulation / config::PATHTRACING_SAMPLING as f64
     }
 
     fn report_progress(&mut self, y: u32, height: f64, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>) {
@@ -215,7 +215,7 @@ impl Renderer for PathTracingRenderer {
         println!("rendering: {:.2} % {:.3} sec.", progress, passed_time);
 
         let interval_time = (now - self.last_report_image).num_milliseconds() as f64 * 0.001;
-        if interval_time >= consts::REPORT_INTERVAL_SEC {
+        if interval_time >= config::REPORT_INTERVAL_SEC {
             // save progress image
             let path = format!("progress_{:>03}.png", self.report_image_counter);
             println!("output progress image: {}", path);
@@ -224,7 +224,7 @@ impl Renderer for PathTracingRenderer {
             self.last_report_image = now;
         }
 
-        if passed_time > consts::TIME_LIMIT_SEC {
+        if passed_time > config::TIME_LIMIT_SEC {
             // die when time limit exceeded
             let path = "result_tle.png";
             println!("time limit exceeded: {:.3} sec. {}", passed_time, path);

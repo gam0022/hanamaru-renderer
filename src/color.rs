@@ -3,7 +3,7 @@ extern crate image;
 use vector::Vector3;
 use image::{Rgb, Rgba};
 use math::saturate;
-use consts;
+use config;
 
 pub type Color = Vector3;
 
@@ -24,7 +24,7 @@ pub fn rgba_to_color(color: Rgba<u8>) -> Color {
 }
 
 fn gamma_to_linear_f64(v: f64) -> f64 {
-    v.powf(consts::GAMMA_FACTOR)
+    v.powf(config::GAMMA_FACTOR)
 }
 
 pub fn gamma_to_linear(color: Color) -> Color {
@@ -36,7 +36,7 @@ pub fn gamma_to_linear(color: Color) -> Color {
 }
 
 fn linear_to_gamma_f64(v: f64) -> f64 {
-    v.powf(consts::GAMMA_FACTOR.recip())
+    v.powf(config::GAMMA_FACTOR.recip())
 }
 
 pub fn linear_to_gamma(color: Color) -> Color {

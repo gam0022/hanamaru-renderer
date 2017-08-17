@@ -1,4 +1,4 @@
-use consts;
+use config;
 use vector::Vector3;
 use scene::Intersection;
 use camera::Ray;
@@ -6,7 +6,7 @@ use color::Color;
 
 // 法線を基準とした空間の基底ベクトルを計算
 fn get_tangent_space_basis(normal: &Vector3) -> (Vector3, Vector3) {
-    let up = if normal.x.abs() > consts::EPS {
+    let up = if normal.x.abs() > config::EPS {
         Vector3::new(0.0, 1.0, 0.0)
     } else {
         Vector3::new(1.0, 0.0, 0.0)
@@ -30,7 +30,7 @@ pub fn importance_sample_diffuse(random: (f64, f64), normal: &Vector3) -> Vector
     // ・F(φ) = φ/2PI
     // Fの逆関数から、角度θ,φを求めることができるので、
     //float theta = asin(sqrt(random.1));// θは整理すると消去できるのでコメントアウト
-    let phi = consts::PI2 * random.0;
+    let phi = config::PI2 * random.0;
     // サンプリング方向 result は極座標から直交座標への変換によって求められる
     // result = tangent * sin(theta) * cos(phi) + binormal * sin(theta) * sin(phi) + normal * cos(theta))
     // ここで、sin(theta)とcos(theta)は次のように整理できる
@@ -52,7 +52,7 @@ pub fn roughness_to_alpha2(roughness: f64) -> f64 {
 pub fn importance_sample_ggx(random: (f64, f64), normal: &Vector3, alpha2: f64) -> Vector3 {
     let (tangent, binormal) = get_tangent_space_basis(normal);
 
-    let phi = consts::PI2 * random.0;
+    let phi = config::PI2 * random.0;
     let cos_theta = ((1.0 - random.1) / (1.0 + (alpha2 - 1.0) * random.1)).sqrt();
     let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
 
@@ -111,7 +111,7 @@ pub fn sample_refraction(random: (f64, f64), normal: &Vector3, refractive_index:
             //intersection.material.albedo = intersection.material.albedo * nnt.powf(2.0);
 
             // 物体内部にレイの原点を移動する
-            ray.origin = intersection.position - consts::OFFSET * *normal;
+            ray.origin = intersection.position - config::OFFSET * *normal;
             ray.direction = refract_direction;
         }
     }

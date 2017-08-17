@@ -1,4 +1,4 @@
-use consts;
+use config;
 use vector::Vector3;
 
 pub fn modulo(a: f64, b: f64) -> f64 {
@@ -19,7 +19,7 @@ pub fn saturate(v: f64) -> f64 {
 }
 
 pub fn equals_eps(a: f64, b: f64) -> bool {
-    (a - b).abs() < consts::EPS
+    (a - b).abs() < config::EPS
 }
 
 pub fn det(a: &Vector3, b: &Vector3, c: &Vector3) -> f64 {

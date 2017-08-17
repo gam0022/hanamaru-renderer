@@ -5,7 +5,7 @@ extern crate time;
 use std::fs::File;
 use std::path::Path;
 
-mod consts;
+mod config;
 mod vector;
 mod matrix;
 mod scene;

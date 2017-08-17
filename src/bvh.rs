@@ -1,7 +1,7 @@
 use vector::{Vector3, Vector2};
 use scene::{Mesh, Intersection};
 use camera::Ray;
-use consts;
+use config;
 use math::det;
 
 #[derive(Debug)]
@@ -20,8 +20,8 @@ pub struct BvhNode {
 impl BvhNode {
     fn empty() -> BvhNode {
         BvhNode {
-            left_bottom: Vector3::new(consts::INF, consts::INF, consts::INF),
-            right_top: Vector3::new(-consts::INF, -consts::INF, -consts::INF),
+            left_bottom: Vector3::new(config::INF, config::INF, config::INF),
+            right_top: Vector3::new(-config::INF, -config::INF, -config::INF),
             children: vec![],
             face_indexes: vec![],
         }
