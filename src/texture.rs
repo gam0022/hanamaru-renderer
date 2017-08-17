@@ -57,7 +57,7 @@ impl ImageTexture {
 
     fn sample_nearest_screen(&self, x: u32, y: u32) -> Vector3 {
         let x = clamp_u32(x,0, self.image.width() - 1);
-        let y = clamp_u32(y, 0, self.image.height() - 1);
+        let y = clamp_u32(self.image.height() - y - 1, 0, self.image.height() - 1);
         rgba_to_color(self.image.get_pixel(x, y))
     }
 }
