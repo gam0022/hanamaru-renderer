@@ -1,5 +1,6 @@
 use vector::{Vector3, Vector2};
-use scene::{Mesh, Intersection, Ray};
+use scene::{Mesh, Intersection};
+use camera::Ray;
 use consts;
 use math::det;
 

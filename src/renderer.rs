@@ -8,15 +8,15 @@ use std::path::Path;
 use std::process;
 use time::Tm;
 use image::{ImageBuffer, Rgb};
-use self::rand::thread_rng;
+use self::rand::{thread_rng, Rng};
 use self::rayon::prelude::*;
 
 use consts;
 use vector::{Vector3, Vector2};
-use scene::{Scene, Camera, Ray};
+use scene::Scene;
+use camera::{Camera, Ray};
 use material::SurfaceType;
 use brdf;
-use random;
 use color::{Color, color_to_rgb, linear_to_gamma};
 use math::saturate;
 
@@ -123,6 +123,7 @@ impl Renderer for DebugRenderer {
         accumulation
     }
 
+    #[allow(unused_variables)]
     fn report_progress(&mut self, y: u32, height: f64, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>) {
         // Nop
     }
@@ -136,16 +137,15 @@ pub struct PathTracingRenderer {
 
 impl Renderer for PathTracingRenderer {
     fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Color {
-        let original_ray = camera.ray(&normalized_coord);
-        let mut all_accumulation = Vector3::zero();
         let mut rng = thread_rng();
+        let mut all_accumulation = Vector3::zero();
         for _ in 1..consts::PATHTRACING_SAMPLING {
-            let mut ray = original_ray.clone();
+            let mut ray = camera.ray_with_dof(&normalized_coord, &mut rng);
             let mut accumulation = Color::zero();
             let mut reflection = Color::one();
 
             for _ in 1..consts::PATHTRACING_BOUNCE_LIMIT {
-                let random = random::get_random(&mut rng);
+                let random = rng.gen::<(f64, f64)>();
                 let (hit, mut intersection) = scene.intersect(&ray);
 
                 if hit {
