@@ -56,7 +56,7 @@ impl Intersectable for Sphere {
             intersection.distance = t;
             intersection.normal = (intersection.position - self.center).normalize();
 
-            intersection.uv.y = intersection.normal.y.acos() / config::PI;
+            intersection.uv.y = 1.0 - intersection.normal.y.acos() / config::PI;
             intersection.uv.x = 0.5
                 - intersection.normal.z.signum()
                 * (intersection.normal.x / intersection.normal.xz().length()).acos()
@@ -233,21 +233,21 @@ impl Skybox {
 
         if abs_x > abs_y && abs_x > abs_z {
             if direction.x.is_sign_positive() {
-                self.px_texture.sample_bilinear_0center(-direction.z / direction.x, -direction.y / direction.x)
+                self.px_texture.sample_bilinear_0center(-direction.z / direction.x, direction.y / direction.x)
             } else {
-                self.nx_texture.sample_bilinear_0center(-direction.z / direction.x, direction.y / direction.x)
+                self.nx_texture.sample_bilinear_0center(-direction.z / direction.x, -direction.y / direction.x)
             }
         } else if abs_y > abs_x && abs_y > abs_z {
             if direction.y.is_sign_positive() {
-                self.py_texture.sample_bilinear_0center(direction.x / direction.y, direction.z / direction.y)
+                self.py_texture.sample_bilinear_0center(direction.x / direction.y, -direction.z / direction.y)
             } else {
-                self.ny_texture.sample_bilinear_0center(-direction.x / direction.y, direction.z / direction.y)
+                self.ny_texture.sample_bilinear_0center(-direction.x / direction.y, -direction.z / direction.y)
             }
         } else {
             if direction.z.is_sign_positive() {
-                self.pz_texture.sample_bilinear_0center(direction.x / direction.z, -direction.y / direction.z)
+                self.pz_texture.sample_bilinear_0center(direction.x / direction.z, direction.y / direction.z)
             } else {
-                self.nz_texture.sample_bilinear_0center(direction.x / direction.z, direction.y / direction.z)
+                self.nz_texture.sample_bilinear_0center(direction.x / direction.z, -direction.y / direction.z)
             }
         }
     }
