@@ -30,15 +30,15 @@ use color::Color;
 use loader::ObjLoader;
 
 fn render() {
-    let width = 800;
-    let height = 600;
-    let mut imgbuf = image::ImageBuffer::new(width, height);
+    //let mut imgbuf = image::ImageBuffer::new(800, 600);
+    let mut imgbuf = image::ImageBuffer::new(1280, 720);
+    //let mut imgbuf = image::ImageBuffer::new(1920, 1080);
 
     let camera = Camera::new(
         Vector3::new(0.0, 3.0, 9.0),// eye
         Vector3::new(0.0, 1.0, 0.0),// target
         Vector3::new(0.0, 1.0, 0.0),// y_up
-        20.0,// fov
+        17.0,// fov
 
         LensShape::Circle,// lens shape
         0.15,// aperture
@@ -50,7 +50,7 @@ fn render() {
             // うさぎ
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/bunny/bunny_face1000.obj",
-                Matrix44::scale_linear(2.0) * Matrix44::translate(0.0, 0.0, 0.5) * Matrix44::rotate_y(-0.5),
+                Matrix44::scale_linear(2.0) * Matrix44::translate(0.3, 0.0, 0.5) * Matrix44::rotate_y(-0.5),
                 Material {
                     surface: SurfaceType::GGX,
                     albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
@@ -59,18 +59,31 @@ fn render() {
                 },
             ))),
 
+            // 金属球
             Box::new(Sphere {
-                center: Vector3::new(3.0, 1.0, 0.0),
+                center: Vector3::new(-3.0, 1.0, 0.0),
                 radius: 1.0,
                 material: Material {
                     surface: SurfaceType::GGX,
-                    albedo: Texture::from_color(Color::new(1.0, 0.1, 0.1)),
+                    albedo: Texture::from_color(Color::new(0.1, 0.6, 0.9)),
                     emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
                     roughness: Texture::from_color(Color::from_one(0.2)),
                 }
             }),
 
-            // 背後にあるガラス
+            // 磨りガラス
+            Box::new(Sphere {
+                center: Vector3::new(-2.0, 0.5, 2.0),
+                radius: 0.5,
+                material: Material {
+                    surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
+                    albedo: Texture::white(),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                }
+            }),
+
+            // 背後にある地図ガラス
             Box::new(AxisAlignedBoundingBox {
                 left_bottom: Vector3::new(-4.0, 0.0, -3.3),
                 right_top: Vector3::new(4.0, 3.0, -3.0),
@@ -87,10 +100,10 @@ fn render() {
                 left_bottom: Vector3::new(-5.0, -1.0, -5.0),
                 right_top: Vector3::new(5.0, 0.0, 5.0),
                 material: Material {
-                    surface: SurfaceType::GGX,
-                    albedo: Texture::from_path("textures/2d/checkered_512.jpg"),
+                    surface: SurfaceType::Diffuse,
+                    albedo:  Texture::white(),//Texture::from_path("textures/2d/checkered_512.jpg"),
                     emission: Texture::black(),
-                    roughness: Texture::from_color(Color::from_one(0.9)),
+                    roughness: Texture::white(),
                 }
             }),
         ],
