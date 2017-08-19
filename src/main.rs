@@ -4,6 +4,9 @@ extern crate time;
 
 use std::fs::File;
 use std::path::Path;
+use std::io::prelude::*;
+use std::fs;
+use std::io::{BufWriter, Write};
 
 mod config;
 mod vector;
@@ -129,5 +132,10 @@ fn main() {
     let begin = time::now();
     render();
     let end = time::now();
-    println!("total {} sec.", (end - begin).num_milliseconds() as f64 * 0.001);
+    let message = format!("total {} sec.", (end - begin).num_milliseconds() as f64 * 0.001);
+
+    println!("{}", message);
+
+    let mut f = BufWriter::new(fs::File::create("result.txt").unwrap());
+    let _ = f.write_all(message.as_bytes());
 }
