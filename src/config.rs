@@ -4,7 +4,7 @@ pub const PI: f64 = f64::consts::PI;
 pub const PI2: f64 = 2.0 * PI;
 
 pub const EPS: f64 = 1e-4;
-pub const OFFSET: f64 = 1e-2;
+pub const OFFSET: f64 = 1e-4;
 pub const INF: f64 = 1e100;
 
 pub const DEBUG_BOUNCE_LIMIT: u32 = 3;

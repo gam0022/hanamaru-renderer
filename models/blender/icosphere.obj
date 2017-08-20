@@ -1,6 +1,6 @@
-# Blender v2.78 (sub 0) OBJ File: 'primitive.blend'
+# Blender v2.78 (sub 0) OBJ File: 'icosphere.blend'
 # www.blender.org
-mtllib primitive.mtl
+mtllib icosphere.mtl
 o Icosphere
 v 0.000000 -1.000000 0.000000
 v 0.723607 -0.447220 0.525725
