@@ -32,10 +32,13 @@ impl ObjLoader {
                     mesh.vertexes.push(world_vertex);
                 }
                 "f" => {
+                    let v1: Vec<&str> = split_line[1].split("/").collect();
+                    let v2: Vec<&str> = split_line[2].split("/").collect();
+                    let v3: Vec<&str> = split_line[3].split("/").collect();
                     mesh.faces.push(Face {
-                        v0: split_line[1].parse::<usize>().unwrap() - 1,
-                        v1: split_line[2].parse::<usize>().unwrap() - 1,
-                        v2: split_line[3].parse::<usize>().unwrap() - 1,
+                        v0: v1[0].parse::<usize>().unwrap() - 1,
+                        v1: v2[0].parse::<usize>().unwrap() - 1,
+                        v2: v3[0].parse::<usize>().unwrap() - 1,
                     });
                 }
                 _ => {}

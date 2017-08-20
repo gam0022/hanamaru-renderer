@@ -80,7 +80,7 @@ fn render() {
                 radius: 0.5,
                 material: Material {
                     surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
-                    albedo: Texture::white(),
+                    albedo: Texture::from_color(Color::new(0.1, 1.0, 0.2)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
                 }
