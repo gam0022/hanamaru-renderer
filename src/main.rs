@@ -116,7 +116,8 @@ fn render() {
                 right_top: Vector3::new(5.0, 0.0, 5.0),
                 material: Material {
                     surface: SurfaceType::Diffuse,
-                    albedo:  Texture::white(),//Texture::from_path("textures/2d/checkered_512.jpg"),
+                    //albedo:  Texture::white(),
+                    albedo: Texture::from_path("textures/2d/checkered_512.jpg"),
                     emission: Texture::black(),
                     roughness: Texture::white(),
                 }
@@ -133,7 +134,7 @@ fn render() {
     };
 
     let mut renderer = DebugRenderer{};
-    //let mut renderer = PathTracingRenderer::new();
+    let mut renderer = PathTracingRenderer::new();
     renderer.render(&scene, &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
