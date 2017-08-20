@@ -99,7 +99,7 @@ fn render() {
             }),
 
             // Icosphere
-            /*Box::new(BvhMesh::from_mesh(ObjLoader::load(
+            Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/blender/icosphere_meshlab.obj",
                 Matrix44::scale_linear(0.7) * Matrix44::translate(4.0, 1.0, 2.0),
                 Material {
@@ -108,7 +108,7 @@ fn render() {
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
                 },
-            ))),*/
+            ))),
 
             // 床
             Box::new(AxisAlignedBoundingBox {
@@ -133,7 +133,7 @@ fn render() {
     };
 
     let mut renderer = DebugRenderer{};
-    let mut renderer = PathTracingRenderer::new();
+    //let mut renderer = PathTracingRenderer::new();
     renderer.render(&scene, &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
