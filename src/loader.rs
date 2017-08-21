@@ -40,6 +40,16 @@ impl ObjLoader {
                         v1: v2[0].parse::<usize>().unwrap() - 1,
                         v2: v3[0].parse::<usize>().unwrap() - 1,
                     });
+
+                    // 四角形ポリゴンの場合の処理
+                    if split_line.len() == 5 {
+                        let v4: Vec<&str> = split_line[4].split("/").collect();
+                        mesh.faces.push(Face {
+                            v0: v1[0].parse::<usize>().unwrap() - 1,
+                            v1: v3[0].parse::<usize>().unwrap() - 1,
+                            v2: v4[0].parse::<usize>().unwrap() - 1,
+                        });
+                    }
                 }
                 _ => {}
             }

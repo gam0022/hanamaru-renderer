@@ -53,7 +53,7 @@ fn render() {
             // うさぎ
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/bunny/bunny_face1000.obj",
-                Matrix44::scale_linear(2.0) * Matrix44::translate(0.3, 0.0, 0.5) * Matrix44::rotate_y(-0.5),
+                Matrix44::scale_linear(1.0) * Matrix44::translate(1.3, 0.0, 0.5) * Matrix44::rotate_y(-0.5),
                 Material {
                     surface: SurfaceType::GGX,
                     albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
@@ -62,8 +62,20 @@ fn render() {
                 },
             ))),
 
+            // Dia
+            Box::new(ObjLoader::load(
+                "models/dia_meshlab.obj",
+                Matrix44::translate(-0.7, 0.02 * 42.0, 2.0) * Matrix44::scale_linear(0.02) * Matrix44::rotate_y(0.0),
+                Material {
+                    surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
+                    albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.01)),
+                },
+            )),
+
             // 金属球
-            Box::new(Sphere {
+            /*Box::new(Sphere {
                 center: Vector3::new(-3.0, 1.0, 0.0),
                 radius: 1.0,
                 material: Material {
@@ -84,7 +96,7 @@ fn render() {
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
                 }
-            }),
+            }),*/
 
             // 背後にある地図ガラス
             Box::new(AxisAlignedBoundingBox {
@@ -134,7 +146,7 @@ fn render() {
     };
 
     let mut renderer = DebugRenderer{};
-    let mut renderer = PathTracingRenderer::new();
+    //let mut renderer = PathTracingRenderer::new();
     renderer.render(&scene, &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
