@@ -33,8 +33,8 @@ use color::Color;
 use loader::ObjLoader;
 
 fn render() {
-    //let mut imgbuf = image::ImageBuffer::new(800, 600);
-    let mut imgbuf = image::ImageBuffer::new(1280, 720);
+    let mut imgbuf = image::ImageBuffer::new(800, 600);
+    //let mut imgbuf = image::ImageBuffer::new(1280, 720);
     //let mut imgbuf = image::ImageBuffer::new(1920, 1080);
 
     let camera = Camera::new(
@@ -115,11 +115,11 @@ fn render() {
                 left_bottom: Vector3::new(-5.0, -1.0, -5.0),
                 right_top: Vector3::new(5.0, 0.0, 5.0),
                 material: Material {
-                    surface: SurfaceType::Diffuse,
+                    surface: SurfaceType::GGX,
                     //albedo:  Texture::white(),
-                    albedo: Texture::from_path("textures/2d/checkered_512.jpg"),
+                    albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     emission: Texture::black(),
-                    roughness: Texture::white(),
+                    roughness: Texture::from_color(Color::from_one(0.9)),
                 }
             }),
         ],
