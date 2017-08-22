@@ -141,7 +141,7 @@ fn intersect_aabb(left_bottom: &Vector3, right_top: &Vector3, ray: &Ray) -> bool
     let tmin = (t1.min(t2).max(t3.min(t4))).max(t5.min(t6));
     let tmax = (t1.max(t2).min(t3.max(t4))).min(t5.max(t6));
 
-    tmin <= tmax && 0.0 <= tmin
+    tmin <= tmax && tmax.is_sign_positive()
 }
 
 pub fn intersect_polygon(v0: &Vector3, v1: &Vector3, v2: &Vector3, ray: &Ray, intersection: &mut Intersection) -> bool {
