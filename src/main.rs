@@ -137,6 +137,7 @@ fn render() {
                 },
             ))),
 
+            /*
             // 床（ガラス層）
             Box::new(AxisAlignedBoundingBox {
                 left_bottom: Vector3::new(-5.0, -0.1, -5.0),
@@ -153,6 +154,19 @@ fn render() {
             Box::new(AxisAlignedBoundingBox {
                 left_bottom: Vector3::new(-5.0, -1.0, -5.0),
                 right_top: Vector3::new(5.0, -0.1, 5.0),
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::from_path("textures/2d/stone03.jpg"),
+                    emission: Texture::black(),
+                    roughness: Texture::black(),
+                }
+            }),
+            */
+
+            // 床（一層）
+            Box::new(AxisAlignedBoundingBox {
+                left_bottom: Vector3::new(-5.0, -1.0, -5.0),
+                right_top: Vector3::new(5.0, 0.0, 5.0),
                 material: Material {
                     surface: SurfaceType::Diffuse,
                     albedo: Texture::from_path("textures/2d/stone03.jpg"),
