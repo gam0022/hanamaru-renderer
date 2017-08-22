@@ -76,17 +76,19 @@ fn render() {
             )),
 
             // 金属球
-            /*Box::new(Sphere {
+            Box::new(Sphere {
                 center: Vector3::new(-3.0, 1.0, 0.0),
                 radius: 1.0,
                 material: Material {
                     surface: SurfaceType::GGX,
-                    albedo: Texture::from_color(Color::new(0.1, 0.6, 0.9)),
+                    //albedo: Texture::from_color(Color::new(0.1, 0.6, 0.9)),
+                    albedo: Texture::white(),
                     emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
-                    roughness: Texture::from_color(Color::from_one(0.2)),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
                 }
             }),
 
+            /*
             // 磨りガラス
             Box::new(Sphere {
                 center: Vector3::new(-2.0, 0.5, 2.0),
@@ -135,16 +137,27 @@ fn render() {
                 },
             ))),
 
-            // 床
+            // 床（ガラス層）
             Box::new(AxisAlignedBoundingBox {
-                left_bottom: Vector3::new(-5.0, -1.0, -5.0),
+                left_bottom: Vector3::new(-5.0, -0.1, -5.0),
                 right_top: Vector3::new(5.0, 0.0, 5.0),
                 material: Material {
-                    surface: SurfaceType::GGX,
-                    //albedo:  Texture::white(),
+                    surface: SurfaceType::Refraction { refractive_index: 1.2 },
+                    albedo:  Texture::white(),
+                    emission: Texture::black(),
+                    roughness: Texture::black(),
+                }
+            }),
+
+            // 床（大理石層）
+            Box::new(AxisAlignedBoundingBox {
+                left_bottom: Vector3::new(-5.0, -1.0, -5.0),
+                right_top: Vector3::new(5.0, -0.1, 5.0),
+                material: Material {
+                    surface: SurfaceType::Diffuse,
                     albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     emission: Texture::black(),
-                    roughness: Texture::from_color(Color::from_one(0.9)),
+                    roughness: Texture::black(),
                 }
             }),
         ],
