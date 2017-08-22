@@ -118,7 +118,7 @@ fn render() {
                 material: Material {
                     surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
                     albedo: Texture::white(),
-                    emission: Texture::from_color(Color::from_one(10.0)),
+                    emission: Texture::from_color(Color::from_one(2.0)),
                     roughness: Texture::black(),
                 }
             }),
@@ -149,12 +149,12 @@ fn render() {
             }),
         ],
         skybox: Skybox::new(
-            "textures/cube/park2/px.jpg",
-            "textures/cube/park2/nx.jpg",
-            "textures/cube/park2/py.jpg",
-            "textures/cube/park2/ny.jpg",
-            "textures/cube/park2/pz.jpg",
-            "textures/cube/park2/nz.jpg",
+            "textures/cube/LancellottiChapel/posx.jpg",
+            "textures/cube/LancellottiChapel/negx.jpg",
+            "textures/cube/LancellottiChapel/posy.jpg",
+            "textures/cube/LancellottiChapel/negy.jpg",
+            "textures/cube/LancellottiChapel/posz.jpg",
+            "textures/cube/LancellottiChapel/negz.jpg",
         ),
     };
 
