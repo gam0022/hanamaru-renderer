@@ -54,7 +54,7 @@ fn render() {
             // うさぎ
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/bunny/bunny_face1000.obj",
-                Matrix44::scale_linear(1.0) * Matrix44::translate(1.3, 0.0, 0.5) * Matrix44::rotate_y(-0.5),
+                Matrix44::scale_linear(1.0) * Matrix44::translate(1.3, 0.0, 0.5) * Matrix44::rotate_y(0.5),
                 Material {
                     surface: SurfaceType::GGX,
                     albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
@@ -63,10 +63,10 @@ fn render() {
                 },
             ))),
 
-            // Dia
+            // 宝石1
             Box::new(ObjLoader::load(
                 "models/dia/dia.obj",
-                Matrix44::translate(-0.7, 0.0, 0.0) * Matrix44::scale_linear(2.0) * Matrix44::rotate_y(0.1) * Matrix44::rotate_x(-40.9771237.to_radians()),
+                Matrix44::translate(-0.7, 0.0, 0.0) * Matrix44::scale_linear(2.0) * Matrix44::rotate_y(-0.1) * Matrix44::rotate_x(40.9771237.to_radians()),
                 Material {
                     surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
                     albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
@@ -186,7 +186,7 @@ fn render() {
     };
 
     let mut renderer = DebugRenderer{};
-    let mut renderer = PathTracingRenderer::new();
+    //let mut renderer = PathTracingRenderer::new();
     renderer.render(&scene, &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
