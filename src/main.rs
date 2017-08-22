@@ -137,12 +137,12 @@ fn render() {
             }),
         ],
         skybox: Skybox::new(
-            "textures/cube/pisa/px.png",
-            "textures/cube/pisa/nx.png",
-            "textures/cube/pisa/py.png",
-            "textures/cube/pisa/ny.png",
-            "textures/cube/pisa/pz.png",
-            "textures/cube/pisa/nz.png",
+            "textures/cube/park2/px.jpg",
+            "textures/cube/park2/nx.jpg",
+            "textures/cube/park2/py.jpg",
+            "textures/cube/park2/ny.jpg",
+            "textures/cube/park2/pz.jpg",
+            "textures/cube/park2/nz.jpg",
         ),
     };
 
