@@ -120,10 +120,11 @@ impl Intersectable for AxisAlignedBoundingBox {
         let t6 = (self.right_top.z - ray.origin.z) * dir_inv.z;
         let tmin = (t1.min(t2).max(t3.min(t4))).max(t5.min(t6));
         let tmax = (t1.max(t2).min(t3.max(t4))).min(t5.max(t6));
+        let distance = if tmin.is_sign_positive() { tmin } else { tmax };
 
-        if tmin <= tmax && 0.0 <= tmin && tmin < intersection.distance {
-            intersection.position = ray.origin + ray.direction * tmin;
-            intersection.distance = tmin;
+        if tmin <= tmax && tmax.is_sign_positive() && distance < intersection.distance {
+            intersection.position = ray.origin + ray.direction * distance;
+            intersection.distance = distance;
             let uvw = (intersection.position - self.left_bottom) / (self.right_top - self.left_bottom);
             // 交点座標から法線を求める
             // 高速化のためにY軸から先に判定する

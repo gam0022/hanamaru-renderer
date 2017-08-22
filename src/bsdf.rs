@@ -91,6 +91,7 @@ pub fn sample_refraction(random: (f64, f64), normal: &Vector3, refractive_index:
     let refract_direction = ray.direction.refract(&oriented_normal, nnt);
     if refract_direction == Vector3::zero() {
         // 完全反射のケース
+        ray.origin = intersection.position + config::OFFSET * oriented_normal;
         ray.direction = reflect_direction;
     } else {
         // フレネル反射率rの計算
@@ -103,6 +104,7 @@ pub fn sample_refraction(random: (f64, f64), normal: &Vector3, refractive_index:
         let r = 0.5 * (r_s + r_p);
         if random.0 <= r {
             // 反射
+            ray.origin = intersection.position + config::OFFSET * oriented_normal;
             ray.direction = reflect_direction;
         } else {
             // 屈折
@@ -111,7 +113,7 @@ pub fn sample_refraction(random: (f64, f64), normal: &Vector3, refractive_index:
             //intersection.material.albedo = intersection.material.albedo * nnt.powf(2.0);
 
             // 物体内部にレイの原点を移動する
-            ray.origin = intersection.position - config::OFFSET * *normal;
+            ray.origin = intersection.position - config::OFFSET * oriented_normal;
             ray.direction = refract_direction;
         }
     }
