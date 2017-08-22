@@ -64,7 +64,7 @@ fn render() {
             ))),
 
             // 宝石1
-            Box::new(ObjLoader::load(
+            Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/dia/dia.obj",
                 Matrix44::translate(-0.7, 0.0, 0.0) * Matrix44::scale_linear(2.0) * Matrix44::rotate_y(-0.1) * Matrix44::rotate_x(40.9771237.to_radians()),
                 Material {
@@ -73,7 +73,19 @@ fn render() {
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.01)),
                 },
-            )),
+            ))),
+
+            // Font-R
+            Box::new(BvhMesh::from_mesh(ObjLoader::load(
+                "models/font/font_r.obj",
+                Matrix44::translate(-1.7, 0.0, 3.0) * Matrix44::scale_linear(2.0),
+                Material {
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::from_color(Color::new(0.1, 1.0, 0.1)),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.9)),
+                },
+            ))),
 
             // 金属球
             Box::new(Sphere {
@@ -186,7 +198,7 @@ fn render() {
     };
 
     let mut renderer = DebugRenderer{};
-    //let mut renderer = PathTracingRenderer::new();
+    let mut renderer = PathTracingRenderer::new();
     renderer.render(&scene, &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
