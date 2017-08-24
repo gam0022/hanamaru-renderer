@@ -1,1 +1,1 @@
-total 29.25 sec.
+total 52.696 sec.

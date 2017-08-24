@@ -282,4 +282,8 @@ impl Scene {
             (false, intersection)
         }
     }
+
+    pub fn add(&mut self, element: Box<Intersectable>) {
+        self.elements.push(element);
+    }
 }

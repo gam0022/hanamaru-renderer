@@ -39,9 +39,9 @@ fn render() {
     //let mut imgbuf = image::ImageBuffer::new(1920, 1080);
 
     let camera = Camera::new(
-        Vector3::new(0.0, 1.0, 9.0),// eye
-        Vector3::new(0.0, 1.0, 0.0),// target
-        Vector3::new(0.0, 1.0, 0.0),// y_up
+        Vector3::new(-7.0, 1.5, 5.0),// eye
+        Vector3::new(-1.0, 0.2, 0.0),// target
+        Vector3::new(0.1, 1.0, 0.0).normalize(),// y_up
         17.0,// fov
 
         LensShape::Circle,// lens shape
@@ -49,12 +49,12 @@ fn render() {
         6.5// focus_distance
     );
 
-    let scene = Scene {
+    let mut scene = Scene {
         elements: vec![
             // うさぎ
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/bunny/bunny_face1000.obj",
-                Matrix44::scale_linear(1.0) * Matrix44::translate(1.3, 0.0, 0.5) * Matrix44::rotate_y(0.5),
+                Matrix44::scale_linear(1.0) * Matrix44::translate(0.0, 0.0, 0.0) * Matrix44::rotate_y(0.5),
                 Material {
                     surface: SurfaceType::GGX,
                     albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
@@ -62,92 +62,6 @@ fn render() {
                     roughness: Texture::from_color(Color::from_one(0.1)),
                 },
             ))),
-
-            // 宝石1
-            Box::new(BvhMesh::from_mesh(ObjLoader::load(
-                "models/dia/dia.obj",
-                Matrix44::translate(-0.7, 0.0, 0.0) * Matrix44::scale_linear(1.0) * Matrix44::rotate_y(-0.1) * Matrix44::rotate_x(40.9771237.to_radians()),
-                Material {
-                    surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
-                    albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
-                    emission: Texture::black(),
-                    roughness: Texture::from_color(Color::from_one(0.01)),
-                },
-            ))),
-
-            // 宝石2
-            Box::new(BvhMesh::from_mesh(ObjLoader::load(
-                "models/dia/dia.obj",
-                Matrix44::translate(0.7, 0.0, 2.0) * Matrix44::scale_linear(1.1) * Matrix44::rotate_y(1.2) * Matrix44::rotate_x(40.9771237.to_radians()),
-                Material {
-                    surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
-                    albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
-                    emission: Texture::black(),
-                    roughness: Texture::from_color(Color::from_one(0.01)),
-                },
-            ))),
-
-            // 宝石3
-            Box::new(BvhMesh::from_mesh(ObjLoader::load(
-                "models/dia/dia.obj",
-                Matrix44::translate(0.5, 0.0, -2.0) * Matrix44::scale_linear(1.1) * Matrix44::rotate_y(0.5) * Matrix44::rotate_x(40.9771237.to_radians()),
-                Material {
-                    surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
-                    albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
-                    emission: Texture::black(),
-                    roughness: Texture::from_color(Color::from_one(0.01)),
-                },
-            ))),
-
-            // 宝石3
-            Box::new(BvhMesh::from_mesh(ObjLoader::load(
-                "models/dia/dia.obj",
-                Matrix44::translate(2.8, 0.0, 0.0) * Matrix44::scale_linear(1.1) * Matrix44::rotate_y(3.0) * Matrix44::rotate_x(40.9771237.to_radians()),
-                Material {
-                    surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
-                    albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
-                    emission: Texture::black(),
-                    roughness: Texture::from_color(Color::from_one(0.01)),
-                },
-            ))),
-
-            // Font-R
-            /*Box::new(BvhMesh::from_mesh(ObjLoader::load(
-                "models/font/font_r.obj",
-                Matrix44::translate(-1.7, 0.0, 3.0) * Matrix44::scale_linear(2.0),
-                Material {
-                    surface: SurfaceType::Diffuse,
-                    albedo: Texture::from_color(Color::new(0.1, 1.0, 0.1)),
-                    emission: Texture::black(),
-                    roughness: Texture::from_color(Color::from_one(0.9)),
-                },
-            ))),*/
-
-            // 金属球
-            /*Box::new(Sphere {
-                center: Vector3::new(-3.0, 1.0, 0.0),
-                radius: 1.0,
-                material: Material {
-                    surface: SurfaceType::GGX,
-                    //albedo: Texture::from_color(Color::new(0.1, 0.6, 0.9)),
-                    albedo: Texture::white(),
-                    emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
-                    roughness: Texture::from_color(Color::from_one(0.1)),
-                }
-            }),*/
-
-            /*
-            // 磨りガラス
-            Box::new(Sphere {
-                center: Vector3::new(-2.0, 0.5, 2.0),
-                radius: 0.5,
-                material: Material {
-                    surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
-                    albedo: Texture::from_color(Color::new(0.1, 1.0, 0.2)),
-                    emission: Texture::black(),
-                    roughness: Texture::from_color(Color::from_one(0.1)),
-                }
-            }),*/
 
             // 背後にある地図ガラス
             /*Box::new(AxisAlignedBoundingBox {
@@ -173,45 +87,7 @@ fn render() {
                 }
             }),*/
 
-            // Icosphere
-            /*Box::new(BvhMesh::from_mesh(ObjLoader::load(
-                "models/blender/icosphere_meshlab.obj",
-                Matrix44::scale_linear(0.7) * Matrix44::translate(4.0, 1.0, 2.0),
-                Material {
-                    surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
-                    albedo: Texture::from_color(Color::new(0.2, 0.2, 1.0)),
-                    emission: Texture::black(),
-                    roughness: Texture::from_color(Color::from_one(0.1)),
-                },
-            ))),*/
-
-            /*
-            // 床（ガラス層）
-            Box::new(AxisAlignedBoundingBox {
-                left_bottom: Vector3::new(-5.0, -0.1, -5.0),
-                right_top: Vector3::new(5.0, 0.0, 5.0),
-                material: Material {
-                    surface: SurfaceType::Refraction { refractive_index: 1.2 },
-                    albedo:  Texture::white(),
-                    emission: Texture::black(),
-                    roughness: Texture::black(),
-                }
-            }),
-
-            // 床（大理石層）
-            Box::new(AxisAlignedBoundingBox {
-                left_bottom: Vector3::new(-5.0, -1.0, -5.0),
-                right_top: Vector3::new(5.0, -0.1, 5.0),
-                material: Material {
-                    surface: SurfaceType::Diffuse,
-                    albedo: Texture::from_path("textures/2d/stone03.jpg"),
-                    emission: Texture::black(),
-                    roughness: Texture::black(),
-                }
-            }),
-            */
-
-            // 床（一層）
+            // 床
             Box::new(AxisAlignedBoundingBox {
                 left_bottom: Vector3::new(-5.0, -1.0, -5.0),
                 right_top: Vector3::new(5.0, 0.0, 5.0),
@@ -234,6 +110,33 @@ fn render() {
             "textures/cube/LancellottiChapel/negz.jpg",
         ),
     };
+
+    for x in 0..5 {
+        scene.add(Box::new(BvhMesh::from_mesh(ObjLoader::load(
+            "models/dia/dia.obj",
+            Matrix44::translate(-4.0 + 1.7 * x as f64, 0.0, 2.0) * Matrix44::scale_linear(1.0) * Matrix44::rotate_y(-0.9 * x as f64) * Matrix44::rotate_x(40.9771237.to_radians()),
+            Material {
+                surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
+                albedo: Texture::from_color(Color::new(0.7, 0.5, 1.0)),
+                emission: Texture::black(),
+                roughness: Texture::from_color(Color::from_one(0.01)),
+            },
+        ))));
+    }
+
+    for x in 0..4 {
+        scene.add(Box::new(Sphere {
+            center: Vector3::new(-3.0 + 2.0 * x as f64, 0.5, -2.0),
+            radius: 0.5,
+            material: Material {
+                surface: SurfaceType::GGX,
+                //albedo: Texture::from_color(Color::new(0.1, 0.6, 0.9)),
+                albedo: Texture::white(),
+                emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
+                roughness: Texture::from_color(Color::from_one(0.1)),
+            }
+        }));
+    }
 
     let mut renderer = DebugRenderer{};
     let mut renderer = PathTracingRenderer::new();
