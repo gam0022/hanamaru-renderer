@@ -39,7 +39,7 @@ fn render() {
     //let mut imgbuf = image::ImageBuffer::new(1920, 1080);
 
     let camera = Camera::new(
-        Vector3::new(-7.0, 1.5, 5.0),// eye
+        Vector3::new(-2.0, 1.5, 8.0),// eye
         Vector3::new(-1.0, 0.2, 0.0),// target
         Vector3::new(0.1, 1.0, 0.0).normalize(),// y_up
         17.0,// fov
@@ -117,7 +117,7 @@ fn render() {
             Matrix44::translate(-4.0 + 1.7 * x as f64, 0.0, 2.0) * Matrix44::scale_linear(1.0) * Matrix44::rotate_y(-0.9 * x as f64) * Matrix44::rotate_x(40.9771237.to_radians()),
             Material {
                 surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
-                albedo: Texture::from_color(Color::new(0.7, 0.5, 1.0)),
+                albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
                 emission: Texture::black(),
                 roughness: Texture::from_color(Color::from_one(0.01)),
             },
