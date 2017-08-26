@@ -236,30 +236,30 @@ impl BvhNode {
         any_hit
     }
 
-    pub fn intersect_for_scene(&self, scene: &Scene, ray: &Ray, intersection: &mut Intersection) -> Option<&Box<Intersectable>> {
+    pub fn intersect_for_scene(&self, scene: &Scene, ray: &Ray, intersection: &mut Intersection) -> Option<usize> {
         if !self.aabb.intersect_ray(ray).0 {
             return None;
         }
 
-        let mut nearest: Option<&Box<Intersectable>> = None;
+        let mut nearest_index: Option<usize> = None;
         if self.children.is_empty() {
             // leaf node
             for index in &self.indexes {
                 let e = &scene.elements[*index];
                 if e.intersect(ray, intersection) {
-                    nearest = Some(e);
+                    nearest_index = Some(*index);
                 }
             }
         } else {
             // intermediate node
             for child in &self.children {
-                if let Some(e) = child.intersect_for_scene(scene, ray, intersection) {
-                    nearest = Some(e);
+                if let Some(index) = child.intersect_for_scene(scene, ray, intersection) {
+                    nearest_index = Some(index);
                 }
             }
         }
 
-        nearest
+        nearest_index
     }
 }
 

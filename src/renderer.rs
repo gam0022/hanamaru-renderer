@@ -65,7 +65,7 @@ pub trait Renderer: Sync {
             for sx in 0..config::SUPERSAMPLING {
                 let offset = Vector2::new(sx as f64, sy as f64) / config::SUPERSAMPLING as f64 - 0.5;
                 let normalized_coord = ((*frag_coord + offset) * 2.0 - *resolution) / resolution.x.min(resolution.y);
-                let color = self.calc_pixel(&scene, &camera, &normalized_coord);
+                let color = self.calc_pixel(scene, camera, &normalized_coord);
                 accumulation += color;
             }
         }

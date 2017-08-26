@@ -326,9 +326,10 @@ pub struct BvhScene {
 impl SceneTrait for BvhScene {
     fn intersect(&self, ray: &Ray) -> (bool, Intersection) {
         let mut intersection = Intersection::empty();
-        let nearest = self.bvh.intersect_for_scene(&self.scene, ray, &mut intersection);
+        let nearest_index = self.bvh.intersect_for_scene(&self.scene, ray, &mut intersection);
 
-        if let Some(element) = nearest {
+        if let Some(index) = nearest_index {
+            let element = &self.scene.elements[index];
             let material = element.material();
             intersection.material.surface = material.surface.clone();
             intersection.material.albedo = material.albedo.sample(intersection.uv);
@@ -338,6 +339,16 @@ impl SceneTrait for BvhScene {
         } else {
             intersection.material.emission = self.scene.skybox.sample(&ray.direction);
             (false, intersection)
+        }
+    }
+}
+
+impl BvhScene {
+    pub fn from_scene(scene: Scene) -> BvhScene {
+        let bvh = BvhNode::build_from_scene(&scene);
+        BvhScene {
+            scene: scene,
+            bvh: bvh,
         }
     }
 }

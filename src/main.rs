@@ -27,7 +27,7 @@ mod bvh;
 
 use vector::Vector3;
 use matrix::Matrix44;
-use scene::{Scene, Sphere, AxisAlignedBoundingBox, BvhMesh, Skybox};
+use scene::{Scene, BvhScene, Sphere, AxisAlignedBoundingBox, BvhMesh, Skybox};
 use bvh::Aabb;
 use camera::{Camera, LensShape};
 use material::{Material, SurfaceType};
@@ -188,8 +188,8 @@ fn render() {
     }
 
     let mut renderer = DebugRenderer{};
-    //let mut renderer = PathTracingRenderer::new();
-    renderer.render(&scene, &camera, &mut imgbuf);
+    let mut renderer = PathTracingRenderer::new();
+    renderer.render(&BvhScene::from_scene(scene), &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
     let _ = image::ImageRgb8(imgbuf).save(fout, image::PNG);
