@@ -80,16 +80,18 @@ fn render() {
             ))),
 
             // 背後にある地図ガラス
-            /*Box::new(AxisAlignedBoundingBox {
-                left_bottom: Vector3::new(-4.0, 0.0, -3.3),
-                right_top: Vector3::new(4.0, 3.0, -3.0),
+            Box::new(Cuboid {
+                aabb: Aabb {
+                    min: Vector3::new(-4.0, 0.0, -3.6),
+                    max: Vector3::new(4.0, 3.0, -3.5),
+                },
                 material: Material {
                     surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
                     albedo: Texture::white(),
                     emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
-                    roughness: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.3)),
                 }
-            }),*/
+            }),
 
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/dia/dia.obj",
@@ -123,8 +125,8 @@ fn render() {
                 material: Material {
                     surface: SurfaceType::Diffuse,
                     //albedo:  Texture::white(),
-                    //albedo: Texture::from_path("textures/2d/stone03.jpg"),
-                    albedo: Texture::from_path("textures/2d/checkered_v2_512.png"),
+                    albedo: Texture::from_path("textures/2d/stone03.jpg"),
+                    //albedo: Texture::from_path("textures/2d/checkered_v2_512.png"),
                     emission: Texture::black(),
                     roughness: Texture::black(),
                 }
@@ -155,7 +157,7 @@ fn render() {
             "models/dia/dia.obj",
             Matrix44::translate(px, py, pz) * Matrix44::scale_linear(s) * Matrix44::rotate_y(ry) * Matrix44::rotate_x(40.35.to_radians()),
             Material {
-                surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
+                surface: SurfaceType::GGXReflection { refractive_index: 2.42 },
                 albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
                 emission: Texture::black(),
                 roughness: Texture::from_color(Color::from_one(0.01)),
