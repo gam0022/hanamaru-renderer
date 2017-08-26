@@ -27,7 +27,7 @@ mod bvh;
 
 use vector::Vector3;
 use matrix::Matrix44;
-use scene::{Scene, Sphere, AxisAlignedBoundingBox, BvhMesh, Skybox};
+use scene::{Scene, Sphere, Aabb, AxisAlignedBoundingBox, BvhMesh, Skybox};
 use camera::{Camera, LensShape};
 use material::{Material, SurfaceType};
 use texture::Texture;
@@ -115,8 +115,10 @@ fn render() {
 
             // 床
             Box::new(AxisAlignedBoundingBox {
-                left_bottom: Vector3::new(-5.0, -1.0, -5.0),
-                right_top: Vector3::new(5.0, 0.0, 5.0),
+                aabb: Aabb {
+                    left_bottom: Vector3::new(-5.0, -1.0, -5.0),
+                    right_top: Vector3::new(5.0, 0.0, 5.0),
+                },
                 material: Material {
                     surface: SurfaceType::Diffuse,
                     //albedo:  Texture::white(),
@@ -185,7 +187,7 @@ fn render() {
     }
 
     let mut renderer = DebugRenderer{};
-    let mut renderer = PathTracingRenderer::new();
+    //let mut renderer = PathTracingRenderer::new();
     renderer.render(&scene, &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
