@@ -27,7 +27,7 @@ mod bvh;
 
 use vector::Vector3;
 use matrix::Matrix44;
-use scene::{Scene, BvhScene, Sphere, AxisAlignedBoundingBox, BvhMesh, Skybox};
+use scene::{Scene, BvhScene, Sphere, Cuboid, BvhMesh, Skybox};
 use bvh::Aabb;
 use camera::{Camera, LensShape};
 use material::{Material, SurfaceType};
@@ -115,7 +115,7 @@ fn render() {
             }),*/
 
             // 床
-            Box::new(AxisAlignedBoundingBox {
+            Box::new(Cuboid {
                 aabb: Aabb {
                     min: Vector3::new(-5.0, -1.0, -5.0),
                     max: Vector3::new(5.0, 0.0, 5.0),

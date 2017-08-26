@@ -114,12 +114,12 @@ impl Intersectable for Plane {
     }
 }
 
-pub struct AxisAlignedBoundingBox {
+pub struct Cuboid {
     pub aabb: Aabb,
     pub material: Material,
 }
 
-impl Intersectable for AxisAlignedBoundingBox {
+impl Intersectable for Cuboid {
     fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
         let (hit, distance) = self.aabb.intersect_ray(ray);
         if hit && distance < intersection.distance {
