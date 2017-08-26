@@ -37,8 +37,8 @@ impl Matrix44 {
         let cos = t.cos();
         Matrix44 {
             elements: [[1.0, 0.0, 0.0, 0.0],
-                [0.0, cos, sin, 0.0],
-                [0.0, -sin, cos, 0.0],
+                [0.0, cos, -sin, 0.0],
+                [0.0, sin, cos, 0.0],
                 [0.0, 0.0, 0.0, 1.0]],
         }
     }
@@ -48,9 +48,9 @@ impl Matrix44 {
         let sin = t.sin();
         let cos = t.cos();
         Matrix44 {
-            elements: [[cos, 0.0, -sin, 0.0],
+            elements: [[cos, 0.0, sin, 0.0],
                 [0.0, 1.0, 0.0, 0.0],
-                [sin, 0.0, cos, 0.0],
+                [-sin, 0.0, cos, 0.0],
                 [0.0, 0.0, 0.0, 1.0]],
         }
     }
@@ -60,8 +60,8 @@ impl Matrix44 {
         let sin = t.sin();
         let cos = t.cos();
         Matrix44 {
-            elements: [[cos, sin, 0.0, 0.0],
-                [-sin, cos, 0.0, 0.0],
+            elements: [[cos, -sin, 0.0, 0.0],
+                [sin, cos, 0.0, 0.0],
                 [0.0, 0.0, 1.0, 0.0],
                 [0.0, 0.0, 0.0, 1.0]],
         }

@@ -9,7 +9,7 @@ pub const INF: f64 = 1e100;
 
 pub const DEBUG_BOUNCE_LIMIT: u32 = 3;
 pub const PATHTRACING_BOUNCE_LIMIT: u32 = 10;
-pub const PATHTRACING_SAMPLING: u32 = 100;//30;
+pub const PATHTRACING_SAMPLING: u32 = 30;
 
 pub const SUPERSAMPLING: u32 = 2;
 

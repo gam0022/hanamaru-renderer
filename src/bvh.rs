@@ -164,7 +164,7 @@ pub fn intersect_polygon(v0: &Vector3, v1: &Vector3, v2: &Vector3, ray: &Ray, in
     if t < 0.0 || t > intersection.distance { return false; }
 
     intersection.position = ray.origin + ray.direction * t;
-    intersection.normal = edge1.cross(&edge2).normalize() * denominator_inv.signum();
+    intersection.normal = edge1.cross(&edge2).normalize();
     intersection.distance = t;
     intersection.uv = Vector2::new(u, v);
     true
