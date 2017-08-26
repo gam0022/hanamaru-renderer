@@ -20,8 +20,8 @@ impl BvhNode {
     fn empty() -> BvhNode {
         BvhNode {
             aabb: Aabb {
-                left_bottom: Vector3::new(config::INF, config::INF, config::INF),
-                right_top: Vector3::new(-config::INF, -config::INF, -config::INF),
+                min: Vector3::new(config::INF, config::INF, config::INF),
+                max: Vector3::new(-config::INF, -config::INF, -config::INF),
             },
             children: vec![],
             face_indexes: vec![],
@@ -35,13 +35,13 @@ impl BvhNode {
             let v1 = &mesh.vertexes[face.v1];
             let v2 = &mesh.vertexes[face.v2];
 
-            self.aabb.left_bottom.x = self.aabb.left_bottom.x.min(v0.x).min(v1.x).min(v2.x);
-            self.aabb.left_bottom.y = self.aabb.left_bottom.y.min(v0.y).min(v1.y).min(v2.y);
-            self.aabb.left_bottom.z = self.aabb.left_bottom.z.min(v0.z).min(v1.z).min(v2.z);
+            self.aabb.min.x = self.aabb.min.x.min(v0.x).min(v1.x).min(v2.x);
+            self.aabb.min.y = self.aabb.min.y.min(v0.y).min(v1.y).min(v2.y);
+            self.aabb.min.z = self.aabb.min.z.min(v0.z).min(v1.z).min(v2.z);
 
-            self.aabb.right_top.x = self.aabb.right_top.x.max(v0.x).max(v1.x).max(v2.x);
-            self.aabb.right_top.y = self.aabb.right_top.y.max(v0.y).max(v1.y).max(v2.y);
-            self.aabb.right_top.z = self.aabb.right_top.z.max(v0.z).max(v1.z).max(v2.z);
+            self.aabb.max.x = self.aabb.max.x.max(v0.x).max(v1.x).max(v2.x);
+            self.aabb.max.y = self.aabb.max.y.max(v0.y).max(v1.y).max(v2.y);
+            self.aabb.max.z = self.aabb.max.z.max(v0.z).max(v1.z).max(v2.z);
         }
     }
 
@@ -55,9 +55,9 @@ impl BvhNode {
             node.face_indexes = face_indexes.clone();
         } else {
             // set intermediate node
-            let lx = node.aabb.right_top.x - node.aabb.left_bottom.x;
-            let ly = node.aabb.right_top.y - node.aabb.left_bottom.y;
-            let lz = node.aabb.right_top.z - node.aabb.left_bottom.z;
+            let lx = node.aabb.max.x - node.aabb.min.x;
+            let ly = node.aabb.max.y - node.aabb.min.y;
+            let lz = node.aabb.max.z - node.aabb.min.z;
 
             if lx > ly && lx > lz {
                 face_indexes.sort_by(|a, b| {

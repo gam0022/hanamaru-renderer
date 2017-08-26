@@ -9,15 +9,15 @@ use bvh::{BvhNode, intersect_polygon};
 
 #[derive(Debug, Clone)]
 pub struct Aabb {
-    pub left_bottom: Vector3,
-    pub right_top: Vector3,
+    pub min: Vector3,
+    pub max: Vector3,
 }
 
 impl Aabb {
     pub fn intersect_aabb(&self, other: &Aabb) -> bool {
-        self.left_bottom.x < other.right_top.x && self.right_top.x > other.left_bottom.x &&
-            self.left_bottom.y < other.right_top.y && self.right_top.y > other.left_bottom.y &&
-            self.left_bottom.z < other.right_top.z && self.right_top.z > other.left_bottom.z
+        self.min.x < other.max.x && self.max.x > other.min.x &&
+            self.min.y < other.max.y && self.max.y > other.min.y &&
+            self.min.z < other.max.z && self.max.z > other.min.z
     }
 
     pub fn intersect_ray(&self, ray: &Ray) -> (bool, f64) {
@@ -27,12 +27,12 @@ impl Aabb {
             ray.direction.z.recip(),
         );
 
-        let t1 = (self.left_bottom.x - ray.origin.x) * dir_inv.x;
-        let t2 = (self.right_top.x - ray.origin.x) * dir_inv.x;
-        let t3 = (self.left_bottom.y - ray.origin.y) * dir_inv.y;
-        let t4 = (self.right_top.y - ray.origin.y) * dir_inv.y;
-        let t5 = (self.left_bottom.z - ray.origin.z) * dir_inv.z;
-        let t6 = (self.right_top.z - ray.origin.z) * dir_inv.z;
+        let t1 = (self.min.x - ray.origin.x) * dir_inv.x;
+        let t2 = (self.max.x - ray.origin.x) * dir_inv.x;
+        let t3 = (self.min.y - ray.origin.y) * dir_inv.y;
+        let t4 = (self.max.y - ray.origin.y) * dir_inv.y;
+        let t5 = (self.min.z - ray.origin.z) * dir_inv.z;
+        let t6 = (self.max.z - ray.origin.z) * dir_inv.z;
         let tmin = (t1.min(t2).max(t3.min(t4))).max(t5.min(t6));
         let tmax = (t1.max(t2).min(t3.max(t4))).min(t5.max(t6));
 
@@ -107,8 +107,8 @@ impl Intersectable for Sphere {
 
     fn aabb(&self) -> Aabb {
         Aabb {
-            left_bottom: self.center - Vector3::from_one(self.radius),
-            right_top: self.center + Vector3::from_one(self.radius),
+            min: self.center - Vector3::from_one(self.radius),
+            max: self.center + Vector3::from_one(self.radius),
         }
     }
 }
@@ -143,8 +143,8 @@ impl Intersectable for Plane {
     // dummy method
     fn aabb(&self) -> Aabb {
         Aabb {
-            left_bottom: Vector3::zero(),
-            right_top: Vector3::zero(),
+            min: Vector3::zero(),
+            max: Vector3::zero(),
         }
     }
 }
@@ -160,25 +160,25 @@ impl Intersectable for AxisAlignedBoundingBox {
         if hit && distance < intersection.distance {
             intersection.position = ray.origin + ray.direction * distance;
             intersection.distance = distance;
-            let uvw = (intersection.position - self.aabb.left_bottom) / (self.aabb.right_top - self.aabb.left_bottom);
+            let uvw = (intersection.position - self.aabb.min) / (self.aabb.max - self.aabb.min);
             // 交点座標から法線を求める
             // 高速化のためにY軸から先に判定する
-            if equals_eps(intersection.position.y, self.aabb.right_top.y) {
+            if equals_eps(intersection.position.y, self.aabb.max.y) {
                 intersection.normal = Vector3::new(0.0, 1.0, 0.0);
                 intersection.uv = uvw.xz();
-            } else if equals_eps(intersection.position.y, self.aabb.left_bottom.y) {
+            } else if equals_eps(intersection.position.y, self.aabb.min.y) {
                 intersection.normal = Vector3::new(0.0, -1.0, 0.0);
                 intersection.uv = uvw.xz();
-            } else if equals_eps(intersection.position.x, self.aabb.left_bottom.x) {
+            } else if equals_eps(intersection.position.x, self.aabb.min.x) {
                 intersection.normal = Vector3::new(-1.0, 0.0, 0.0);
                 intersection.uv = uvw.zy();
-            } else if equals_eps(intersection.position.x, self.aabb.right_top.x) {
+            } else if equals_eps(intersection.position.x, self.aabb.max.x) {
                 intersection.normal = Vector3::new(1.0, 0.0, 0.0);
                 intersection.uv = uvw.zy();
-            } else if equals_eps(intersection.position.z, self.aabb.left_bottom.z) {
+            } else if equals_eps(intersection.position.z, self.aabb.min.z) {
                 intersection.normal = Vector3::new(0.0, 0.0, -1.0);
                 intersection.uv = uvw.xy();
-            } else if equals_eps(intersection.position.z, self.aabb.right_top.z) {
+            } else if equals_eps(intersection.position.z, self.aabb.max.z) {
                 intersection.normal = Vector3::new(0.0, 0.0, 1.0);
                 intersection.uv = uvw.xy();
             }
@@ -221,8 +221,8 @@ impl Intersectable for Mesh {
     // dummy method
     fn aabb(&self) -> Aabb {
         Aabb {
-            left_bottom: Vector3::zero(),
-            right_top: Vector3::zero(),
+            min: Vector3::zero(),
+            max: Vector3::zero(),
         }
     }
 }

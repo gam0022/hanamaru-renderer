@@ -116,8 +116,8 @@ fn render() {
             // 床
             Box::new(AxisAlignedBoundingBox {
                 aabb: Aabb {
-                    left_bottom: Vector3::new(-5.0, -1.0, -5.0),
-                    right_top: Vector3::new(5.0, 0.0, 5.0),
+                    min: Vector3::new(-5.0, -1.0, -5.0),
+                    max: Vector3::new(5.0, 0.0, 5.0),
                 },
                 material: Material {
                     surface: SurfaceType::Diffuse,
