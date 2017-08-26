@@ -67,8 +67,8 @@ fn render() {
 
             // うさぎ左
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
-                "models/bunny/bunny_face1000.obj",
-                Matrix44::scale(-1.5, 1.5, 1.5) * Matrix44::translate(1.2, 0.0, 0.0) * Matrix44::rotate_y(0.5),
+                "models/bunny/bunny_face1000_flip.obj",
+                Matrix44::scale(1.5, 1.5, 1.5) * Matrix44::translate(-1.2, 0.0, 0.0) * Matrix44::rotate_y(-0.5),
                 Material {
                     surface: SurfaceType::Refraction { refractive_index: 1.5 },
                     albedo: Texture::from_color(Color::new(0.7, 0.7, 1.0)),
