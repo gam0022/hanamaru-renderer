@@ -41,19 +41,19 @@ fn render() {
     //let mut imgbuf = image::ImageBuffer::new(1920, 1080);
 
     let camera = Camera::new(
-        Vector3::new(-0.5, 2.5, 8.0),// eye
+        Vector3::new(-0.5, 2.5, 9.0),// eye
         Vector3::new(0.0, 1.0, 0.0),// target
         Vector3::new(0.0, 1.0, 0.0).normalize(),// y_up
         17.0,// fov
 
         LensShape::Circle,// lens shape
-        0.15 * 0.0,// aperture
-        6.5// focus_distance
+        0.15,// * 0.0,// aperture
+        7.5// focus_distance
     );
 
     let mut scene = Scene {
         elements: vec![
-            // うさぎ
+            // うさぎ右
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/bunny/bunny_face1000.obj",
                 Matrix44::scale_linear(1.5) * Matrix44::translate(1.2, 0.0, 0.0) * Matrix44::rotate_y(0.5),
@@ -65,6 +65,7 @@ fn render() {
                 },
             ))),
 
+            // うさぎ左
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/bunny/bunny_face1000.obj",
                 Matrix44::scale(-1.5, 1.5, 1.5) * Matrix44::translate(1.2, 0.0, 0.0) * Matrix44::rotate_y(0.5),
@@ -91,18 +92,6 @@ fn render() {
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/dia/dia.obj",
                 Matrix44::translate(0.0, 2.0, 0.0) * Matrix44::scale_linear(1.0) *Matrix44::rotate_x(90.0.to_radians()),
-                Material {
-                    surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
-                    albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
-                    emission: Texture::black(),
-                    roughness: Texture::from_color(Color::from_one(0.01)),
-                },
-            ))),
-
-
-            Box::new(BvhMesh::from_mesh(ObjLoader::load(
-                "models/dia/dia.obj",
-                Matrix44::translate(-2.0, 0.0, 0.0) * Matrix44::scale_linear(1.0) * Matrix44::rotate_y(-0.2) * Matrix44::rotate_x(40.9771237.to_radians()),
                 Material {
                     surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
                     albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
@@ -149,23 +138,26 @@ fn render() {
 
     let mut rng = thread_rng();
 
-    for x in 0..10 {
-        let px = rng.gen_range(-5.0, 5.0);
+    let mut count = 0;
+    while count < 20 {
+        let px = rng.gen_range(-4.5, 4.5);
         let py = 0.0;//rng.gen_range(0.0, 1.0);
-        let pz = rng.gen_range(-5.0, 5.0);
-        let s = rng.gen_range(0.2, 1.0);
+        let pz = rng.gen_range(-4.5, 4.5);
+        let s = rng.gen_range(0.5, 1.5);
         let ry = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
 
-        scene.add(Box::new(BvhMesh::from_mesh(ObjLoader::load(
+        if scene.add_with_check_collisions(Box::new(BvhMesh::from_mesh(ObjLoader::load(
             "models/dia/dia.obj",
-            Matrix44::translate(px, py, pz) * Matrix44::scale_linear(s) * Matrix44::rotate_y(ry) * Matrix44::rotate_x(40.9771237.to_radians()),
+            Matrix44::translate(px, py, pz) * Matrix44::scale_linear(s) * Matrix44::rotate_y(ry) * Matrix44::rotate_x(40.35.to_radians()),
             Material {
                 surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
                 albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
                 emission: Texture::black(),
                 roughness: Texture::from_color(Color::from_one(0.01)),
             },
-        ))));
+        )))) {
+            count += 1;
+        }
     }
 
     /*

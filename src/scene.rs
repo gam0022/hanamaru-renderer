@@ -8,6 +8,20 @@ use color::Color;
 use bvh::{BvhNode, intersect_polygon};
 
 #[derive(Debug)]
+pub struct Aabb {
+    pub left_bottom: Vector3,
+    pub right_top: Vector3,
+}
+
+impl Aabb {
+    pub fn intersect_aabb(&self, other: &Aabb) -> bool {
+        self.left_bottom.x < other.right_top.x && self.right_top.x > other.left_bottom.x &&
+            self.left_bottom.y < other.right_top.y && self.right_top.y > other.left_bottom.y &&
+            self.left_bottom.z < other.right_top.z && self.right_top.z > other.left_bottom.z
+    }
+}
+
+#[derive(Debug)]
 pub struct Intersection {
     pub position: Vector3,
     pub distance: f64,
@@ -36,6 +50,7 @@ impl Intersection {
 pub trait Intersectable: Sync {
     fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool;
     fn material(&self) -> &Material;
+    fn aabb(&self) -> Aabb;
 }
 
 pub struct Sphere {
@@ -68,6 +83,13 @@ impl Intersectable for Sphere {
     }
 
     fn material(&self) -> &Material { &self.material }
+
+    fn aabb(&self) -> Aabb {
+        Aabb {
+            left_bottom: self.center - Vector3::from_one(self.radius),
+            right_top: self.center + Vector3::from_one(self.radius),
+        }
+    }
 }
 
 #[allow(dead_code)]
@@ -96,6 +118,14 @@ impl Intersectable for Plane {
     }
 
     fn material(&self) -> &Material { &self.material }
+
+    // dummy method
+    fn aabb(&self) -> Aabb {
+        Aabb {
+            left_bottom: Vector3::zero(),
+            right_top: Vector3::zero(),
+        }
+    }
 }
 
 pub struct AxisAlignedBoundingBox {
@@ -154,6 +184,13 @@ impl Intersectable for AxisAlignedBoundingBox {
     }
 
     fn material(&self) -> &Material { &self.material }
+
+    fn aabb(&self) -> Aabb {
+        Aabb {
+            left_bottom: self.left_bottom,
+            right_top: self.right_top,
+        }
+    }
 }
 
 pub struct Face {
@@ -180,6 +217,14 @@ impl Intersectable for Mesh {
     }
 
     fn material(&self) -> &Material { &self.material }
+
+    // dummy method
+    fn aabb(&self) -> Aabb {
+        Aabb {
+            left_bottom: Vector3::zero(),
+            right_top: Vector3::zero(),
+        }
+    }
 }
 
 pub struct BvhMesh {
@@ -193,6 +238,13 @@ impl Intersectable for BvhMesh {
     }
 
     fn material(&self) -> &Material { &self.mesh.material }
+
+    fn aabb(&self) -> Aabb {
+        Aabb {
+            left_bottom: self.bvh.left_bottom,
+            right_top: self.bvh.right_top,
+        }
+    }
 }
 
 impl BvhMesh {
@@ -285,5 +337,17 @@ impl Scene {
 
     pub fn add(&mut self, element: Box<Intersectable>) {
         self.elements.push(element);
+    }
+
+    pub fn add_with_check_collisions(&mut self, element: Box<Intersectable>) -> bool {
+        let aabb = element.aabb();
+        let no_collisions = self.elements.iter().all(|ref e| !e.aabb().intersect_aabb(&aabb));
+        if no_collisions {
+            self.elements.push(element);
+            true
+        } else {
+            println!("add_with_check_collisions: collisions!");
+            false
+        }
     }
 }
