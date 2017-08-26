@@ -1,6 +1,7 @@
 extern crate num;
 extern crate image;
 extern crate time;
+extern crate rand;
 
 use std::fs::File;
 use std::path::Path;
@@ -8,6 +9,7 @@ use std::io::prelude::*;
 use std::fs;
 use std::io::{BufWriter, Write};
 use num::Float;
+use self::rand::{thread_rng, Rng};
 
 mod config;
 mod vector;
@@ -39,8 +41,8 @@ fn render() {
     //let mut imgbuf = image::ImageBuffer::new(1920, 1080);
 
     let camera = Camera::new(
-        Vector3::new(-0.5, 2.5, 4.0),// eye
-        Vector3::new(0.0, 2.0, 0.0),// target
+        Vector3::new(-0.5, 2.5, 8.0),// eye
+        Vector3::new(0.0, 1.0, 0.0),// target
         Vector3::new(0.0, 1.0, 0.0).normalize(),// y_up
         17.0,// fov
 
@@ -52,16 +54,27 @@ fn render() {
     let mut scene = Scene {
         elements: vec![
             // うさぎ
-            /*Box::new(BvhMesh::from_mesh(ObjLoader::load(
+            Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/bunny/bunny_face1000.obj",
-                Matrix44::scale_linear(1.0) * Matrix44::translate(0.0, 0.0, 0.0) * Matrix44::rotate_y(0.5),
+                Matrix44::scale_linear(1.5) * Matrix44::translate(1.2, 0.0, 0.0) * Matrix44::rotate_y(0.5),
                 Material {
                     surface: SurfaceType::GGX,
                     albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
                 },
-            ))),*/
+            ))),
+
+            Box::new(BvhMesh::from_mesh(ObjLoader::load(
+                "models/bunny/bunny_face1000.obj",
+                Matrix44::scale(-1.5, 1.5, 1.5) * Matrix44::translate(1.2, 0.0, 0.0) * Matrix44::rotate_y(0.5),
+                Material {
+                    surface: SurfaceType::Refraction { refractive_index: 1.5 },
+                    albedo: Texture::from_color(Color::new(0.7, 0.7, 1.0)),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                },
+            ))),
 
             // 背後にある地図ガラス
             /*Box::new(AxisAlignedBoundingBox {
@@ -134,10 +147,18 @@ fn render() {
         ),
     };
 
-    /*for x in 0..5 {
+    let mut rng = thread_rng();
+
+    for x in 0..10 {
+        let px = rng.gen_range(-5.0, 5.0);
+        let py = 0.0;//rng.gen_range(0.0, 1.0);
+        let pz = rng.gen_range(-5.0, 5.0);
+        let s = rng.gen_range(0.2, 1.0);
+        let ry = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
+
         scene.add(Box::new(BvhMesh::from_mesh(ObjLoader::load(
             "models/dia/dia.obj",
-            Matrix44::translate(-4.0 + 1.7 * x as f64, 0.0, 2.0) * Matrix44::scale_linear(1.0) * Matrix44::rotate_y(-0.9 * x as f64) * Matrix44::rotate_x(40.9771237.to_radians()),
+            Matrix44::translate(px, py, pz) * Matrix44::scale_linear(s) * Matrix44::rotate_y(ry) * Matrix44::rotate_x(40.9771237.to_radians()),
             Material {
                 surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
                 albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
@@ -147,6 +168,7 @@ fn render() {
         ))));
     }
 
+    /*
     for x in 0..4 {
         scene.add(Box::new(Sphere {
             center: Vector3::new(-3.0 + 2.0 * x as f64, 0.5, -2.0),
