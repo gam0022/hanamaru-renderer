@@ -5,21 +5,7 @@ use camera::Ray;
 use texture::ImageTexture;
 use math::{equals_eps, modulo};
 use color::Color;
-use bvh::{BvhNode, intersect_polygon};
-
-#[derive(Debug)]
-pub struct Aabb {
-    pub left_bottom: Vector3,
-    pub right_top: Vector3,
-}
-
-impl Aabb {
-    pub fn intersect_aabb(&self, other: &Aabb) -> bool {
-        self.left_bottom.x < other.right_top.x && self.right_top.x > other.left_bottom.x &&
-            self.left_bottom.y < other.right_top.y && self.right_top.y > other.left_bottom.y &&
-            self.left_bottom.z < other.right_top.z && self.right_top.z > other.left_bottom.z
-    }
-}
+use bvh::{BvhNode, Aabb, intersect_polygon};
 
 #[derive(Debug)]
 pub struct Intersection {
@@ -86,8 +72,8 @@ impl Intersectable for Sphere {
 
     fn aabb(&self) -> Aabb {
         Aabb {
-            left_bottom: self.center - Vector3::from_one(self.radius),
-            right_top: self.center + Vector3::from_one(self.radius),
+            min: self.center - Vector3::from_one(self.radius),
+            max: self.center + Vector3::from_one(self.radius),
         }
     }
 }
@@ -122,58 +108,42 @@ impl Intersectable for Plane {
     // dummy method
     fn aabb(&self) -> Aabb {
         Aabb {
-            left_bottom: Vector3::zero(),
-            right_top: Vector3::zero(),
+            min: Vector3::zero(),
+            max: Vector3::zero(),
         }
     }
 }
 
-pub struct AxisAlignedBoundingBox {
-    pub left_bottom: Vector3,
-    pub right_top: Vector3,
+pub struct Cuboid {
+    pub aabb: Aabb,
     pub material: Material,
 }
 
-impl Intersectable for AxisAlignedBoundingBox {
+impl Intersectable for Cuboid {
     fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
-        let dir_inv = Vector3::new(
-            ray.direction.x.recip(),
-            ray.direction.y.recip(),
-            ray.direction.z.recip(),
-        );
-
-        let t1 = (self.left_bottom.x - ray.origin.x) * dir_inv.x;
-        let t2 = (self.right_top.x - ray.origin.x) * dir_inv.x;
-        let t3 = (self.left_bottom.y - ray.origin.y) * dir_inv.y;
-        let t4 = (self.right_top.y - ray.origin.y) * dir_inv.y;
-        let t5 = (self.left_bottom.z - ray.origin.z) * dir_inv.z;
-        let t6 = (self.right_top.z - ray.origin.z) * dir_inv.z;
-        let tmin = (t1.min(t2).max(t3.min(t4))).max(t5.min(t6));
-        let tmax = (t1.max(t2).min(t3.max(t4))).min(t5.max(t6));
-        let distance = if tmin.is_sign_positive() { tmin } else { tmax };
-
-        if tmin <= tmax && tmax.is_sign_positive() && distance < intersection.distance {
+        let (hit, distance) = self.aabb.intersect_ray(ray);
+        if hit && distance < intersection.distance {
             intersection.position = ray.origin + ray.direction * distance;
             intersection.distance = distance;
-            let uvw = (intersection.position - self.left_bottom) / (self.right_top - self.left_bottom);
+            let uvw = (intersection.position - self.aabb.min) / (self.aabb.max - self.aabb.min);
             // 交点座標から法線を求める
             // 高速化のためにY軸から先に判定する
-            if equals_eps(intersection.position.y, self.right_top.y) {
+            if equals_eps(intersection.position.y, self.aabb.max.y) {
                 intersection.normal = Vector3::new(0.0, 1.0, 0.0);
                 intersection.uv = uvw.xz();
-            } else if equals_eps(intersection.position.y, self.left_bottom.y) {
+            } else if equals_eps(intersection.position.y, self.aabb.min.y) {
                 intersection.normal = Vector3::new(0.0, -1.0, 0.0);
                 intersection.uv = uvw.xz();
-            } else if equals_eps(intersection.position.x, self.left_bottom.x) {
+            } else if equals_eps(intersection.position.x, self.aabb.min.x) {
                 intersection.normal = Vector3::new(-1.0, 0.0, 0.0);
                 intersection.uv = uvw.zy();
-            } else if equals_eps(intersection.position.x, self.right_top.x) {
+            } else if equals_eps(intersection.position.x, self.aabb.max.x) {
                 intersection.normal = Vector3::new(1.0, 0.0, 0.0);
                 intersection.uv = uvw.zy();
-            } else if equals_eps(intersection.position.z, self.left_bottom.z) {
+            } else if equals_eps(intersection.position.z, self.aabb.min.z) {
                 intersection.normal = Vector3::new(0.0, 0.0, -1.0);
                 intersection.uv = uvw.xy();
-            } else if equals_eps(intersection.position.z, self.right_top.z) {
+            } else if equals_eps(intersection.position.z, self.aabb.max.z) {
                 intersection.normal = Vector3::new(0.0, 0.0, 1.0);
                 intersection.uv = uvw.xy();
             }
@@ -185,12 +155,7 @@ impl Intersectable for AxisAlignedBoundingBox {
 
     fn material(&self) -> &Material { &self.material }
 
-    fn aabb(&self) -> Aabb {
-        Aabb {
-            left_bottom: self.left_bottom,
-            right_top: self.right_top,
-        }
-    }
+    fn aabb(&self) -> Aabb { self.aabb.clone() }
 }
 
 pub struct Face {
@@ -221,8 +186,8 @@ impl Intersectable for Mesh {
     // dummy method
     fn aabb(&self) -> Aabb {
         Aabb {
-            left_bottom: Vector3::zero(),
-            right_top: Vector3::zero(),
+            min: Vector3::zero(),
+            max: Vector3::zero(),
         }
     }
 }
@@ -234,22 +199,17 @@ pub struct BvhMesh {
 
 impl Intersectable for BvhMesh {
     fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
-        self.bvh.intersect(&self.mesh, ray, intersection)
+        self.bvh.intersect_for_mesh(&self.mesh, ray, intersection)
     }
 
     fn material(&self) -> &Material { &self.mesh.material }
 
-    fn aabb(&self) -> Aabb {
-        Aabb {
-            left_bottom: self.bvh.left_bottom,
-            right_top: self.bvh.right_top,
-        }
-    }
+    fn aabb(&self) -> Aabb { self.bvh.aabb.clone() }
 }
 
 impl BvhMesh {
     pub fn from_mesh(mesh: Mesh) -> BvhMesh {
-        let bvh = BvhNode::from_mesh(&mesh);
+        let bvh = BvhNode::build_from_mesh(&mesh);
         //println!("bvh: {:?}", bvh);
         BvhMesh {
             bvh: bvh,
@@ -306,13 +266,17 @@ impl Skybox {
     }
 }
 
+pub trait SceneTrait: Sync {
+    fn intersect(&self, ray: &Ray) -> (bool, Intersection);
+}
+
 pub struct Scene {
     pub elements: Vec<Box<Intersectable>>,
     pub skybox: Skybox,
 }
 
-impl Scene {
-    pub fn intersect(&self, ray: &Ray) -> (bool, Intersection) {
+impl SceneTrait for Scene {
+    fn intersect(&self, ray: &Ray) -> (bool, Intersection) {
         let mut intersection = Intersection::empty();
         let mut nearest: Option<&Box<Intersectable>> = None;
 
@@ -334,7 +298,9 @@ impl Scene {
             (false, intersection)
         }
     }
+}
 
+impl Scene {
     pub fn add(&mut self, element: Box<Intersectable>) {
         self.elements.push(element);
     }
@@ -348,6 +314,41 @@ impl Scene {
         } else {
             println!("add_with_check_collisions: collisions!");
             false
+        }
+    }
+}
+
+pub struct BvhScene {
+    pub scene: Scene,
+    pub bvh: BvhNode,
+}
+
+impl SceneTrait for BvhScene {
+    fn intersect(&self, ray: &Ray) -> (bool, Intersection) {
+        let mut intersection = Intersection::empty();
+        let nearest_index = self.bvh.intersect_for_scene(&self.scene, ray, &mut intersection);
+
+        if let Some(index) = nearest_index {
+            let element = &self.scene.elements[index];
+            let material = element.material();
+            intersection.material.surface = material.surface.clone();
+            intersection.material.albedo = material.albedo.sample(intersection.uv);
+            intersection.material.emission = material.emission.sample(intersection.uv);
+            intersection.material.roughness = material.roughness.sample(intersection.uv).x;
+            (true, intersection)
+        } else {
+            intersection.material.emission = self.scene.skybox.sample(&ray.direction);
+            (false, intersection)
+        }
+    }
+}
+
+impl BvhScene {
+    pub fn from_scene(scene: Scene) -> BvhScene {
+        let bvh = BvhNode::build_from_scene(&scene);
+        BvhScene {
+            scene: scene,
+            bvh: bvh,
         }
     }
 }
