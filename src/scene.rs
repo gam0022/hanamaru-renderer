@@ -190,9 +190,7 @@ impl Intersectable for AxisAlignedBoundingBox {
 
     fn material(&self) -> &Material { &self.material }
 
-    fn aabb(&self) -> Aabb {
-        self.aabb.clone()
-    }
+    fn aabb(&self) -> Aabb { self.aabb.clone() }
 }
 
 pub struct Face {
@@ -241,12 +239,7 @@ impl Intersectable for BvhMesh {
 
     fn material(&self) -> &Material { &self.mesh.material }
 
-    fn aabb(&self) -> Aabb {
-        Aabb {
-            left_bottom: self.bvh.left_bottom,
-            right_top: self.bvh.right_top,
-        }
-    }
+    fn aabb(&self) -> Aabb { self.bvh.aabb.clone() }
 }
 
 impl BvhMesh {

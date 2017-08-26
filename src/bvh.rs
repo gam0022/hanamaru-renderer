@@ -1,13 +1,12 @@
 use vector::{Vector3, Vector2};
-use scene::{Mesh, Intersection};
+use scene::{Aabb, Mesh, Intersection};
 use camera::Ray;
 use config;
 use math::det;
 
 #[derive(Debug)]
 pub struct BvhNode {
-    pub left_bottom: Vector3,
-    pub right_top: Vector3,
+    pub aabb: Aabb,
 
     // size must be 0 or 2
     // empty means leaf node
@@ -20,8 +19,10 @@ pub struct BvhNode {
 impl BvhNode {
     fn empty() -> BvhNode {
         BvhNode {
-            left_bottom: Vector3::new(config::INF, config::INF, config::INF),
-            right_top: Vector3::new(-config::INF, -config::INF, -config::INF),
+            aabb: Aabb {
+                left_bottom: Vector3::new(config::INF, config::INF, config::INF),
+                right_top: Vector3::new(-config::INF, -config::INF, -config::INF),
+            },
             children: vec![],
             face_indexes: vec![],
         }
@@ -34,13 +35,13 @@ impl BvhNode {
             let v1 = &mesh.vertexes[face.v1];
             let v2 = &mesh.vertexes[face.v2];
 
-            self.left_bottom.x = self.left_bottom.x.min(v0.x).min(v1.x).min(v2.x);
-            self.left_bottom.y = self.left_bottom.y.min(v0.y).min(v1.y).min(v2.y);
-            self.left_bottom.z = self.left_bottom.z.min(v0.z).min(v1.z).min(v2.z);
+            self.aabb.left_bottom.x = self.aabb.left_bottom.x.min(v0.x).min(v1.x).min(v2.x);
+            self.aabb.left_bottom.y = self.aabb.left_bottom.y.min(v0.y).min(v1.y).min(v2.y);
+            self.aabb.left_bottom.z = self.aabb.left_bottom.z.min(v0.z).min(v1.z).min(v2.z);
 
-            self.right_top.x = self.right_top.x.max(v0.x).max(v1.x).max(v2.x);
-            self.right_top.y = self.right_top.y.max(v0.y).max(v1.y).max(v2.y);
-            self.right_top.z = self.right_top.z.max(v0.z).max(v1.z).max(v2.z);
+            self.aabb.right_top.x = self.aabb.right_top.x.max(v0.x).max(v1.x).max(v2.x);
+            self.aabb.right_top.y = self.aabb.right_top.y.max(v0.y).max(v1.y).max(v2.y);
+            self.aabb.right_top.z = self.aabb.right_top.z.max(v0.z).max(v1.z).max(v2.z);
         }
     }
 
@@ -54,9 +55,9 @@ impl BvhNode {
             node.face_indexes = face_indexes.clone();
         } else {
             // set intermediate node
-            let lx = node.right_top.x - node.left_bottom.x;
-            let ly = node.right_top.y - node.left_bottom.y;
-            let lz = node.right_top.z - node.left_bottom.z;
+            let lx = node.aabb.right_top.x - node.aabb.left_bottom.x;
+            let ly = node.aabb.right_top.y - node.aabb.left_bottom.y;
+            let lz = node.aabb.right_top.z - node.aabb.left_bottom.z;
 
             if lx > ly && lx > lz {
                 face_indexes.sort_by(|a, b| {
@@ -98,7 +99,7 @@ impl BvhNode {
     }
 
     pub fn intersect(&self, mesh: &Mesh, ray: &Ray, intersection: &mut Intersection) -> bool {
-        if !intersect_aabb(&self.left_bottom, &self.right_top, ray) {
+        if !self.aabb.intersect_ray(ray).0 {
             return false;
         }
 
@@ -122,26 +123,6 @@ impl BvhNode {
 
         any_hit
     }
-}
-
-// TODO: scene::AxisAlignedBoundingBox.intersect と共通化
-fn intersect_aabb(left_bottom: &Vector3, right_top: &Vector3, ray: &Ray) -> bool {
-    let dir_inv = Vector3::new(
-        ray.direction.x.recip(),
-        ray.direction.y.recip(),
-        ray.direction.z.recip(),
-    );
-
-    let t1 = (left_bottom.x - ray.origin.x) * dir_inv.x;
-    let t2 = (right_top.x - ray.origin.x) * dir_inv.x;
-    let t3 = (left_bottom.y - ray.origin.y) * dir_inv.y;
-    let t4 = (right_top.y - ray.origin.y) * dir_inv.y;
-    let t5 = (left_bottom.z - ray.origin.z) * dir_inv.z;
-    let t6 = (right_top.z - ray.origin.z) * dir_inv.z;
-    let tmin = (t1.min(t2).max(t3.min(t4))).max(t5.min(t6));
-    let tmax = (t1.max(t2).min(t3.max(t4))).min(t5.max(t6));
-
-    tmin <= tmax && tmax.is_sign_positive()
 }
 
 pub fn intersect_polygon(v0: &Vector3, v1: &Vector3, v2: &Vector3, ray: &Ray, intersection: &mut Intersection) -> bool {
