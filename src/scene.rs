@@ -266,13 +266,17 @@ impl Skybox {
     }
 }
 
+pub trait SceneTrait: Sync {
+    fn intersect(&self, ray: &Ray) -> (bool, Intersection);
+}
+
 pub struct Scene {
     pub elements: Vec<Box<Intersectable>>,
     pub skybox: Skybox,
 }
 
-impl Scene {
-    pub fn intersect(&self, ray: &Ray) -> (bool, Intersection) {
+impl SceneTrait for Scene {
+    fn intersect(&self, ray: &Ray) -> (bool, Intersection) {
         let mut intersection = Intersection::empty();
         let mut nearest: Option<&Box<Intersectable>> = None;
 
@@ -294,7 +298,9 @@ impl Scene {
             (false, intersection)
         }
     }
+}
 
+impl Scene {
     pub fn add(&mut self, element: Box<Intersectable>) {
         self.elements.push(element);
     }
@@ -308,6 +314,30 @@ impl Scene {
         } else {
             println!("add_with_check_collisions: collisions!");
             false
+        }
+    }
+}
+
+pub struct BvhScene {
+    pub scene: Scene,
+    pub bvh: BvhNode,
+}
+
+impl SceneTrait for BvhScene {
+    fn intersect(&self, ray: &Ray) -> (bool, Intersection) {
+        let mut intersection = Intersection::empty();
+        let nearest = self.bvh.intersect_for_scene(&self.scene, ray, &mut intersection);
+
+        if let Some(element) = nearest {
+            let material = element.material();
+            intersection.material.surface = material.surface.clone();
+            intersection.material.albedo = material.albedo.sample(intersection.uv);
+            intersection.material.emission = material.emission.sample(intersection.uv);
+            intersection.material.roughness = material.roughness.sample(intersection.uv).x;
+            (true, intersection)
+        } else {
+            intersection.material.emission = self.scene.skybox.sample(&ray.direction);
+            (false, intersection)
         }
     }
 }

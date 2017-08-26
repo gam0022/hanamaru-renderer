@@ -13,7 +13,7 @@ use self::rayon::prelude::*;
 
 use config;
 use vector::{Vector3, Vector2};
-use scene::Scene;
+use scene::SceneTrait;
 use camera::{Camera, Ray};
 use material::SurfaceType;
 use bsdf;
@@ -21,7 +21,7 @@ use color::{Color, color_to_rgb, linear_to_gamma};
 use math::saturate;
 
 pub trait Renderer: Sync {
-    fn render_single_thread(&mut self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+    fn render_single_thread(&mut self, scene: &SceneTrait, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
             let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
@@ -31,7 +31,7 @@ pub trait Renderer: Sync {
         }
     }
 
-    fn render(&mut self, scene: &Scene, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+    fn render(&mut self, scene: &SceneTrait, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         for y in 0..imgbuf.height() {
             let input: Vec<u32> = (0..imgbuf.width()).collect();
@@ -58,7 +58,7 @@ pub trait Renderer: Sync {
         let _ = image::ImageRgb8(imgbuf.clone()).save(fout, image::PNG);
     }
 
-    fn supersampling(&self, scene: &Scene, camera: &Camera, frag_coord: &Vector2, resolution: &Vector2) -> Color {
+    fn supersampling(&self, scene: &SceneTrait, camera: &Camera, frag_coord: &Vector2, resolution: &Vector2) -> Color {
         let mut accumulation = Color::zero();
 
         for sy in 0..config::SUPERSAMPLING {
@@ -73,14 +73,14 @@ pub trait Renderer: Sync {
         accumulation / (config::SUPERSAMPLING * config::SUPERSAMPLING) as f64
     }
 
-    fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Color;
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color;
 }
 
 pub struct DebugRenderer;
 
 impl Renderer for DebugRenderer {
     #[allow(unused_variables)]
-    fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Color {
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
         let mut ray = camera.ray(&normalized_coord);
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
 
@@ -136,7 +136,7 @@ pub struct PathTracingRenderer {
 }
 
 impl Renderer for PathTracingRenderer {
-    fn calc_pixel(&self, scene: &Scene, camera: &Camera, normalized_coord: &Vector2) -> Color {
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
         let mut rng = thread_rng();
         let mut all_accumulation = Vector3::zero();
         for _ in 1..config::PATHTRACING_SAMPLING {

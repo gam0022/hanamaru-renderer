@@ -1,5 +1,5 @@
 use vector::{Vector3, Vector2};
-use scene::{Mesh, Intersection};
+use scene::{Mesh, Intersection, Scene, Intersectable};
 use camera::Ray;
 use config;
 use math::det;
@@ -98,7 +98,13 @@ impl BvhNode {
         }
     }
 
-    fn build_from_mesh_and_face_indexes(mesh: &Mesh, face_indexes: &mut Vec<usize>) -> BvhNode {
+    fn set_aabb_from_scene(&mut self, scene: &Scene, indexes: &Vec<usize>) {
+        for index in indexes {
+            self.aabb.merge(&scene.elements[*index].aabb());
+        }
+    }
+
+    fn build_from_mesh_with_indexes(mesh: &Mesh, face_indexes: &mut Vec<usize>) -> BvhNode {
         let mut node = BvhNode::empty();
         node.set_aabb_from_mesh(mesh, face_indexes);
 
@@ -139,8 +145,56 @@ impl BvhNode {
             }
 
             let mut left_face_indexes = face_indexes.split_off(mid);
-            node.children.push(Box::new(BvhNode::build_from_mesh_and_face_indexes(mesh, face_indexes)));
-            node.children.push(Box::new(BvhNode::build_from_mesh_and_face_indexes(mesh, &mut left_face_indexes)));
+            node.children.push(Box::new(BvhNode::build_from_mesh_with_indexes(mesh, face_indexes)));
+            node.children.push(Box::new(BvhNode::build_from_mesh_with_indexes(mesh, &mut left_face_indexes)));
+        }
+
+        node
+    }
+
+    fn build_from_scene_with_indexes(scene: &Scene, indexes: &mut Vec<usize>) -> BvhNode {
+        let mut node = BvhNode::empty();
+        node.set_aabb_from_scene(scene, indexes);
+
+        let mid = indexes.len() / 2;
+        if mid <= 2 {
+            // set leaf node
+            node.indexes = indexes.clone();
+        } else {
+            // set intermediate node
+            let lx = node.aabb.max.x - node.aabb.min.x;
+            let ly = node.aabb.max.y - node.aabb.min.y;
+            let lz = node.aabb.max.z - node.aabb.min.z;
+
+            if lx > ly && lx > lz {
+                indexes.sort_by(|a, b| {
+                    let a_aabb = scene.elements[*a].aabb();
+                    let b_aabb = scene.elements[*b].aabb();
+                    let a_sum = a_aabb.min.x + a_aabb.max.x;
+                    let b_sum = b_aabb.min.x + b_aabb.max.x;
+                    a_sum.partial_cmp(&b_sum).unwrap()
+                });
+            } else if ly > lx && ly > lz {
+                indexes.sort_by(|a, b| {
+                    let a_aabb = scene.elements[*a].aabb();
+                    let b_aabb = scene.elements[*b].aabb();
+                    let a_sum = a_aabb.min.y + a_aabb.max.y;
+                    let b_sum = b_aabb.min.y + b_aabb.max.y;
+                    a_sum.partial_cmp(&b_sum).unwrap()
+                });
+            } else {
+                indexes.sort_by(|a, b| {
+                    let a_aabb = scene.elements[*a].aabb();
+                    let b_aabb = scene.elements[*b].aabb();
+                    let a_sum = a_aabb.min.z + a_aabb.max.z;
+                    let b_sum = b_aabb.min.z + b_aabb.max.z;
+                    a_sum.partial_cmp(&b_sum).unwrap()
+                });
+            }
+
+            let mut left_face_indexes = indexes.split_off(mid);
+            node.children.push(Box::new(BvhNode::build_from_scene_with_indexes(scene, indexes)));
+            node.children.push(Box::new(BvhNode::build_from_scene_with_indexes(scene, &mut left_face_indexes)));
         }
 
         node
@@ -148,7 +202,12 @@ impl BvhNode {
 
     pub fn build_from_mesh(mesh: &Mesh) -> BvhNode {
         let mut face_indexes: Vec<usize> = (0..mesh.faces.len()).collect();
-        BvhNode::build_from_mesh_and_face_indexes(mesh, &mut face_indexes)
+        BvhNode::build_from_mesh_with_indexes(mesh, &mut face_indexes)
+    }
+
+    pub fn build_from_scene(scene: &Scene) -> BvhNode {
+        let mut indexes: Vec<usize> = (0..scene.elements.len()).collect();
+        BvhNode::build_from_scene_with_indexes(scene, &mut indexes)
     }
 
     pub fn intersect_for_mesh(&self, mesh: &Mesh, ray: &Ray, intersection: &mut Intersection) -> bool {
@@ -175,6 +234,32 @@ impl BvhNode {
         }
 
         any_hit
+    }
+
+    pub fn intersect_for_scene(&self, scene: &Scene, ray: &Ray, intersection: &mut Intersection) -> Option<&Box<Intersectable>> {
+        if !self.aabb.intersect_ray(ray).0 {
+            return None;
+        }
+
+        let mut nearest: Option<&Box<Intersectable>> = None;
+        if self.children.is_empty() {
+            // leaf node
+            for index in &self.indexes {
+                let e = &scene.elements[*index];
+                if e.intersect(ray, intersection) {
+                    nearest = Some(e);
+                }
+            }
+        } else {
+            // intermediate node
+            for child in &self.children {
+                if let Some(e) = child.intersect_for_scene(scene, ray, intersection) {
+                    nearest = Some(e);
+                }
+            }
+        }
+
+        nearest
     }
 }
 
