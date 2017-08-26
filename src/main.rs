@@ -160,20 +160,28 @@ fn render() {
         }
     }
 
-    /*
-    for x in 0..4 {
-        scene.add(Box::new(Sphere {
-            center: Vector3::new(-3.0 + 2.0 * x as f64, 0.5, -2.0),
-            radius: 0.5,
-            material: Material {
-                surface: SurfaceType::GGX,
-                //albedo: Texture::from_color(Color::new(0.1, 0.6, 0.9)),
-                albedo: Texture::white(),
-                emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
-                roughness: Texture::from_color(Color::from_one(0.1)),
-            }
-        }));
-    }*/
+    count = 0;
+    while count < 30 {
+        let px = rng.gen_range(-4.5, 4.5);
+        let py = rng.gen_range(0.0, 5.0);
+        let pz = rng.gen_range(-4.5, 4.5);
+        let s = rng.gen_range(0.2, 1.0);
+        let ry = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
+        let rx = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
+
+        if scene.add_with_check_collisions(Box::new(BvhMesh::from_mesh(ObjLoader::load(
+            "models/dia/dia.obj",
+            Matrix44::translate(px, py, pz) * Matrix44::scale_linear(s) * Matrix44::rotate_y(ry) * Matrix44::rotate_x(rx),
+            Material {
+                surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
+                albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
+                emission: Texture::black(),
+                roughness: Texture::from_color(Color::from_one(0.01)),
+            },
+        )))) {
+            count += 1;
+        }
+    }
 
     let mut renderer = DebugRenderer{};
     let mut renderer = PathTracingRenderer::new();
