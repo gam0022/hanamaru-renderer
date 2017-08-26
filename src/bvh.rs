@@ -1,8 +1,68 @@
 use vector::{Vector3, Vector2};
-use scene::{Aabb, Mesh, Intersection};
+use scene::{Mesh, Intersection};
 use camera::Ray;
 use config;
 use math::det;
+
+#[derive(Debug, Clone)]
+pub struct Aabb {
+    pub min: Vector3,
+    pub max: Vector3,
+}
+
+impl Aabb {
+    pub fn intersect_aabb(&self, other: &Aabb) -> bool {
+        self.min.x < other.max.x && self.max.x > other.min.x &&
+            self.min.y < other.max.y && self.max.y > other.min.y &&
+            self.min.z < other.max.z && self.max.z > other.min.z
+    }
+
+    pub fn intersect_ray(&self, ray: &Ray) -> (bool, f64) {
+        let dir_inv = Vector3::new(
+            ray.direction.x.recip(),
+            ray.direction.y.recip(),
+            ray.direction.z.recip(),
+        );
+
+        let t1 = (self.min.x - ray.origin.x) * dir_inv.x;
+        let t2 = (self.max.x - ray.origin.x) * dir_inv.x;
+        let t3 = (self.min.y - ray.origin.y) * dir_inv.y;
+        let t4 = (self.max.y - ray.origin.y) * dir_inv.y;
+        let t5 = (self.min.z - ray.origin.z) * dir_inv.z;
+        let t6 = (self.max.z - ray.origin.z) * dir_inv.z;
+        let tmin = (t1.min(t2).max(t3.min(t4))).max(t5.min(t6));
+        let tmax = (t1.max(t2).min(t3.max(t4))).min(t5.max(t6));
+
+        let hit = tmin <= tmax && tmax.is_sign_positive();
+        let distance = if tmin.is_sign_positive() { tmin } else { tmax };
+        (hit, distance)
+    }
+
+    pub fn merge(&mut self, other: &Aabb) {
+        self.min.x = self.min.x.min(other.min.x);
+        self.min.y = self.min.y.min(other.min.y);
+        self.min.z = self.min.z.min(other.min.z);
+
+        self.max.x = self.max.x.max(other.max.x);
+        self.max.y = self.max.y.max(other.max.y);
+        self.max.z = self.max.z.max(other.max.z);
+    }
+
+    pub fn from_triangle(v0: &Vector3, v1: &Vector3, v2: &Vector3) -> Aabb {
+        Aabb {
+            min: Vector3::new(
+                v0.x.min(v1.x).min(v2.x),
+                v0.y.min(v1.y).min(v2.y),
+                v0.z.min(v1.z).min(v2.z),
+            ),
+            max: Vector3::new(
+                v0.x.max(v1.x).max(v2.x),
+                v0.y.max(v1.y).max(v2.y),
+                v0.z.max(v1.z).max(v2.z),
+            )
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct BvhNode {
@@ -13,7 +73,7 @@ pub struct BvhNode {
     pub children: Vec<Box<BvhNode>>,
 
     // has faces means leaf node
-    pub face_indexes: Vec<usize>,
+    pub indexes: Vec<usize>,
 }
 
 impl BvhNode {
@@ -24,35 +84,28 @@ impl BvhNode {
                 max: Vector3::new(-config::INF, -config::INF, -config::INF),
             },
             children: vec![],
-            face_indexes: vec![],
+            indexes: vec![],
         }
     }
 
-    fn set_aabb(&mut self, mesh: &Mesh, face_indexes: &Vec<usize>) {
+    fn set_aabb_from_mesh(&mut self, mesh: &Mesh, face_indexes: &Vec<usize>) {
         for face_index in face_indexes {
             let face = &mesh.faces[*face_index];
             let v0 = &mesh.vertexes[face.v0];
             let v1 = &mesh.vertexes[face.v1];
             let v2 = &mesh.vertexes[face.v2];
-
-            self.aabb.min.x = self.aabb.min.x.min(v0.x).min(v1.x).min(v2.x);
-            self.aabb.min.y = self.aabb.min.y.min(v0.y).min(v1.y).min(v2.y);
-            self.aabb.min.z = self.aabb.min.z.min(v0.z).min(v1.z).min(v2.z);
-
-            self.aabb.max.x = self.aabb.max.x.max(v0.x).max(v1.x).max(v2.x);
-            self.aabb.max.y = self.aabb.max.y.max(v0.y).max(v1.y).max(v2.y);
-            self.aabb.max.z = self.aabb.max.z.max(v0.z).max(v1.z).max(v2.z);
+            self.aabb.merge(&Aabb::from_triangle(v0, v1, v2));
         }
     }
 
-    fn from_face_indexes(mesh: &Mesh, face_indexes: &mut Vec<usize>) -> BvhNode {
+    fn build_from_mesh_and_face_indexes(mesh: &Mesh, face_indexes: &mut Vec<usize>) -> BvhNode {
         let mut node = BvhNode::empty();
-        node.set_aabb(mesh, face_indexes);
+        node.set_aabb_from_mesh(mesh, face_indexes);
 
         let mid = face_indexes.len() / 2;
         if mid <= 2 {
             // set leaf node
-            node.face_indexes = face_indexes.clone();
+            node.indexes = face_indexes.clone();
         } else {
             // set intermediate node
             let lx = node.aabb.max.x - node.aabb.min.x;
@@ -86,19 +139,19 @@ impl BvhNode {
             }
 
             let mut left_face_indexes = face_indexes.split_off(mid);
-            node.children.push(Box::new(BvhNode::from_face_indexes(mesh, face_indexes)));
-            node.children.push(Box::new(BvhNode::from_face_indexes(mesh, &mut left_face_indexes)));
+            node.children.push(Box::new(BvhNode::build_from_mesh_and_face_indexes(mesh, face_indexes)));
+            node.children.push(Box::new(BvhNode::build_from_mesh_and_face_indexes(mesh, &mut left_face_indexes)));
         }
 
         node
     }
 
-    pub fn from_mesh(mesh: &Mesh) -> BvhNode {
+    pub fn build_from_mesh(mesh: &Mesh) -> BvhNode {
         let mut face_indexes: Vec<usize> = (0..mesh.faces.len()).collect();
-        BvhNode::from_face_indexes(mesh, &mut face_indexes)
+        BvhNode::build_from_mesh_and_face_indexes(mesh, &mut face_indexes)
     }
 
-    pub fn intersect(&self, mesh: &Mesh, ray: &Ray, intersection: &mut Intersection) -> bool {
+    pub fn intersect_for_mesh(&self, mesh: &Mesh, ray: &Ray, intersection: &mut Intersection) -> bool {
         if !self.aabb.intersect_ray(ray).0 {
             return false;
         }
@@ -106,7 +159,7 @@ impl BvhNode {
         let mut any_hit = false;
         if self.children.is_empty() {
             // leaf node
-            for face_index in &self.face_indexes {
+            for face_index in &self.indexes {
                 let face = &mesh.faces[*face_index];
                 if intersect_polygon(&mesh.vertexes[face.v0], &mesh.vertexes[face.v1], &mesh.vertexes[face.v2], ray, intersection) {
                     any_hit = true;
@@ -115,7 +168,7 @@ impl BvhNode {
         } else {
             // intermediate node
             for child in &self.children {
-                if child.intersect(mesh, ray, intersection) {
+                if child.intersect_for_mesh(mesh, ray, intersection) {
                     any_hit = true;
                 }
             }

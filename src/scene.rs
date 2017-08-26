@@ -5,42 +5,7 @@ use camera::Ray;
 use texture::ImageTexture;
 use math::{equals_eps, modulo};
 use color::Color;
-use bvh::{BvhNode, intersect_polygon};
-
-#[derive(Debug, Clone)]
-pub struct Aabb {
-    pub min: Vector3,
-    pub max: Vector3,
-}
-
-impl Aabb {
-    pub fn intersect_aabb(&self, other: &Aabb) -> bool {
-        self.min.x < other.max.x && self.max.x > other.min.x &&
-            self.min.y < other.max.y && self.max.y > other.min.y &&
-            self.min.z < other.max.z && self.max.z > other.min.z
-    }
-
-    pub fn intersect_ray(&self, ray: &Ray) -> (bool, f64) {
-        let dir_inv = Vector3::new(
-            ray.direction.x.recip(),
-            ray.direction.y.recip(),
-            ray.direction.z.recip(),
-        );
-
-        let t1 = (self.min.x - ray.origin.x) * dir_inv.x;
-        let t2 = (self.max.x - ray.origin.x) * dir_inv.x;
-        let t3 = (self.min.y - ray.origin.y) * dir_inv.y;
-        let t4 = (self.max.y - ray.origin.y) * dir_inv.y;
-        let t5 = (self.min.z - ray.origin.z) * dir_inv.z;
-        let t6 = (self.max.z - ray.origin.z) * dir_inv.z;
-        let tmin = (t1.min(t2).max(t3.min(t4))).max(t5.min(t6));
-        let tmax = (t1.max(t2).min(t3.max(t4))).min(t5.max(t6));
-
-        let hit = tmin <= tmax && tmax.is_sign_positive();
-        let distance = if tmin.is_sign_positive() { tmin } else { tmax };
-        (hit, distance)
-    }
-}
+use bvh::{BvhNode, Aabb, intersect_polygon};
 
 #[derive(Debug)]
 pub struct Intersection {
@@ -234,7 +199,7 @@ pub struct BvhMesh {
 
 impl Intersectable for BvhMesh {
     fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool {
-        self.bvh.intersect(&self.mesh, ray, intersection)
+        self.bvh.intersect_for_mesh(&self.mesh, ray, intersection)
     }
 
     fn material(&self) -> &Material { &self.mesh.material }
@@ -244,7 +209,7 @@ impl Intersectable for BvhMesh {
 
 impl BvhMesh {
     pub fn from_mesh(mesh: Mesh) -> BvhMesh {
-        let bvh = BvhNode::from_mesh(&mesh);
+        let bvh = BvhNode::build_from_mesh(&mesh);
         //println!("bvh: {:?}", bvh);
         BvhMesh {
             bvh: bvh,

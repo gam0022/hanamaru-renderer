@@ -27,7 +27,8 @@ mod bvh;
 
 use vector::Vector3;
 use matrix::Matrix44;
-use scene::{Scene, Sphere, Aabb, AxisAlignedBoundingBox, BvhMesh, Skybox};
+use scene::{Scene, Sphere, AxisAlignedBoundingBox, BvhMesh, Skybox};
+use bvh::Aabb;
 use camera::{Camera, LensShape};
 use material::{Material, SurfaceType};
 use texture::Texture;
