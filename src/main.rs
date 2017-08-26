@@ -9,7 +9,7 @@ use std::io::prelude::*;
 use std::fs;
 use std::io::{BufWriter, Write};
 use num::Float;
-use self::rand::{thread_rng, Rng};
+use self::rand::{Rng, SeedableRng, StdRng};
 
 mod config;
 mod vector;
@@ -140,12 +140,13 @@ fn render() {
         ),
     };
 
-    let mut rng = thread_rng();
+    let seed: &[_] = &[1, 9, 9, 2];
+    let mut rng: StdRng = SeedableRng::from_seed(seed);
 
     let mut count = 0;
     while count < 20 {
         let px = rng.gen_range(-4.5, 4.5);
-        let py = 0.0;//rng.gen_range(0.0, 1.0);
+        let py = 0.0;
         let pz = rng.gen_range(-4.5, 4.5);
         let s = rng.gen_range(0.5, 1.5);
         let ry = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
@@ -167,7 +168,7 @@ fn render() {
     count = 0;
     while count < 30 {
         let px = rng.gen_range(-4.5, 4.5);
-        let py = rng.gen_range(0.0, 5.0);
+        let py = rng.gen_range(0.0, 4.0);
         let pz = rng.gen_range(-4.5, 4.5);
         let s = rng.gen_range(0.2, 1.0);
         let ry = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
