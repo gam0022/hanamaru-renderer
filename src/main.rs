@@ -42,13 +42,13 @@ fn render() {
     //let mut imgbuf = image::ImageBuffer::new(1920, 1080);
 
     let camera = Camera::new(
-        Vector3::new(-0.5, 2.5, 9.0),// eye
+        Vector3::new(0.0, 2.5, 9.0),// eye
         Vector3::new(0.0, 1.0, 0.0),// target
         Vector3::new(0.0, 1.0, 0.0).normalize(),// y_up
         17.0,// fov
 
         LensShape::Circle,// lens shape
-        0.15,// * 0.0,// aperture
+        0.1,// * 0.0,// aperture
         7.5// focus_distance
     );
 
@@ -93,20 +93,10 @@ fn render() {
                 }
             }),*/
 
-            Box::new(Sphere {
-                center: Vector3::new(0.0, 1.0, -2.0),
-                radius: 1.0,
-                material: Material {
-                    surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
-                    albedo: Texture::white(),
-                    emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
-                    roughness: Texture::from_color(Color::from_one(0.3)),
-                },
-            }),
-
+            // 固定のダイヤモンド
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/dia/dia.obj",
-                Matrix44::translate(0.0, 2.0, 0.0) * Matrix44::scale_linear(1.0) *Matrix44::rotate_x(90.0.to_radians()),
+                Matrix44::translate(1.0, 0.0, 1.5) * Matrix44::scale_linear(1.2) * Matrix44::rotate_y(-0.5) * Matrix44::rotate_x(40.35.to_radians()),
                 Material {
                     surface: SurfaceType::GGXReflection { refractive_index: 2.42 },
                     albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
@@ -141,11 +131,33 @@ fn render() {
         ),
     };
 
-    let seed: &[_] = &[1, 9, 9, 2];
+    let seed: &[_] = &[1992, 6, 23, 12321];
     let mut rng: StdRng = SeedableRng::from_seed(seed);
 
+    // 光る地球儀
     let mut count = 0;
-    while count < 20 {
+    while count < 3 {
+        let px = rng.gen_range(-0.5, 2.5);
+        let pz = rng.gen_range(-3.0, 2.0);
+        let r = rng.gen_range(0.5, 0.7);
+
+        if scene.add_with_check_collisions(Box::new(Sphere {
+            center: Vector3::new(px, r, pz),
+            radius: r,
+            material: Material {
+                surface: SurfaceType::GGX,
+                albedo: Texture::white(),
+                emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
+                roughness: Texture::from_color(Color::from_one(rng.gen_range(0.1, 0.5))),
+            },
+        })) {
+            count += 1;
+        }
+    }
+
+    // 床に落ちているダイヤモンド
+    count = 0;
+    while count < 15 {
         let px = rng.gen_range(-4.5, 4.5);
         let py = 0.0;
         let pz = rng.gen_range(-4.5, 4.5);
@@ -166,6 +178,7 @@ fn render() {
         }
     }
 
+    // 空中浮遊しているダイヤモンド
     count = 0;
     while count < 30 {
         let px = rng.gen_range(-4.5, 4.5);
