@@ -37,7 +37,7 @@ use color::{Color, hsv_to_rgb};
 use loader::ObjLoader;
 
 fn render() {
-    let seed: &[_] = &[2000, 3, 4, 54];
+    let seed: &[_] = &[870, 2000, 304, 3];
     let mut rng: StdRng = SeedableRng::from_seed(seed);
 
     let mut imgbuf = image::ImageBuffer::new(800, 600);
@@ -161,7 +161,7 @@ fn render() {
         ),
     };
 
-    // ビー玉
+    // 金属の球体
     let mut count = 0;
     while count < 8 {
         let px = rng.gen_range(-2.5, 3.5);
@@ -173,10 +173,10 @@ fn render() {
             center: Vector3::new(px, r + py, pz),
             radius: r,
             material: Material {
-                surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
-                albedo: Texture::from_color(hsv_to_rgb(Color::new(rng.gen_range(0.2, 0.95), 1.0, 1.0))),
+                surface: SurfaceType::GGX,
+                albedo: Texture::from_color(hsv_to_rgb(Color::new(0.2 + 0.1 * count as f64, 1.0, 1.0))),
                 emission: Texture::black(),
-                roughness: Texture::from_color(Color::from_one(rng.gen_range(0.0, 0.02))),
+                roughness: Texture::from_color(Color::from_one(rng.gen_range(0.0, 0.2))),
             },
         }))) {
             count += 1;
