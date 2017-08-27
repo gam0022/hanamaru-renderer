@@ -7,7 +7,6 @@ pub const EPS: f64 = 1e-4;
 pub const OFFSET: f64 = 1e-4;
 pub const INF: f64 = 1e100;
 
-pub const DEBUG_BOUNCE_LIMIT: u32 = 3;
 pub const PATHTRACING_BOUNCE_LIMIT: u32 = 10;
 pub const PATHTRACING_SAMPLING: u32 = 30;
 

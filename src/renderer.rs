@@ -92,13 +92,10 @@ impl Renderer for DebugRenderer {
     fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
         let mut ray = camera.ray(&normalized_coord);
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
+        let mut result = Color::zero();
 
-        let mut accumulation = Color::zero();
-        let mut reflection = Color::one();
-
-        for _ in 1..config::DEBUG_BOUNCE_LIMIT {
-            let (hit, intersection) = scene.intersect(&ray);
-
+        let (hit, intersection) = scene.intersect(&ray);
+        if hit {
             let shadow_ray = Ray {
                 origin: intersection.position + intersection.normal * config::OFFSET,
                 direction: light_direction,
@@ -106,37 +103,20 @@ impl Renderer for DebugRenderer {
             let (shadow_hit, shadow_intersection) = scene.intersect(&shadow_ray);
             let shadow = if shadow_hit { 0.5 } else { 1.0 };
 
-            if hit {
-                match intersection.material.surface {
-                    SurfaceType::Specular => {
-                        ray.origin = intersection.position + intersection.normal * config::OFFSET;
-                        ray.direction = ray.direction.reflect(&intersection.normal);
-                        reflection *= intersection.material.albedo;
-                    }
-                    // 鏡面以外は拡散面として処理する
-                    _ => {
-                        let color= match self.mode {
-                            DebugRenderMode::Color => {
-                                let diffuse = intersection.normal.dot(&light_direction).max(0.0);
-                                intersection.material.emission + intersection.material.albedo * diffuse * shadow
-                            },
-                            DebugRenderMode::Normal => intersection.normal,
-                            DebugRenderMode::Depth => Color::from_one(0.5 * intersection.distance / camera.focus_distance),
-                            DebugRenderMode::DepthFromFocus => Color::from_one((intersection.distance - camera.focus_distance).abs()),
-                        };
-                        reflection *= color;
-                        accumulation += reflection;
-                        break;
-                    }
+            result = match self.mode {
+                DebugRenderMode::Color => {
+                    let diffuse = intersection.normal.dot(&light_direction).max(0.0);
+                    intersection.material.emission + intersection.material.albedo * diffuse * shadow
                 }
-            } else {
-                reflection = reflection * intersection.material.emission;
-                accumulation += reflection;
-                break;
-            }
+                DebugRenderMode::Normal => intersection.normal,
+                DebugRenderMode::Depth => Color::from_one(0.5 * intersection.distance / camera.focus_distance),
+                DebugRenderMode::DepthFromFocus => Color::from_one((intersection.distance - camera.focus_distance).abs()),
+            };
+        } else {
+            result = intersection.material.emission;
         }
 
-        accumulation
+        result
     }
 
     #[allow(unused_variables)]

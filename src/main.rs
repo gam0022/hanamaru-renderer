@@ -203,7 +203,7 @@ fn render() {
     }
 
     let mut renderer = DebugRenderer{ mode: DebugRenderMode::DepthFromFocus };
-    let mut renderer = PathTracingRenderer::new();
+    //let mut renderer = PathTracingRenderer::new();
     renderer.render(&BvhScene::from_scene(scene), &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
