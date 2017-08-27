@@ -93,6 +93,18 @@ impl Add for Vector3 {
     }
 }
 
+impl Add<f64> for Vector3 {
+    type Output = Vector3;
+
+    fn add(self, other: f64) -> Vector3 {
+        Vector3 {
+            x: self.x + other,
+            y: self.y + other,
+            z: self.z + other,
+        }
+    }
+}
+
 impl Sub for Vector3 {
     type Output = Vector3;
 
@@ -259,6 +271,17 @@ impl Add for Vector2 {
         Vector2 {
             x: self.x + other.x,
             y: self.y + other.y,
+        }
+    }
+}
+
+impl Add<f64> for Vector2 {
+    type Output = Vector2;
+
+    fn add(self, other: f64) -> Vector2 {
+        Vector2 {
+            x: self.x + other,
+            y: self.y + other,
         }
     }
 }

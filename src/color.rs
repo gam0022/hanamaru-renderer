@@ -46,3 +46,16 @@ pub fn linear_to_gamma(color: Color) -> Color {
         linear_to_gamma_f64(color.z),
     )
 }
+
+// https://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both
+pub fn hsv_to_rgb(color: Color) -> Color {
+    ((hue(color.x) - 1.0) * color.y + 1.0) * color.z
+}
+
+fn hue(h: f64) -> Color {
+    Color::new(
+        saturate((h * 6.0 - 3.0).abs() - 1.0),
+        saturate(2.0 - (h * 6.0 - 2.0).abs()),
+        saturate(2.0 - (h * 6.0 - 4.0).abs())
+    )
+}
