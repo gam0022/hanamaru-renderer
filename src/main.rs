@@ -48,8 +48,8 @@ fn render() {
         17.0,// fov
 
         LensShape::Circle,// lens shape
-        0.1,// * 0.0,// aperture
-        7.5// focus_distance
+        0.15,// * 0.0,// aperture
+        8.5// focus_distance
     );
 
     let mut scene = Scene {
@@ -203,7 +203,7 @@ fn render() {
     }
 
     let mut renderer = DebugRenderer{ mode: DebugRenderMode::DepthFromFocus };
-    //let mut renderer = PathTracingRenderer::new();
+    let mut renderer = PathTracingRenderer::new();
     renderer.render(&BvhScene::from_scene(scene), &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
