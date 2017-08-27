@@ -80,7 +80,7 @@ fn render() {
             ))),
 
             // 背後にある地図ガラス
-            Box::new(Cuboid {
+            /*Box::new(Cuboid {
                 aabb: Aabb {
                     min: Vector3::new(-4.0, 0.0, -3.6),
                     max: Vector3::new(4.0, 3.0, -3.5),
@@ -91,30 +91,29 @@ fn render() {
                     emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
                     roughness: Texture::from_color(Color::from_one(0.3)),
                 }
+            }),*/
+
+            Box::new(Sphere {
+                center: Vector3::new(0.0, 1.0, -2.0),
+                radius: 1.0,
+                material: Material {
+                    surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
+                    albedo: Texture::white(),
+                    emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
+                    roughness: Texture::from_color(Color::from_one(0.3)),
+                },
             }),
 
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/dia/dia.obj",
                 Matrix44::translate(0.0, 2.0, 0.0) * Matrix44::scale_linear(1.0) *Matrix44::rotate_x(90.0.to_radians()),
                 Material {
-                    surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
+                    surface: SurfaceType::GGXReflection { refractive_index: 2.42 },
                     albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.01)),
                 },
             ))),
-
-            // エリアライト
-            /*Box::new(AxisAlignedBoundingBox {
-                left_bottom: Vector3::new(-5.0, -5.0, 10.0),
-                right_top: Vector3::new(5.0, 5.0, 10.3),
-                material: Material {
-                    surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
-                    albedo: Texture::white(),
-                    emission: Texture::from_color(Color::from_one(2.0)),
-                    roughness: Texture::black(),
-                }
-            }),*/
 
             // 床
             Box::new(Cuboid {
