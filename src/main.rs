@@ -32,7 +32,7 @@ use bvh::Aabb;
 use camera::{Camera, LensShape};
 use material::{Material, SurfaceType};
 use texture::Texture;
-use renderer::{Renderer, DebugRenderer, PathTracingRenderer};
+use renderer::{Renderer, DebugRenderer, DebugRenderMode, PathTracingRenderer};
 use color::Color;
 use loader::ObjLoader;
 
@@ -202,8 +202,8 @@ fn render() {
         }
     }
 
-    let mut renderer = DebugRenderer{};
-    let mut renderer = PathTracingRenderer::new();
+    let mut renderer = DebugRenderer{ mode: DebugRenderMode::DepthFromFocus };
+    //let mut renderer = PathTracingRenderer::new();
     renderer.render(&BvhScene::from_scene(scene), &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();

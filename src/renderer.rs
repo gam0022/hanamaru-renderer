@@ -76,7 +76,16 @@ pub trait Renderer: Sync {
     fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color;
 }
 
-pub struct DebugRenderer;
+pub enum DebugRenderMode {
+    Color,
+    Normal,
+    Depth,
+    DepthFromFocus,
+}
+
+pub struct DebugRenderer {
+    pub mode: DebugRenderMode,
+}
 
 impl Renderer for DebugRenderer {
     #[allow(unused_variables)]
@@ -106,8 +115,15 @@ impl Renderer for DebugRenderer {
                     }
                     // 鏡面以外は拡散面として処理する
                     _ => {
-                        let diffuse = intersection.normal.dot(&light_direction).max(0.0);
-                        let color = intersection.material.emission + intersection.material.albedo * diffuse * shadow;
+                        let color= match self.mode {
+                            DebugRenderMode::Color => {
+                                let diffuse = intersection.normal.dot(&light_direction).max(0.0);
+                                intersection.material.emission + intersection.material.albedo * diffuse * shadow
+                            },
+                            DebugRenderMode::Normal => intersection.normal,
+                            DebugRenderMode::Depth => Color::from_one(0.5 * intersection.distance / camera.focus_distance),
+                            DebugRenderMode::DepthFromFocus => Color::from_one((intersection.distance - camera.focus_distance).abs()),
+                        };
                         reflection *= color;
                         accumulation += reflection;
                         break;
