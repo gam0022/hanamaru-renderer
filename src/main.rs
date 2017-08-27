@@ -96,7 +96,7 @@ fn render() {
             // 固定のダイヤモンド
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/dia/dia.obj",
-                Matrix44::translate(1.0, 0.0, 1.5) * Matrix44::scale_linear(1.2) * Matrix44::rotate_y(-0.5) * Matrix44::rotate_x(40.35.to_radians()),
+                Matrix44::translate(0.5, 0.0, 0.8) * Matrix44::scale_linear(1.2) * Matrix44::rotate_y(-0.5) * Matrix44::rotate_x(40.35.to_radians()),
                 Material {
                     surface: SurfaceType::GGXReflection { refractive_index: 2.42 },
                     albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
@@ -131,7 +131,7 @@ fn render() {
         ),
     };
 
-    let seed: &[_] = &[1992, 6, 23, 12321];
+    let seed: &[_] = &[201709, 2, 3, 4];
     let mut rng: StdRng = SeedableRng::from_seed(seed);
 
     // 光る地球儀
@@ -203,7 +203,7 @@ fn render() {
     }
 
     let mut renderer = DebugRenderer{ mode: DebugRenderMode::DepthFromFocus };
-    //let mut renderer = PathTracingRenderer::new();
+    let mut renderer = PathTracingRenderer::new(30);
     renderer.render(&BvhScene::from_scene(scene), &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();

@@ -129,13 +129,14 @@ pub struct PathTracingRenderer {
     begin: Tm,
     last_report_image: Tm,
     report_image_counter: u32,
+    sampling: u32,
 }
 
 impl Renderer for PathTracingRenderer {
     fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
         let mut rng = thread_rng();
         let mut all_accumulation = Vector3::zero();
-        for _ in 1..config::PATHTRACING_SAMPLING {
+        for _ in 1..self.sampling {
             let mut ray = camera.ray_with_dof(&normalized_coord, &mut rng);
             let mut accumulation = Color::zero();
             let mut reflection = Color::one();
@@ -199,7 +200,7 @@ impl Renderer for PathTracingRenderer {
             all_accumulation += accumulation;
         }
 
-        all_accumulation / config::PATHTRACING_SAMPLING as f64
+        all_accumulation / self.sampling as f64
     }
 
     fn report_progress(&mut self, y: u32, height: f64, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>) {
@@ -231,12 +232,13 @@ impl Renderer for PathTracingRenderer {
 }
 
 impl PathTracingRenderer {
-    pub fn new() -> PathTracingRenderer {
+    pub fn new(sampling: u32) -> PathTracingRenderer {
         let now = time::now();
         PathTracingRenderer {
             begin: now,
             last_report_image: now,
             report_image_counter: 0,
+            sampling: sampling,
         }
     }
 }
