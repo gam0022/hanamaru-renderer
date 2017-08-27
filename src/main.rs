@@ -5,7 +5,6 @@ extern crate rand;
 
 use std::fs::File;
 use std::path::Path;
-use std::io::prelude::*;
 use std::fs;
 use std::io::{BufWriter, Write};
 use num::Float;

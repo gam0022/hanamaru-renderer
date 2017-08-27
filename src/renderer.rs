@@ -90,10 +90,8 @@ pub struct DebugRenderer {
 impl Renderer for DebugRenderer {
     #[allow(unused_variables)]
     fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
-        let mut ray = camera.ray(&normalized_coord);
+        let ray = camera.ray(&normalized_coord);
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
-        let mut result = Color::zero();
-
         let (hit, intersection) = scene.intersect(&ray);
         if hit {
             let shadow_ray = Ray {
@@ -103,7 +101,7 @@ impl Renderer for DebugRenderer {
             let (shadow_hit, shadow_intersection) = scene.intersect(&shadow_ray);
             let shadow = if shadow_hit { 0.5 } else { 1.0 };
 
-            result = match self.mode {
+            match self.mode {
                 DebugRenderMode::Color => {
                     let diffuse = intersection.normal.dot(&light_direction).max(0.0);
                     intersection.material.emission + intersection.material.albedo * diffuse * shadow
@@ -111,12 +109,10 @@ impl Renderer for DebugRenderer {
                 DebugRenderMode::Normal => intersection.normal,
                 DebugRenderMode::Depth => Color::from_one(0.5 * intersection.distance / camera.focus_distance),
                 DebugRenderMode::DepthFromFocus => Color::from_one((intersection.distance - camera.focus_distance).abs()),
-            };
+            }
         } else {
-            result = intersection.material.emission;
+            intersection.material.emission
         }
-
-        result
     }
 
     #[allow(unused_variables)]

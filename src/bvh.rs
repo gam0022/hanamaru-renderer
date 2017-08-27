@@ -1,5 +1,5 @@
 use vector::{Vector3, Vector2};
-use scene::{Mesh, Intersection, Scene, Intersectable};
+use scene::{Mesh, Intersection, Scene};
 use camera::Ray;
 use config;
 use math::det;
