@@ -122,7 +122,6 @@ impl Renderer for DebugRenderer {
 }
 
 pub struct PathTracingRenderer {
-    rng: StdRng,
     sampling: u32,
 
     // for report_progress
@@ -134,7 +133,13 @@ pub struct PathTracingRenderer {
 impl Renderer for PathTracingRenderer {
     fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
         let mut all_accumulation = Vector3::zero();
-        let mut rng = self.rng.clone();
+
+        // random generator
+        let s = (2.0 + normalized_coord.x) as usize * 870870;
+        let t = (2.0 + normalized_coord.y) as usize * 343434;
+        let seed: &[_] = &[870, 34, s, t];
+        let mut rng = SeedableRng::from_seed(seed);// self::rand::thread_rng();
+
         for _ in 1..self.sampling {
             let mut ray = camera.ray_with_dof(&normalized_coord, &mut rng);
             let mut accumulation = Color::zero();
@@ -232,10 +237,8 @@ impl Renderer for PathTracingRenderer {
 
 impl PathTracingRenderer {
     pub fn new(sampling: u32) -> PathTracingRenderer {
-        let seed: &[_] = &[870, 2000, 3, 4];
         let now = time::now();
         PathTracingRenderer {
-            rng:  SeedableRng::from_seed(seed),// self::rand::thread_rng();
             sampling: sampling,
 
             begin: now,
