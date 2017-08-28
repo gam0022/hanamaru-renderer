@@ -76,20 +76,24 @@ pub trait Renderer: Sync {
     fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color;
 }
 
-pub struct DebugRenderer;
+pub enum DebugRenderMode {
+    Color,
+    Normal,
+    Depth,
+    DepthFromFocus,
+}
+
+pub struct DebugRenderer {
+    pub mode: DebugRenderMode,
+}
 
 impl Renderer for DebugRenderer {
     #[allow(unused_variables)]
     fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
-        let mut ray = camera.ray(&normalized_coord);
+        let ray = camera.ray(&normalized_coord);
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
-
-        let mut accumulation = Color::zero();
-        let mut reflection = Color::one();
-
-        for _ in 1..config::DEBUG_BOUNCE_LIMIT {
-            let (hit, intersection) = scene.intersect(&ray);
-
+        let (hit, intersection) = scene.intersect(&ray);
+        if hit {
             let shadow_ray = Ray {
                 origin: intersection.position + intersection.normal * config::OFFSET,
                 direction: light_direction,
@@ -97,30 +101,18 @@ impl Renderer for DebugRenderer {
             let (shadow_hit, shadow_intersection) = scene.intersect(&shadow_ray);
             let shadow = if shadow_hit { 0.5 } else { 1.0 };
 
-            if hit {
-                match intersection.material.surface {
-                    SurfaceType::Specular => {
-                        ray.origin = intersection.position + intersection.normal * config::OFFSET;
-                        ray.direction = ray.direction.reflect(&intersection.normal);
-                        reflection *= intersection.material.albedo;
-                    }
-                    // 鏡面以外は拡散面として処理する
-                    _ => {
-                        let diffuse = intersection.normal.dot(&light_direction).max(0.0);
-                        let color = intersection.material.emission + intersection.material.albedo * diffuse * shadow;
-                        reflection *= color;
-                        accumulation += reflection;
-                        break;
-                    }
+            match self.mode {
+                DebugRenderMode::Color => {
+                    let diffuse = intersection.normal.dot(&light_direction).max(0.0);
+                    intersection.material.emission + intersection.material.albedo * diffuse * shadow
                 }
-            } else {
-                reflection = reflection * intersection.material.emission;
-                accumulation += reflection;
-                break;
+                DebugRenderMode::Normal => intersection.normal,
+                DebugRenderMode::Depth => Color::from_one(0.5 * intersection.distance / camera.focus_distance),
+                DebugRenderMode::DepthFromFocus => Color::from_one((intersection.distance - camera.focus_distance).abs()),
             }
+        } else {
+            intersection.material.emission
         }
-
-        accumulation
     }
 
     #[allow(unused_variables)]
@@ -133,13 +125,14 @@ pub struct PathTracingRenderer {
     begin: Tm,
     last_report_image: Tm,
     report_image_counter: u32,
+    sampling: u32,
 }
 
 impl Renderer for PathTracingRenderer {
     fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
         let mut rng = thread_rng();
         let mut all_accumulation = Vector3::zero();
-        for _ in 1..config::PATHTRACING_SAMPLING {
+        for _ in 1..self.sampling {
             let mut ray = camera.ray_with_dof(&normalized_coord, &mut rng);
             let mut accumulation = Color::zero();
             let mut reflection = Color::one();
@@ -159,7 +152,7 @@ impl Renderer for PathTracingRenderer {
                             ray.direction = ray.direction.reflect(&intersection.normal);
                         }
                         SurfaceType::Refraction { refractive_index } => {
-                            bsdf::sample_refraction(random, &intersection.normal, refractive_index, &intersection, &mut ray);
+                            bsdf::sample_refraction(random, &intersection.normal.clone(), refractive_index, &mut intersection, &mut ray);
                         }
                         SurfaceType::GGX => {
                             let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
@@ -190,7 +183,7 @@ impl Renderer for PathTracingRenderer {
                         SurfaceType::GGXReflection { refractive_index } => {
                             let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
                             let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
-                            bsdf::sample_refraction(random, &half, refractive_index, &intersection, &mut ray);
+                            bsdf::sample_refraction(random, &half, refractive_index, &mut intersection, &mut ray);
                         }
                     }
                 }
@@ -203,7 +196,7 @@ impl Renderer for PathTracingRenderer {
             all_accumulation += accumulation;
         }
 
-        all_accumulation / config::PATHTRACING_SAMPLING as f64
+        all_accumulation / self.sampling as f64
     }
 
     fn report_progress(&mut self, y: u32, height: f64, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>) {
@@ -235,12 +228,13 @@ impl Renderer for PathTracingRenderer {
 }
 
 impl PathTracingRenderer {
-    pub fn new() -> PathTracingRenderer {
+    pub fn new(sampling: u32) -> PathTracingRenderer {
         let now = time::now();
         PathTracingRenderer {
             begin: now,
             last_report_image: now,
             report_image_counter: 0,
+            sampling: sampling,
         }
     }
 }

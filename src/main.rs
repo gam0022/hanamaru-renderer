@@ -5,11 +5,10 @@ extern crate rand;
 
 use std::fs::File;
 use std::path::Path;
-use std::io::prelude::*;
 use std::fs;
 use std::io::{BufWriter, Write};
 use num::Float;
-use self::rand::{thread_rng, Rng};
+use self::rand::{Rng, SeedableRng, StdRng};
 
 mod config;
 mod vector;
@@ -32,24 +31,30 @@ use bvh::Aabb;
 use camera::{Camera, LensShape};
 use material::{Material, SurfaceType};
 use texture::Texture;
-use renderer::{Renderer, DebugRenderer, PathTracingRenderer};
-use color::Color;
+use renderer::{Renderer, DebugRenderer, DebugRenderMode, PathTracingRenderer};
+use color::{Color, hsv_to_rgb};
 use loader::ObjLoader;
 
 fn render() {
+    let seed: &[_] = &[870, 2000, 304, 3];
+    let mut rng: StdRng = SeedableRng::from_seed(seed);
+
     let mut imgbuf = image::ImageBuffer::new(800, 600);
     //let mut imgbuf = image::ImageBuffer::new(1280, 720);
     //let mut imgbuf = image::ImageBuffer::new(1920, 1080);
 
+    let mut renderer = DebugRenderer{ mode: DebugRenderMode::DepthFromFocus };
+    let mut renderer = PathTracingRenderer::new(150);
+
     let camera = Camera::new(
-        Vector3::new(-0.5, 2.5, 9.0),// eye
+        Vector3::new(0.0, 2.5, 9.0),// eye
         Vector3::new(0.0, 1.0, 0.0),// target
         Vector3::new(0.0, 1.0, 0.0).normalize(),// y_up
         17.0,// fov
 
         LensShape::Circle,// lens shape
         0.15,// * 0.0,// aperture
-        7.5// focus_distance
+        8.5// focus_distance
     );
 
     let mut scene = Scene {
@@ -80,39 +85,54 @@ fn render() {
             ))),
 
             // 背後にある地図ガラス
-            /*Box::new(AxisAlignedBoundingBox {
-                left_bottom: Vector3::new(-4.0, 0.0, -3.3),
-                right_top: Vector3::new(4.0, 3.0, -3.0),
+            /*Box::new(Cuboid {
+                aabb: Aabb {
+                    min: Vector3::new(-4.0, 0.0, -3.6),
+                    max: Vector3::new(4.0, 3.0, -3.5),
+                },
                 material: Material {
                     surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
                     albedo: Texture::white(),
                     emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
-                    roughness: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.3)),
                 }
             }),*/
 
+            // 固定のダイヤモンド
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/dia/dia.obj",
-                Matrix44::translate(0.0, 2.0, 0.0) * Matrix44::scale_linear(1.0) *Matrix44::rotate_x(90.0.to_radians()),
+                Matrix44::translate(3.1, 0.0, 0.8) * Matrix44::scale_linear(1.0) * Matrix44::rotate_y(-0.5) * Matrix44::rotate_x(40.35.to_radians()),
                 Material {
-                    surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
+                    surface: SurfaceType::GGXReflection { refractive_index: 2.42 },
                     albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.01)),
                 },
             ))),
 
-            // エリアライト
-            /*Box::new(AxisAlignedBoundingBox {
-                left_bottom: Vector3::new(-5.0, -5.0, 10.0),
-                right_top: Vector3::new(5.0, 5.0, 10.3),
+            // 地球のテクスチャを光源にした球体
+            Box::new(Sphere {
+                center: Vector3::new(0.0, 0.5, -0.5),
+                radius: 0.5,
                 material: Material {
-                    surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
+                    surface: SurfaceType::GGX,
                     albedo: Texture::white(),
-                    emission: Texture::from_color(Color::from_one(2.0)),
-                    roughness: Texture::black(),
-                }
-            }),*/
+                    emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(5.0, 5.0, 2.0)),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            }),
+
+            // 地球のテクスチャをラフネスにした球体
+            Box::new(Sphere {
+                center: Vector3::new(-3.5, 0.5, 0.0),
+                radius: 0.5,
+                material: Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
+                    emission: Texture::black(),
+                    roughness: Texture::from_path("textures/2d/earth_inverse_2048.jpg"),
+                },
+            }),
 
             // 床
             Box::new(Cuboid {
@@ -123,8 +143,8 @@ fn render() {
                 material: Material {
                     surface: SurfaceType::Diffuse,
                     //albedo:  Texture::white(),
-                    //albedo: Texture::from_path("textures/2d/stone03.jpg"),
-                    albedo: Texture::from_path("textures/2d/checkered_v2_512.png"),
+                    albedo: Texture::from_path("textures/2d/stone03.jpg"),
+                    //albedo: Texture::from_path("textures/2d/checkered_v2_512.png"),
                     emission: Texture::black(),
                     roughness: Texture::black(),
                 }
@@ -140,12 +160,33 @@ fn render() {
         ),
     };
 
-    let mut rng = thread_rng();
-
+    // 金属の球体
     let mut count = 0;
-    while count < 20 {
+    while count < 8 {
+        let px = rng.gen_range(-2.5, 3.5);
+        let py = 0.0;//rng.gen_range(0.0, 3.0);
+        let pz = rng.gen_range(-2.0, 3.0);
+        let r = rng.gen_range(0.2, 0.4);
+
+        if scene.add_with_check_collisions((Box::new(Sphere {
+            center: Vector3::new(px, r + py, pz),
+            radius: r,
+            material: Material {
+                surface: SurfaceType::GGX,
+                albedo: Texture::from_color(hsv_to_rgb(Color::new(0.2 + 0.1 * count as f64, 1.0, 1.0))),
+                emission: Texture::black(),
+                roughness: Texture::from_color(Color::from_one(rng.gen_range(0.0, 0.2))),
+            },
+        }))) {
+            count += 1;
+        }
+    }
+
+    // 床に落ちているダイヤモンド
+    count = 0;
+    while count < 12 {
         let px = rng.gen_range(-4.5, 4.5);
-        let py = 0.0;//rng.gen_range(0.0, 1.0);
+        let py = 0.0;
         let pz = rng.gen_range(-4.5, 4.5);
         let s = rng.gen_range(0.5, 1.5);
         let ry = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
@@ -154,7 +195,7 @@ fn render() {
             "models/dia/dia.obj",
             Matrix44::translate(px, py, pz) * Matrix44::scale_linear(s) * Matrix44::rotate_y(ry) * Matrix44::rotate_x(40.35.to_radians()),
             Material {
-                surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
+                surface: SurfaceType::GGXReflection { refractive_index: 2.42 },
                 albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
                 emission: Texture::black(),
                 roughness: Texture::from_color(Color::from_one(0.01)),
@@ -164,10 +205,11 @@ fn render() {
         }
     }
 
+    // 空中浮遊しているダイヤモンド
     count = 0;
     while count < 30 {
         let px = rng.gen_range(-4.5, 4.5);
-        let py = rng.gen_range(0.0, 5.0);
+        let py = rng.gen_range(0.0, 4.0);
         let pz = rng.gen_range(-4.5, 4.5);
         let s = rng.gen_range(0.2, 1.0);
         let ry = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
@@ -187,8 +229,6 @@ fn render() {
         }
     }
 
-    let mut renderer = DebugRenderer{};
-    let mut renderer = PathTracingRenderer::new();
     renderer.render(&BvhScene::from_scene(scene), &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();

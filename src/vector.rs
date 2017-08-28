@@ -93,6 +93,18 @@ impl Add for Vector3 {
     }
 }
 
+impl Add<f64> for Vector3 {
+    type Output = Vector3;
+
+    fn add(self, other: f64) -> Vector3 {
+        Vector3 {
+            x: self.x + other,
+            y: self.y + other,
+            z: self.z + other,
+        }
+    }
+}
+
 impl Sub for Vector3 {
     type Output = Vector3;
 
@@ -207,6 +219,14 @@ impl MulAssign for Vector3 {
     }
 }
 
+impl MulAssign<f64> for Vector3 {
+    fn mul_assign(&mut self, other: f64) {
+        self.x *= other;
+        self.y *= other;
+        self.z *= other;
+    }
+}
+
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]
 pub struct Vector2 {
@@ -259,6 +279,17 @@ impl Add for Vector2 {
         Vector2 {
             x: self.x + other.x,
             y: self.y + other.y,
+        }
+    }
+}
+
+impl Add<f64> for Vector2 {
+    type Output = Vector2;
+
+    fn add(self, other: f64) -> Vector2 {
+        Vector2 {
+            x: self.x + other,
+            y: self.y + other,
         }
     }
 }
