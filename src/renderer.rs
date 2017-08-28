@@ -58,7 +58,7 @@ pub trait Renderer: Sync {
         let _ = image::ImageRgb8(imgbuf.clone()).save(fout, image::PNG);
     }
 
-    fn supersampling(&mut self, scene: &SceneTrait, camera: &Camera, frag_coord: &Vector2, resolution: &Vector2) -> Color {
+    fn supersampling(&self, scene: &SceneTrait, camera: &Camera, frag_coord: &Vector2, resolution: &Vector2) -> Color {
         let mut accumulation = Color::zero();
 
         for sy in 0..config::SUPERSAMPLING {
@@ -73,7 +73,7 @@ pub trait Renderer: Sync {
         accumulation / (config::SUPERSAMPLING * config::SUPERSAMPLING) as f64
     }
 
-    fn calc_pixel(&mut self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color;
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color;
 }
 
 pub enum DebugRenderMode {
@@ -89,7 +89,7 @@ pub struct DebugRenderer {
 
 impl Renderer for DebugRenderer {
     #[allow(unused_variables)]
-    fn calc_pixel(&mut self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
         let ray = camera.ray(&normalized_coord);
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
         let (hit, intersection) = scene.intersect(&ray);
@@ -132,15 +132,16 @@ pub struct PathTracingRenderer {
 }
 
 impl Renderer for PathTracingRenderer {
-    fn calc_pixel(&mut self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
         let mut all_accumulation = Vector3::zero();
+        let mut rng = self.rng.clone();
         for _ in 1..self.sampling {
-            let mut ray = camera.ray_with_dof(&normalized_coord, &mut self.rng);
+            let mut ray = camera.ray_with_dof(&normalized_coord, &mut rng);
             let mut accumulation = Color::zero();
             let mut reflection = Color::one();
 
             for _ in 1..config::PATHTRACING_BOUNCE_LIMIT {
-                let random = self.rng.gen::<(f64, f64)>();
+                let random = rng.gen::<(f64, f64)>();
                 let (hit, mut intersection) = scene.intersect(&ray);
 
                 if hit {
