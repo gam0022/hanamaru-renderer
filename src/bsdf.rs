@@ -83,7 +83,7 @@ pub fn f_schlick(v_dot_h: f64, f0: &Color) -> Color {
     )
 }
 
-pub fn sample_refraction(random: (f64, f64), normal: &Vector3, refractive_index: f64, intersection: &Intersection, ray: &mut Ray) {
+pub fn sample_refraction(random: (f64, f64), normal: &Vector3, refractive_index: f64, intersection: &mut Intersection, ray: &mut Ray) {
     let is_incoming = ray.direction.dot(&normal).is_sign_negative();
     let oriented_normal = if is_incoming { *normal } else { -*normal };
     let nnt = if is_incoming { 1.0 / refractive_index } else { refractive_index };
@@ -109,8 +109,8 @@ pub fn sample_refraction(random: (f64, f64), normal: &Vector3, refractive_index:
         } else {
             // 屈折
 
-            // 立体角の変化に伴う放射輝度の補正を入れたら暗くなったのでコメントアウト
-            //intersection.material.albedo = intersection.material.albedo * nnt.powf(2.0);
+            // 立体角の変化に伴う放射輝度の補正
+            intersection.material.albedo *= nnt.powf(2.0);
 
             // 物体内部にレイの原点を移動する
             ray.origin = intersection.position - config::OFFSET * oriented_normal;

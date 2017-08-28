@@ -219,6 +219,14 @@ impl MulAssign for Vector3 {
     }
 }
 
+impl MulAssign<f64> for Vector3 {
+    fn mul_assign(&mut self, other: f64) {
+        self.x *= other;
+        self.y *= other;
+        self.z *= other;
+    }
+}
+
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]
 pub struct Vector2 {
