@@ -88,7 +88,6 @@ pub struct DebugRenderer {
 }
 
 impl Renderer for DebugRenderer {
-    #[allow(unused_variables)]
     fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
         let ray = camera.ray(&normalized_coord);
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
@@ -98,7 +97,7 @@ impl Renderer for DebugRenderer {
                 origin: intersection.position + intersection.normal * config::OFFSET,
                 direction: light_direction,
             };
-            let (shadow_hit, shadow_intersection) = scene.intersect(&shadow_ray);
+            let (shadow_hit, _) = scene.intersect(&shadow_ray);
             let shadow = if shadow_hit { 0.5 } else { 1.0 };
 
             match self.mode {
