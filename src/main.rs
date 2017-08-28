@@ -44,7 +44,7 @@ fn render() {
     //let mut imgbuf = image::ImageBuffer::new(1920, 1080);
 
     let mut renderer = DebugRenderer{ mode: DebugRenderMode::DepthFromFocus };
-    let mut renderer = PathTracingRenderer::new(100);
+    let mut renderer = PathTracingRenderer::new(150);
 
     let camera = Camera::new(
         Vector3::new(0.0, 2.5, 9.0),// eye
