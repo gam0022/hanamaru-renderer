@@ -137,7 +137,7 @@ impl Renderer for PathTracingRenderer {
         let s = ((4.0 + normalized_coord.x) * 100870.0) as usize;
         let t = ((4.0 + normalized_coord.y) * 100304.0) as usize;
         let seed: &[_] = &[870, 304, s, t];
-        let mut rng = SeedableRng::from_seed(seed);// self::rand::thread_rng();
+        let mut rng: StdRng = SeedableRng::from_seed(seed);// self::rand::thread_rng();
 
         for _ in 1..self.sampling {
             let mut ray = camera.ray_with_dof(&normalized_coord, &mut rng);
