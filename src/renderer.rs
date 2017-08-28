@@ -8,7 +8,7 @@ use std::path::Path;
 use std::process;
 use time::Tm;
 use image::{ImageBuffer, Rgb};
-use self::rand::{thread_rng, Rng};
+use self::rand::{Rng, SeedableRng, StdRng};
 use self::rayon::prelude::*;
 
 use config;
@@ -122,16 +122,24 @@ impl Renderer for DebugRenderer {
 }
 
 pub struct PathTracingRenderer {
+    sampling: u32,
+
+    // for report_progress
     begin: Tm,
     last_report_image: Tm,
     report_image_counter: u32,
-    sampling: u32,
 }
 
 impl Renderer for PathTracingRenderer {
     fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
-        let mut rng = thread_rng();
         let mut all_accumulation = Vector3::zero();
+
+        // random generator
+        let s = ((4.0 + normalized_coord.x) * 100870.0) as usize;
+        let t = ((4.0 + normalized_coord.y) * 100304.0) as usize;
+        let seed: &[_] = &[870, 304, s, t];
+        let mut rng = SeedableRng::from_seed(seed);// self::rand::thread_rng();
+
         for _ in 1..self.sampling {
             let mut ray = camera.ray_with_dof(&normalized_coord, &mut rng);
             let mut accumulation = Color::zero();
@@ -231,10 +239,11 @@ impl PathTracingRenderer {
     pub fn new(sampling: u32) -> PathTracingRenderer {
         let now = time::now();
         PathTracingRenderer {
+            sampling: sampling,
+
             begin: now,
             last_report_image: now,
             report_image_counter: 0,
-            sampling: sampling,
         }
     }
 }

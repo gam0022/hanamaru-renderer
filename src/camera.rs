@@ -1,6 +1,6 @@
 extern crate rand;
 
-use self::rand::{Rng, ThreadRng};
+use self::rand::{Rng, StdRng};
 
 use vector::{Vector3, Vector2};
 
@@ -62,7 +62,7 @@ impl Camera {
         }
     }
 
-    fn sample_on_lens(&self, mut rng: &mut ThreadRng) -> Vector2 {
+    fn sample_on_lens(&self, mut rng: &mut StdRng) -> Vector2 {
         loop {
             let (u, v) = rng.gen::<(f64, f64)>();
             let square = Vector2::new(2.0 * u - 1.0, 2.0 * v - 1.0);
@@ -79,7 +79,7 @@ impl Camera {
         }
     }
 
-    pub fn ray_with_dof(&self, normalized_coord: &Vector2, rng: &mut ThreadRng) -> Ray {
+    pub fn ray_with_dof(&self, normalized_coord: &Vector2, rng: &mut StdRng) -> Ray {
         let lens_uv = self.sample_on_lens(rng) * self.lens_radius;
         let lens_pos = self.right * lens_uv.x + self.up * lens_uv.y;
 
