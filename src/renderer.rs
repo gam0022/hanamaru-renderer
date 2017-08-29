@@ -65,8 +65,7 @@ pub trait Renderer: Sync {
             for sx in 0..config::SUPERSAMPLING {
                 let offset = Vector2::new(sx as f64, sy as f64) / config::SUPERSAMPLING as f64 - 0.5;
                 let normalized_coord = ((*frag_coord + offset) * 2.0 - *resolution) / resolution.x.min(resolution.y);
-                let color = self.calc_pixel(scene, camera, &normalized_coord);
-                accumulation += color;
+                accumulation += self.calc_pixel(scene, camera, &normalized_coord);
             }
         }
 
@@ -93,15 +92,14 @@ impl Renderer for DebugRenderer {
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
         let (hit, intersection) = scene.intersect(&ray);
         if hit {
-            let shadow_ray = Ray {
-                origin: intersection.position + intersection.normal * config::OFFSET,
-                direction: light_direction,
-            };
-            let (shadow_hit, _) = scene.intersect(&shadow_ray);
-            let shadow = if shadow_hit { 0.5 } else { 1.0 };
-
             match self.mode {
                 DebugRenderMode::Color => {
+                    let shadow_ray = Ray {
+                        origin: intersection.position + intersection.normal * config::OFFSET,
+                        direction: light_direction,
+                    };
+                    let (shadow_hit, _) = scene.intersect(&shadow_ray);
+                    let shadow = if shadow_hit { 0.5 } else { 1.0 };
                     let diffuse = intersection.normal.dot(&light_direction).max(0.0);
                     intersection.material.emission + intersection.material.albedo * diffuse * shadow
                 }
