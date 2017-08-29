@@ -236,6 +236,7 @@ impl Renderer for PathTracingRenderer {
         // on finish
         if y + 1 == height as u32 {
             let path = format!("progress_{:>03}.png", self.report_image_counter);
+            println!("output progress image: {}", path);
             println!("finish: left {:.3} sec. use {:.3} %",
                      config::TIME_LIMIT_SEC - passed_time,
                      (passed_time as f64 / config::TIME_LIMIT_SEC as f64) * 100.0
