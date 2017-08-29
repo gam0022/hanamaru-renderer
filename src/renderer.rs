@@ -65,8 +65,7 @@ pub trait Renderer: Sync {
             for sx in 0..config::SUPERSAMPLING {
                 let offset = Vector2::new(sx as f64, sy as f64) / config::SUPERSAMPLING as f64 - 0.5;
                 let normalized_coord = ((*frag_coord + offset) * 2.0 - *resolution) / resolution.x.min(resolution.y);
-                let color = self.calc_pixel(scene, camera, &normalized_coord);
-                accumulation += color;
+                accumulation += self.calc_pixel(scene, camera, &normalized_coord);
             }
         }
 
@@ -93,15 +92,14 @@ impl Renderer for DebugRenderer {
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
         let (hit, intersection) = scene.intersect(&ray);
         if hit {
-            let shadow_ray = Ray {
-                origin: intersection.position + intersection.normal * config::OFFSET,
-                direction: light_direction,
-            };
-            let (shadow_hit, _) = scene.intersect(&shadow_ray);
-            let shadow = if shadow_hit { 0.5 } else { 1.0 };
-
             match self.mode {
                 DebugRenderMode::Color => {
+                    let shadow_ray = Ray {
+                        origin: intersection.position + intersection.normal * config::OFFSET,
+                        direction: light_direction,
+                    };
+                    let (shadow_hit, _) = scene.intersect(&shadow_ray);
+                    let shadow = if shadow_hit { 0.5 } else { 1.0 };
                     let diffuse = intersection.normal.dot(&light_direction).max(0.0);
                     intersection.material.emission + intersection.material.albedo * diffuse * shadow
                 }
@@ -211,9 +209,9 @@ impl Renderer for PathTracingRenderer {
 
         let now = time::now();
         let passed_time = (now - self.begin).num_milliseconds() as f64 * 0.001;
-
         println!("rendering: {:.2} % {:.3} sec.", progress, passed_time);
 
+        // on interval time passed
         let interval_time = (now - self.last_report_image).num_milliseconds() as f64 * 0.001;
         if interval_time >= config::REPORT_INTERVAL_SEC {
             // save progress image
@@ -224,12 +222,24 @@ impl Renderer for PathTracingRenderer {
             self.last_report_image = now;
         }
 
-        if passed_time > config::TIME_LIMIT_SEC {
+        // on time limit exceeded
+        if passed_time >= config::TIME_LIMIT_SEC {
             // die when time limit exceeded
             let path = "result_tle.png";
             println!("time limit exceeded: {:.3} sec. {}", passed_time, path);
             PathTracingRenderer::save_progress_image(path, imgbuf);
             process::exit(1);
+        }
+
+        // on finish
+        if y + 1 == height as u32 {
+            let path = format!("progress_{:>03}.png", self.report_image_counter);
+            println!("output progress image: {}", path);
+            println!("finish: left {:.3} sec. use {:.3} %",
+                     config::TIME_LIMIT_SEC - passed_time,
+                     (passed_time as f64 / config::TIME_LIMIT_SEC as f64) * 100.0
+            );
+            PathTracingRenderer::save_progress_image(&path, imgbuf);
         }
     }
 }
