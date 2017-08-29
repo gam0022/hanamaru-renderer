@@ -35,16 +35,13 @@ use renderer::{Renderer, DebugRenderer, DebugRenderMode, PathTracingRenderer};
 use color::{Color, hsv_to_rgb};
 use loader::ObjLoader;
 
-fn render() {
+fn render(width: u32, height: u32) {
     let seed: &[_] = &[870, 2000, 304, 3];
     let mut rng: StdRng = SeedableRng::from_seed(seed);
 
-    let mut imgbuf = image::ImageBuffer::new(800, 600);
-    //let mut imgbuf = image::ImageBuffer::new(1280, 720);
-    //let mut imgbuf = image::ImageBuffer::new(1920, 1080);
-
+    let mut imgbuf = image::ImageBuffer::new(width, height);
     let mut renderer = DebugRenderer{ mode: DebugRenderMode::DepthFromFocus };
-    let mut renderer = PathTracingRenderer::new(150);
+    //let mut renderer = PathTracingRenderer::new(150);
 
     let camera = Camera::new(
         Vector3::new(0.0, 2.5, 9.0),// eye
@@ -235,14 +232,21 @@ fn render() {
     let _ = image::ImageRgb8(imgbuf).save(fout, image::PNG);
 }
 
-fn main() {
-    let begin = time::now();
-    render();
-    let end = time::now();
-    let message = format!("total {} sec.", (end - begin).num_milliseconds() as f64 * 0.001);
-
+fn tee(f: &mut BufWriter<File>, message: &String) {
     println!("{}", message);
-
-    let mut f = BufWriter::new(fs::File::create("result.txt").unwrap());
     let _ = f.write_all(message.as_bytes());
+}
+
+fn main() {
+    let mut f = BufWriter::new(fs::File::create("result.txt").unwrap());
+
+    let (width, height) = (800, 600);
+    //let (width, height) = (1280, 720);
+    //let (width, height) = (1920, 1080);
+
+    let begin = time::now();
+    render(width, height);
+    let end = time::now();
+
+    tee(&mut f, &format!("total {} sec.", (end - begin).num_milliseconds() as f64 * 0.001));
 }
