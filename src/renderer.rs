@@ -208,8 +208,12 @@ impl Renderer for PathTracingRenderer {
         let progress = (y as f64 + 1.0) / height * 100.0;
 
         let now = time::now();
-        let passed_time = (now - self.begin).num_milliseconds() as f64 * 0.001;
-        println!("rendering: {:.2} % {:.3} sec.", progress, passed_time);
+        let used = (now - self.begin).num_milliseconds() as f64 * 0.001;
+        let used_percent = used / config::TIME_LIMIT_SEC as f64 * 100.0;
+        let progress_per_used = progress / used_percent;
+
+        println!("rendering: {:.2} % {:.3} sec. used: {:.2} % (x {:.2}).",
+                 progress, used, used_percent, progress_per_used);
 
         // on interval time passed
         let interval_time = (now - self.last_report_image).num_milliseconds() as f64 * 0.001;
@@ -223,10 +227,10 @@ impl Renderer for PathTracingRenderer {
         }
 
         // on time limit exceeded
-        if passed_time >= config::TIME_LIMIT_SEC {
+        if used >= config::TIME_LIMIT_SEC {
             // die when time limit exceeded
             let path = "result_tle.png";
-            println!("time limit exceeded: {:.3} sec. {}", passed_time, path);
+            println!("time limit exceeded: {:.3} sec. {}", used, path);
             PathTracingRenderer::save_progress_image(path, imgbuf);
             process::exit(1);
         }
@@ -234,11 +238,8 @@ impl Renderer for PathTracingRenderer {
         // on finish
         if y + 1 == height as u32 {
             let path = format!("progress_{:>03}.png", self.report_image_counter);
-            println!("output progress image: {}", path);
-            println!("finish: left {:.3} sec. use {:.3} %",
-                     config::TIME_LIMIT_SEC - passed_time,
-                     (passed_time as f64 / config::TIME_LIMIT_SEC as f64) * 100.0
-            );
+            println!("output finish image: {}", path);
+            println!("finish!: remain {:.3} sec.", config::TIME_LIMIT_SEC - used);
             PathTracingRenderer::save_progress_image(&path, imgbuf);
         }
     }

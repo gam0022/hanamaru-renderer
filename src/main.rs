@@ -241,8 +241,8 @@ fn tee(f: &mut BufWriter<File>, message: &String) {
 fn main() {
     let mut f = BufWriter::new(fs::File::create("result.txt").unwrap());
 
-    let (width, height, sampling) = (800, 600, 150);// SVGA 480,000 pixel
-    //let (width, height, sampling) = (1280, 960, 100);// QVGA 1,228,800 pixel
+    //let (width, height, sampling) = (800, 600, 150);// SVGA 480,000 pixel
+    let (width, height, sampling) = (1280, 960, 75);// QVGA 1,228,800 pixel
     //let (width, height, sampling) = (1920, 1080, 3);// FHD 2,073,600 pixel
 
     tee(&mut f, &format!("resolution: {}x{}.", width, height));
@@ -252,5 +252,8 @@ fn main() {
     render(width, height, sampling);
     let end = time::now();
 
-    tee(&mut f, &format!("total {} sec.", (end - begin).num_milliseconds() as f64 * 0.001));
+    let total_sec = (end - begin).num_milliseconds() as f64 * 0.001;
+    let used_percent = total_sec / config::TIME_LIMIT_SEC as f64 * 100.0;
+    let progress_per_used = 100.0 / used_percent;
+    tee(&mut f, &format!("total {} sec. used {:.2} % (x {:.2})", total_sec, used_percent, progress_per_used));
 }
