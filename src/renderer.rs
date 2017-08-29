@@ -211,9 +211,9 @@ impl Renderer for PathTracingRenderer {
 
         let now = time::now();
         let passed_time = (now - self.begin).num_milliseconds() as f64 * 0.001;
-
         println!("rendering: {:.2} % {:.3} sec.", progress, passed_time);
 
+        // on interval time passed
         let interval_time = (now - self.last_report_image).num_milliseconds() as f64 * 0.001;
         if interval_time >= config::REPORT_INTERVAL_SEC {
             // save progress image
@@ -224,12 +224,23 @@ impl Renderer for PathTracingRenderer {
             self.last_report_image = now;
         }
 
-        if passed_time > config::TIME_LIMIT_SEC {
+        // on time limit exceeded
+        if passed_time >= config::TIME_LIMIT_SEC {
             // die when time limit exceeded
             let path = "result_tle.png";
             println!("time limit exceeded: {:.3} sec. {}", passed_time, path);
             PathTracingRenderer::save_progress_image(path, imgbuf);
             process::exit(1);
+        }
+
+        // on finish
+        if y + 1 == height as u32 {
+            let path = format!("progress_{:>03}.png", self.report_image_counter);
+            println!("finish: left {:.3} sec. use {:.3} %",
+                     config::TIME_LIMIT_SEC - passed_time,
+                     (passed_time as f64 / config::TIME_LIMIT_SEC as f64) * 100.0
+            );
+            PathTracingRenderer::save_progress_image(&path, imgbuf);
         }
     }
 }
