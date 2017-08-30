@@ -35,13 +35,15 @@ use renderer::{Renderer, DebugRenderer, DebugRenderMode, PathTracingRenderer};
 use color::{Color, hsv_to_rgb};
 use loader::ObjLoader;
 
-fn render(width: u32, height: u32, sampling: u32) {
+fn tee(f: &mut BufWriter<File>, message: &String) {
+    println!("{}", message);
+    let _ = f.write_all(message.as_bytes());
+    let _ = f.write(b"\n");
+}
+
+fn init_scene() -> (Camera, Scene) {
     let seed: &[_] = &[870, 2000, 304, 3];
     let mut rng: StdRng = SeedableRng::from_seed(seed);
-
-    let mut imgbuf = image::ImageBuffer::new(width, height);
-    let mut renderer = DebugRenderer{ mode: DebugRenderMode::DepthFromFocus };
-    let mut renderer = PathTracingRenderer::new(sampling);
 
     let camera = Camera::new(
         Vector3::new(0.0, 2.5, 9.0),// eye
@@ -226,23 +228,32 @@ fn render(width: u32, height: u32, sampling: u32) {
         }
     }
 
+    (camera, scene)
+}
+
+fn render(width: u32, height: u32, sampling: u32) {
+    let mut imgbuf = image::ImageBuffer::new(width, height);
+    let mut renderer = DebugRenderer{ mode: DebugRenderMode::DepthFromFocus };
+    let mut renderer = PathTracingRenderer::new(sampling);
+
+    let begin = time::now();
+    let (camera, scene) = init_scene();
+    let end = time::now();
+    let total_sec = (end - begin).num_milliseconds() as f64 * 0.001;
+    println!("init scene: {} sec.", total_sec);
+
     renderer.render(&BvhScene::from_scene(scene), &camera, &mut imgbuf);
 
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
     let _ = image::ImageRgb8(imgbuf).save(fout, image::PNG);
 }
 
-fn tee(f: &mut BufWriter<File>, message: &String) {
-    println!("{}", message);
-    let _ = f.write_all(message.as_bytes());
-    let _ = f.write(b"\n");
-}
 
 fn main() {
     let mut f = BufWriter::new(fs::File::create("result.txt").unwrap());
 
-    //let (width, height, sampling) = (800, 600, 150);// SVGA 480,000 pixel
-    let (width, height, sampling) = (1280, 960, 75);// QVGA 1,228,800 pixel
+    let (width, height, sampling) = (800, 600, 5);// SVGA 480,000 pixel
+    //let (width, height, sampling) = (1280, 960, 75);// QVGA 1,228,800 pixel
     //let (width, height, sampling) = (1920, 1080, 3);// FHD 2,073,600 pixel
 
     tee(&mut f, &format!("resolution: {}x{}.", width, height));
