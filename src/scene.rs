@@ -312,7 +312,7 @@ impl Scene {
             self.elements.push(element);
             true
         } else {
-            println!("add_with_check_collisions: collisions!: {:?}", aabb);
+            //println!("add_with_check_collisions: collisions!: {:?}", aabb);
             false
         }
     }

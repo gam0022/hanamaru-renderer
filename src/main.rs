@@ -133,6 +133,88 @@ fn init_scene() -> (Camera, Scene) {
                 },
             }),
 
+            // カラフルな球体
+            Box::new(Sphere {
+                center: Vector3::new(0.5556590483283421, 0.22016396889295908, -1.2480963765263036),
+                radius: 0.22016396889295908,
+                material: Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(hsv_to_rgb(Color::new(0.2, 1.0, 1.0))),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                },
+            }),
+            Box::new(Sphere {
+                center: Vector3::new(0.5018854352719382, 0.3899602675366644, 1.8484239850862165),
+                radius: 0.3899602675366644,
+                material: Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(hsv_to_rgb(Color::new(0.4, 1.0, 1.0))),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                },
+            }),
+            Box::new(Sphere {
+                center: Vector3::new(-0.5748933256792994, 0.2951263257801348, 2.266298272012876),
+                radius: 0.2951263257801348,
+                material: Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(hsv_to_rgb(Color::new(0.6, 1.0, 1.0))),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                },
+            }),
+            Box::new(Sphere {
+                center: Vector3::new(-0.9865234498515534, 0.3386858117447873, 2.9809338871934585),
+                radius: 0.3386858117447873,
+                material: Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(hsv_to_rgb(Color::new(0.6, 1.0, 1.0))),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                },
+            }),
+            Box::new(Sphere {
+                center: Vector3::new(-1.9803369205333032, 0.3536131376835385, -1.3008620618857218),
+                radius:  0.3536131376835385,
+                material: Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(hsv_to_rgb(Color::new(0.6, 1.0, 1.0))),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                },
+            }),
+            Box::new(Sphere {
+                center: Vector3::new(3.4027464198816952, 0.3917608374245498, -0.40505849281451556),
+                radius:  0.3917608374245498,
+                material: Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(hsv_to_rgb(Color::new(0.6, 1.0, 1.0))),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                },
+            }),
+            Box::new(Sphere {
+                center: Vector3::new(0.4946459502665004, 0.2764689077971783, 2.7455446851003025),
+                radius:  0.2764689077971783,
+                material: Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(hsv_to_rgb(Color::new(0.6, 1.0, 1.0))),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                },
+            }),
+            Box::new(Sphere {
+                center: Vector3::new( 1.3192264328563055, 0.39535751620146, 1.6181489825435929),
+                radius:  0.39535751620146,
+                material: Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(hsv_to_rgb(Color::new(0.6, 1.0, 1.0))),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                },
+            }),
+
             // 床
             Box::new(Cuboid {
                 aabb: Aabb {
@@ -161,7 +243,7 @@ fn init_scene() -> (Camera, Scene) {
 
     // 金属の球体
     let mut count = 0;
-    while count < 8 {
+    while count < 0 {
         let px = rng.gen_range(-2.5, 3.5);
         let py = 0.0;//rng.gen_range(0.0, 3.0);
         let pz = rng.gen_range(-2.0, 3.0);
@@ -177,6 +259,7 @@ fn init_scene() -> (Camera, Scene) {
                 roughness: Texture::from_color(Color::from_one(rng.gen_range(0.0, 0.2))),
             },
         }))) {
+            println!("{}, {}, {} : {}", px, r, pz, 0.2 + 0.1 * count as f64);
             count += 1;
         }
     }
@@ -252,7 +335,7 @@ fn render(width: u32, height: u32, sampling: u32) {
 fn main() {
     let mut f = BufWriter::new(fs::File::create("result.txt").unwrap());
 
-    let (width, height, sampling) = (800, 600, 5);// SVGA 480,000 pixel
+    let (width, height, sampling) = (800, 600, 2);// SVGA 480,000 pixel
     //let (width, height, sampling) = (1280, 960, 75);// QVGA 1,228,800 pixel
     //let (width, height, sampling) = (1920, 1080, 3);// FHD 2,073,600 pixel
 
