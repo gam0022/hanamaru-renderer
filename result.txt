@@ -1,3 +1,3 @@
 resolution: 800x600.
-sampling: 2x4 spp.
-total 7 sec. used 0.60 % (x 167.70)
+sampling: 50x4 spp.
+total 284.32 sec. used 24.22 % (x 4.13)
