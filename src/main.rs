@@ -295,39 +295,39 @@ fn init_scene() -> (Camera, Scene) {
     (camera, scene)
 }
 
-fn render(width: u32, height: u32, sampling: u32) {
+fn render<R: Renderer>(renderer: &mut R, width: u32, height: u32, camera: &Camera, scene: Scene) {
     let mut imgbuf = image::ImageBuffer::new(width, height);
-    let mut renderer = DebugRenderer{ mode: DebugRenderMode::Color };
-    let mut renderer = PathTracingRenderer::new(sampling);
-
-    let begin = time::now();
-    let (camera, scene) = init_scene();
-    let end = time::now();
-    let total_sec = (end - begin).num_milliseconds() as f64 * 0.001;
-    println!("init scene: {} sec.", total_sec);
-
-    renderer.render(&BvhScene::from_scene(scene), &camera, &mut imgbuf);
-
+    renderer.render(&BvhScene::from_scene(scene), camera, &mut imgbuf);
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
     let _ = image::ImageRgb8(imgbuf).save(fout, image::PNG);
 }
 
-
 fn main() {
     let mut f = BufWriter::new(fs::File::create("result.txt").unwrap());
 
-    let (width, height, sampling) = (800, 600, 50);// SVGA 480,000 pixel
-    //let (width, height, sampling) = (1280, 960, 75);// QVGA 1,228,800 pixel
-    //let (width, height, sampling) = (1920, 1080, 3);// FHD 2,073,600 pixel
+    let total_begin = time::now();
+    {
+        let (width, height, sampling) = (800, 600, 50);// SVGA 480,000 pixel
+        //let (width, height, sampling) = (1280, 960, 75);// QVGA 1,228,800 pixel
+        //let (width, height, sampling) = (1920, 1080, 3);// FHD 2,073,600 pixel
 
-    tee(&mut f, &format!("resolution: {}x{}.", width, height));
-    tee(&mut f, &format!("sampling: {}x{} spp.", sampling, config::SUPERSAMPLING * config::SUPERSAMPLING));
+        let mut renderer = DebugRenderer { mode: DebugRenderMode::Color };
+        let mut renderer = PathTracingRenderer::new(sampling);
 
-    let begin = time::now();
-    render(width, height, sampling);
-    let end = time::now();
+        tee(&mut f, &format!("resolution: {}x{}.", width, height));
+        tee(&mut f, &format!("sampling: {}x{} spp.", sampling, config::SUPERSAMPLING * config::SUPERSAMPLING));
 
-    let total_sec = (end - begin).num_milliseconds() as f64 * 0.001;
+        let init_scene_begin = time::now();
+        let (camera, scene) = init_scene();
+        let init_scene_end = time::now();
+        let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
+        tee(&mut f, &format!("init scene: {} sec.", init_scene_sec));
+
+        render(&mut renderer, width, height, &camera, scene);
+    }
+    let total_end = time::now();
+
+    let total_sec = (total_end - total_begin).num_milliseconds() as f64 * 0.001;
     let used_percent = total_sec / config::TIME_LIMIT_SEC as f64 * 100.0;
     let progress_per_used = 100.0 / used_percent;
     tee(&mut f, &format!("total {} sec. used {:.2} % (x {:.2})", total_sec, used_percent, progress_per_used));
