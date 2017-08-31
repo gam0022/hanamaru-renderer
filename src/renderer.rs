@@ -166,9 +166,8 @@ impl Renderer for PathTracingRenderer {
 
                             // 半球外が選ばれた場合はBRDFを0にする
                             // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
-                            if intersection.normal.dot(&next_direction).is_sign_negative() {
-                                accumulation = Color::zero();
-                                break;
+                            if intersection.normal.dot(&next_direction) <= 0.0 {
+                                intersection.material.albedo = Color::zero();
                             } else {
                                 let view = -ray.direction;
                                 let v_dot_n = saturate(view.dot(&intersection.normal));
@@ -179,7 +178,7 @@ impl Renderer for PathTracingRenderer {
                                 let g = bsdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
                                 // albedoをフレネル反射率のパラメータのF0として扱う
                                 let f = bsdf::f_schlick(v_dot_h, &intersection.material.albedo);
-                                let weight = g * f * v_dot_h / (h_dot_n * v_dot_n);
+                                let weight = f * (g * v_dot_h / (h_dot_n * v_dot_n)).max(0.0);
                                 intersection.material.albedo *= weight;
                             }
 
