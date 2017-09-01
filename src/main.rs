@@ -208,7 +208,7 @@ fn init_scene() -> (Camera, Scene) {
                     //albedo: Texture::from_path("textures/2d/checkered_v2_512.png"),
                     emission: Texture::black(),
                     //roughness: Texture::white(),
-                    roughness: Texture::from_path("textures/2d/checkered_v3_512.png"),
+                    roughness: Texture::from_path("textures/2d/checkered_v2_512.png"),
                 }
             }),
         ],
