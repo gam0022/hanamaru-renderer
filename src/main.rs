@@ -203,12 +203,13 @@ fn init_scene() -> (Camera, Scene) {
                 },
                 material: Material {
                     surface: SurfaceType::GGX,
-                    albedo:  Texture::white(),
+                    //albedo:  Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     //albedo: Texture::from_path("textures/2d/checkered_v2_512.png"),
+                    albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_diffuse.tiff"),
                     emission: Texture::black(),
                     //roughness: Texture::white(),
-                    roughness: Texture::from_path("textures/2d/checkered_v2_512.png"),
+                    roughness: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_512_roughness.tiff"),
                 }
             }),
         ],
@@ -307,7 +308,7 @@ fn main() {
 
     let total_begin = time::now();
     {
-        let (width, height, sampling) = (800, 600, 50);// SVGA 480,000 pixel
+        let (width, height, sampling) = (800, 600, 75);// SVGA 480,000 pixel
         //let (width, height, sampling) = (1280, 960, 75);// QVGA 1,228,800 pixel
         //let (width, height, sampling) = (1920, 1080, 3);// FHD 2,073,600 pixel
 
