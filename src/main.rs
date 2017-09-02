@@ -215,8 +215,8 @@ fn init_scene() -> (Camera, Scene) {
                     emission: Texture::black(),
                     //roughness: Texture::white(),
                     roughness: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png"),
-                    normal: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_normal.bmp"),
-                    //normal: Texture::flat(),
+                    //normal: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_normal.bmp"),
+                    normal: Texture::flat(),
                 }
             }),
         ],
