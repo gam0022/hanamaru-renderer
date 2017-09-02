@@ -206,10 +206,10 @@ fn init_scene() -> (Camera, Scene) {
                     //albedo:  Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     //albedo: Texture::from_path("textures/2d/checkered_v2_512.png"),
-                    albedo: Texture::from_path("textures/2d/MarblePolishedWhite1/TexturesCom_MarblePolishedWhite1_512_diffuse.tiff"),
+                    albedo: Texture::from_path("textures/2d/marble-speckled-Unreal-Engine/marble-speckled-albedo.png"),
                     emission: Texture::black(),
                     //roughness: Texture::white(),
-                    roughness: Texture::new("textures/2d/MarblePolishedWhite1/TexturesCom_MarblePolishedWhite1_512_roughness.tiff", Vector3::from_one(2.0)),
+                    roughness: Texture::new("textures/2d/marble-speckled-Unreal-Engine/marble-speckled-roughness.png", Vector3::from_one(10.0)),
                 }
             }),
         ],
