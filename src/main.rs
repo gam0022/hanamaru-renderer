@@ -47,13 +47,13 @@ fn init_scene() -> (Camera, Scene) {
     let mut rng: StdRng = SeedableRng::from_seed(seed);
 
     let camera = Camera::new(
-        Vector3::new(0.0, 2.5, 9.0),// eye
-        Vector3::new(0.0, 1.0, 0.0),// target
-        Vector3::new(0.0, 1.0, 0.0).normalize(),// y_up
-        17.0,// fov
+        Vector3::new(0.0, 2.5, 9.0), // eye
+        Vector3::new(0.0, 1.0, 0.0), // target
+        Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
+        17.0, // fov
 
-        LensShape::Circle,// lens shape
-        0.15,// * 0.0,// aperture
+        LensShape::Circle, // lens shape
+        0.15, // * 0.0,// aperture
         8.5// focus_distance
     );
 
@@ -70,20 +70,17 @@ fn init_scene() -> (Camera, Scene) {
                     roughness: Texture::from_color(Color::from_one(0.1)),
                 },
             ))),
-
             // うさぎ左
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/bunny/bunny_face1000_flip.obj",
                 Matrix44::scale(1.5, 1.5, 1.5) * Matrix44::translate(-1.2, 0.0, 0.0) * Matrix44::rotate_y(-0.2),
-
                 Material {
-                    surface: SurfaceType::GGX,
+                    surface: SurfaceType::GGX { metalness: 1.0 },
                     albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
                 },
             ))),
-
             // 背後にある地図ガラス
             /*Box::new(Cuboid {
                 aabb: Aabb {
@@ -109,37 +106,34 @@ fn init_scene() -> (Camera, Scene) {
                     roughness: Texture::black(),
                 },
             ))),
-
             // 地球のテクスチャを光源にした球体
             Box::new(Sphere {
                 center: Vector3::new(0.0, 0.5, -0.5),
                 radius: 0.5,
                 material: Material {
-                    surface: SurfaceType::GGX,
+                    surface: SurfaceType::GGX { metalness: 1.0 },
                     albedo: Texture::white(),
                     emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(5.0, 5.0, 2.0)),
                     roughness: Texture::from_color(Color::from_one(0.05)),
                 },
             }),
-
             // 地球のテクスチャをラフネスにした球体
             Box::new(Sphere {
                 center: Vector3::new(-3.5, 0.5, 0.0),
                 radius: 0.5,
                 material: Material {
-                    surface: SurfaceType::GGX,
+                    surface: SurfaceType::GGX { metalness: 1.0 },
                     albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
                     emission: Texture::black(),
                     roughness: Texture::from_path("textures/2d/earth_inverse_2048.jpg"),
                 },
             }),
-
             // カラフルな球体
             Box::new(Sphere {
                 center: Vector3::new(0.5018854352719382, 0.3899602675366644, 1.8484239850862165),
                 radius: 0.3899602675366644,
                 material: Material {
-                    surface: SurfaceType::GGX,
+                    surface: SurfaceType::GGX { metalness: 1.0 },
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.2, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.01)),
@@ -149,7 +143,7 @@ fn init_scene() -> (Camera, Scene) {
                 center: Vector3::new(-0.5748933256792994, 0.2951263257801348, 2.266298272012876),
                 radius: 0.2951263257801348,
                 material: Material {
-                    surface: SurfaceType::GGX,
+                    surface: SurfaceType::GGX { metalness: 1.0 },
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.4, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.05)),
@@ -159,7 +153,7 @@ fn init_scene() -> (Camera, Scene) {
                 center: Vector3::new(-0.9865234498515534, 0.3386858117447873, 2.9809338871934585),
                 radius: 0.3386858117447873,
                 material: Material {
-                    surface: SurfaceType::GGX,
+                    surface: SurfaceType::GGX { metalness: 1.0 },
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.6, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.02)),
@@ -167,9 +161,9 @@ fn init_scene() -> (Camera, Scene) {
             }),
             Box::new(Sphere {
                 center: Vector3::new(0.4946459502665004, 0.2764689077971783, 2.7455446851003025),
-                radius:  0.2764689077971783,
+                radius: 0.2764689077971783,
                 material: Material {
-                    surface: SurfaceType::GGX,
+                    surface: SurfaceType::GGX { metalness: 1.0 },
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.05, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.0)),
@@ -179,7 +173,7 @@ fn init_scene() -> (Camera, Scene) {
                 center: Vector3::new( 1.4192264328563055, 0.3, 1.6181489825435929),
                 radius:  0.3,
                 material: Material {
-                    surface: SurfaceType::GGX,
+                    surface: SurfaceType::GGX{ metalness: 1.0 },
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.7, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.01)),
@@ -187,15 +181,14 @@ fn init_scene() -> (Camera, Scene) {
             }),*/
             Box::new(Sphere {
                 center: Vector3::new(3.7027464198816952, 0.3917608374245498, -0.40505849281451556),
-                radius:  0.3917608374245498,
+                radius: 0.3917608374245498,
                 material: Material {
-                    surface: SurfaceType::GGX,
+                    surface: SurfaceType::GGX { metalness: 1.0 },
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.8, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
                 },
             }),
-
             // 床
             Box::new(Cuboid {
                 aabb: Aabb {
@@ -203,14 +196,14 @@ fn init_scene() -> (Camera, Scene) {
                     max: Vector3::new(5.0, 0.0, 5.0),
                 },
                 material: Material {
-                    surface: SurfaceType::Diffuse,
+                    surface: SurfaceType::GGX { metalness: 0.0 },
                     //albedo:  Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     //albedo: Texture::from_path("textures/2d/checkered_v2_512.png"),
-                    albedo: Texture::from_path("textures/2d/marble-speckled-Unreal-Engine/marble-speckled-albedo.png"),
+                    albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_c_diffuse.tiff"),
                     emission: Texture::black(),
-                    roughness: Texture::white(),
-                    //roughness: Texture::new("textures/2d/marble-speckled-Unreal-Engine/marble-speckled-roughness.png", Vector3::from_one(12.0)),
+                    //roughness: Texture::white(),
+                    roughness: Texture::new("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_512_roughness.tiff", Vector3::from_one(1.0)),
                 }
             }),
         ],
@@ -236,7 +229,7 @@ fn init_scene() -> (Camera, Scene) {
             center: Vector3::new(px, r + py, pz),
             radius: r,
             material: Material {
-                surface: SurfaceType::GGX,
+                surface: SurfaceType::GGX { metalness: 1.0 },
                 albedo: Texture::from_color(hsv_to_rgb(Color::new(0.2 + 0.1 * count as f64, 1.0, 1.0))),
                 emission: Texture::black(),
                 roughness: Texture::from_color(Color::from_one(rng.gen_range(0.0, 0.2))),
@@ -305,8 +298,8 @@ fn render<R: Renderer>(renderer: &mut R, width: u32, height: u32, camera: &Camer
 }
 
 fn main() {
-    inspect_image();
-    return;
+    //inspect_image();
+    //return;
 
     let mut f = BufWriter::new(fs::File::create("result.txt").unwrap());
 

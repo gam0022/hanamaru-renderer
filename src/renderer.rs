@@ -18,7 +18,7 @@ use camera::{Camera, Ray};
 use material::SurfaceType;
 use bsdf;
 use color::{Color, color_to_rgb, linear_to_gamma};
-use math::saturate;
+use math::{saturate, mix};
 
 pub trait Renderer: Sync {
     fn render_single_thread(&mut self, scene: &SceneTrait, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
@@ -159,7 +159,7 @@ impl Renderer for PathTracingRenderer {
                         SurfaceType::Refraction { refractive_index } => {
                             bsdf::sample_refraction(random, &intersection.normal.clone(), refractive_index, &mut intersection, &mut ray);
                         }
-                        SurfaceType::GGX => {
+                        SurfaceType::GGX { metalness } => {
                             let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
                             let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
                             let next_direction = ray.direction.reflect(&half);
@@ -178,8 +178,9 @@ impl Renderer for PathTracingRenderer {
                                 let g = bsdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
                                 // albedoをフレネル反射率のパラメータのF0として扱う
                                 let f = bsdf::f_schlick(v_dot_h, &intersection.material.albedo);
-                                let weight = f * (g * v_dot_h / (h_dot_n * v_dot_n)).max(0.0);
-                                intersection.material.albedo *= weight;
+                                let weight = f * saturate(g * v_dot_h / (h_dot_n * v_dot_n));
+                                let final_weight = mix(&Color::one(), &weight, metalness);
+                                intersection.material.albedo *= final_weight;
                             }
 
                             ray.origin = intersection.position + intersection.normal * config::OFFSET;
