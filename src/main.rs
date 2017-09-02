@@ -68,6 +68,7 @@ fn init_scene() -> (Camera, Scene) {
                     albedo: Texture::from_color(Color::new(0.7, 0.7, 1.0)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
+                    normal: Texture::flat(),
                 },
             ))),
             // うさぎ左
@@ -79,6 +80,7 @@ fn init_scene() -> (Camera, Scene) {
                     albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
+                    normal: Texture::flat(),
                 },
             ))),
             // 背後にある地図ガラス
@@ -104,6 +106,7 @@ fn init_scene() -> (Camera, Scene) {
                     albedo: Texture::white(),
                     emission: Texture::black(),
                     roughness: Texture::black(),
+                    normal: Texture::flat(),
                 },
             ))),
             // 地球のテクスチャを光源にした球体
@@ -115,6 +118,7 @@ fn init_scene() -> (Camera, Scene) {
                     albedo: Texture::white(),
                     emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(5.0, 5.0, 2.0)),
                     roughness: Texture::from_color(Color::from_one(0.05)),
+                    normal: Texture::flat(),
                 },
             }),
             // 地球のテクスチャをラフネスにした球体
@@ -126,6 +130,7 @@ fn init_scene() -> (Camera, Scene) {
                     albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
                     emission: Texture::black(),
                     roughness: Texture::from_path("textures/2d/earth_inverse_2048.jpg"),
+                    normal: Texture::flat(),
                 },
             }),
             // カラフルな球体
@@ -137,6 +142,7 @@ fn init_scene() -> (Camera, Scene) {
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.2, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.01)),
+                    normal: Texture::flat(),
                 },
             }),
             Box::new(Sphere {
@@ -147,6 +153,7 @@ fn init_scene() -> (Camera, Scene) {
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.4, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.05)),
+                    normal: Texture::flat(),
                 },
             }),
             Box::new(Sphere {
@@ -157,6 +164,7 @@ fn init_scene() -> (Camera, Scene) {
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.6, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.02)),
+                    normal: Texture::flat(),
                 },
             }),
             Box::new(Sphere {
@@ -167,6 +175,7 @@ fn init_scene() -> (Camera, Scene) {
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.05, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.0)),
+                    normal: Texture::flat(),
                 },
             }),
             /*Box::new(Sphere {
@@ -177,6 +186,7 @@ fn init_scene() -> (Camera, Scene) {
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.7, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.01)),
+                    normal: Texture::flat(),
                 },
             }),*/
             Box::new(Sphere {
@@ -187,6 +197,7 @@ fn init_scene() -> (Camera, Scene) {
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.8, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
+                    normal: Texture::flat(),
                 },
             }),
             // 床
@@ -203,7 +214,9 @@ fn init_scene() -> (Camera, Scene) {
                     albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_c_diffuse.tiff"),
                     emission: Texture::black(),
                     //roughness: Texture::white(),
-                    roughness: Texture::new("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_512_roughness.tiff", Vector3::from_one(1.0)),
+                    roughness: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png"),
+                    normal: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_normal.bmp"),
+                    //normal: Texture::flat(),
                 }
             }),
         ],
@@ -233,6 +246,7 @@ fn init_scene() -> (Camera, Scene) {
                 albedo: Texture::from_color(hsv_to_rgb(Color::new(0.2 + 0.1 * count as f64, 1.0, 1.0))),
                 emission: Texture::black(),
                 roughness: Texture::from_color(Color::from_one(rng.gen_range(0.0, 0.2))),
+                normal: Texture::flat(),
             },
         }))) {
             println!("{}, {}, {} : {}", px, r, pz, 0.2 + 0.1 * count as f64);
@@ -257,6 +271,7 @@ fn init_scene() -> (Camera, Scene) {
                 albedo: Texture::white(),
                 emission: Texture::black(),
                 roughness: Texture::black(),
+                normal: Texture::flat(),
             },
         )))) {
             count += 1;
@@ -281,6 +296,7 @@ fn init_scene() -> (Camera, Scene) {
                 albedo: Texture::white(),
                 emission: Texture::black(),
                 roughness: Texture::black(),
+                normal: Texture::flat(),
             },
         )))) {
             count += 1;
@@ -309,7 +325,7 @@ fn main() {
         //let (width, height, sampling) = (1280, 960, 75);// QVGA 1,228,800 pixel
         //let (width, height, sampling) = (1920, 1080, 3);// FHD 2,073,600 pixel
 
-        let mut renderer = DebugRenderer { mode: DebugRenderMode::Color };
+        let mut renderer = DebugRenderer { mode: DebugRenderMode::Normal };
         let mut renderer = PathTracingRenderer::new(sampling);
 
         tee(&mut f, &format!("resolution: {}x{}.", width, height));
@@ -332,7 +348,7 @@ fn main() {
 }
 
 fn inspect_image() {
-    let img = image::open(&Path::new("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_512_roughness.tiff")).unwrap();
+    let img = image::open(&Path::new("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png")).unwrap();
     let mut min = 255.0;
     let mut max = 0.0;
     let mut avg = 0.0;

@@ -16,6 +16,7 @@ pub struct Material {
     pub albedo: Texture,
     pub emission: Texture,
     pub roughness: Texture,
+    pub normal: Texture,
 }
 
 #[derive(Clone, Debug)]
@@ -24,4 +25,5 @@ pub struct PointMaterial {
     pub albedo: Color,
     pub emission: Color,
     pub roughness: f64,
+    pub normal: Color,
 }
