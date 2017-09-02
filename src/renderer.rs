@@ -185,7 +185,7 @@ impl Renderer for PathTracingRenderer {
                             ray.origin = intersection.position + intersection.normal * config::OFFSET;
                             ray.direction = next_direction;
                         }
-                        SurfaceType::GGXReflection { refractive_index } => {
+                        SurfaceType::GGXRefraction { refractive_index } => {
                             let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
                             let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
                             bsdf::sample_refraction(random, &half, refractive_index, &mut intersection, &mut ray);

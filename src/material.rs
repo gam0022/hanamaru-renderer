@@ -7,7 +7,7 @@ pub enum SurfaceType {
     Specular,
     Refraction { refractive_index: f64 },
     GGX,
-    GGXReflection { refractive_index: f64 },
+    GGXRefraction { refractive_index: f64 },
 }
 
 #[derive(Debug)]

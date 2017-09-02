@@ -3,6 +3,7 @@ extern crate image;
 extern crate time;
 extern crate rand;
 
+use image::GenericImage;
 use std::fs::File;
 use std::path::Path;
 use std::fs;
@@ -102,10 +103,10 @@ fn init_scene() -> (Camera, Scene) {
                 "models/dia/dia.obj",
                 Matrix44::translate(3.1, 0.0, 0.8) * Matrix44::scale_linear(1.0) * Matrix44::rotate_y(-0.5) * Matrix44::rotate_x(40.35.to_radians()),
                 Material {
-                    surface: SurfaceType::GGXReflection { refractive_index: 2.42 },
-                    albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
+                    surface: SurfaceType::Refraction { refractive_index: 2.42 },
+                    albedo: Texture::white(),
                     emission: Texture::black(),
-                    roughness: Texture::from_color(Color::from_one(0.01)),
+                    roughness: Texture::black(),
                 },
             ))),
 
@@ -202,14 +203,14 @@ fn init_scene() -> (Camera, Scene) {
                     max: Vector3::new(5.0, 0.0, 5.0),
                 },
                 material: Material {
-                    surface: SurfaceType::GGX,
+                    surface: SurfaceType::Diffuse,
                     //albedo:  Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     //albedo: Texture::from_path("textures/2d/checkered_v2_512.png"),
                     albedo: Texture::from_path("textures/2d/marble-speckled-Unreal-Engine/marble-speckled-albedo.png"),
                     emission: Texture::black(),
-                    //roughness: Texture::white(),
-                    roughness: Texture::new("textures/2d/marble-speckled-Unreal-Engine/marble-speckled-roughness.png", Vector3::from_one(10.0)),
+                    roughness: Texture::white(),
+                    //roughness: Texture::new("textures/2d/marble-speckled-Unreal-Engine/marble-speckled-roughness.png", Vector3::from_one(12.0)),
                 }
             }),
         ],
@@ -259,10 +260,10 @@ fn init_scene() -> (Camera, Scene) {
             "models/dia/dia.obj",
             Matrix44::translate(px, py, pz) * Matrix44::scale_linear(s) * Matrix44::rotate_y(ry) * Matrix44::rotate_x(40.35.to_radians()),
             Material {
-                surface: SurfaceType::GGXReflection { refractive_index: 2.42 },
-                albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
+                surface: SurfaceType::Refraction { refractive_index: 2.42 },
+                albedo: Texture::white(),
                 emission: Texture::black(),
-                roughness: Texture::from_color(Color::from_one(0.01)),
+                roughness: Texture::black(),
             },
         )))) {
             count += 1;
@@ -283,10 +284,10 @@ fn init_scene() -> (Camera, Scene) {
             "models/dia/dia.obj",
             Matrix44::translate(px, py, pz) * Matrix44::scale_linear(s) * Matrix44::rotate_y(ry) * Matrix44::rotate_x(rx),
             Material {
-                surface: SurfaceType::GGXReflection { refractive_index: 1.4 },
-                albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
+                surface: SurfaceType::Refraction { refractive_index: 2.42 },
+                albedo: Texture::white(),
                 emission: Texture::black(),
-                roughness: Texture::from_color(Color::from_one(0.01)),
+                roughness: Texture::black(),
             },
         )))) {
             count += 1;
@@ -304,6 +305,9 @@ fn render<R: Renderer>(renderer: &mut R, width: u32, height: u32, camera: &Camer
 }
 
 fn main() {
+    inspect_image();
+    return;
+
     let mut f = BufWriter::new(fs::File::create("result.txt").unwrap());
 
     let total_begin = time::now();
@@ -332,4 +336,20 @@ fn main() {
     let used_percent = total_sec / config::TIME_LIMIT_SEC as f64 * 100.0;
     let progress_per_used = 100.0 / used_percent;
     tee(&mut f, &format!("total {} sec. used {:.2} % (x {:.2})", total_sec, used_percent, progress_per_used));
+}
+
+fn inspect_image() {
+    let img = image::open(&Path::new("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_512_roughness.tiff")).unwrap();
+    let mut min = 255.0;
+    let mut max = 0.0;
+    let mut avg = 0.0;
+    for (_, _, pixel) in img.pixels() {
+        let p = pixel.data[0] as f64;
+        min = min.min(p);
+        max = max.max(p);
+        avg += p;
+    }
+    avg /= (img.width() * img.height()) as f64;
+
+    println!("min: {} max: {} avg: {}", min, max, avg);
 }
