@@ -211,13 +211,15 @@ fn init_scene() -> (Camera, Scene) {
                     //albedo:  Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     //albedo: Texture::from_path("textures/2d/checkered_v2_512.png"),
-                    albedo: Texture::from_path("textures/2d/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-albedo.png"),
+                    //albedo: Texture::from_path("textures/2d/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-albedo.png"),
+                    albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_c_diffuse.tiff"),
                     emission: Texture::black(),
                     //roughness: Texture::white(),
-                    roughness: Texture::from_path("textures/2d/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-roughness.png"),
+                    //roughness: Texture::from_path("textures/2d/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-roughness.png"),
+                    roughness: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png"),
                     //normal: Texture::from_path("textures/2d/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-normal.png"),
-                    //normal: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_normal.bmp"),
-                    normal: Texture::flat(),
+                    normal: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_normal.bmp"),
+                    //normal: Texture::flat(),
                 }
             }),
         ],
@@ -326,7 +328,7 @@ fn main() {
         //let (width, height, sampling) = (1280, 960, 75);// QVGA 1,228,800 pixel
         //let (width, height, sampling) = (1920, 1080, 3);// FHD 2,073,600 pixel
 
-        let mut renderer = DebugRenderer { mode: DebugRenderMode::Normal };
+        let mut renderer = DebugRenderer { mode: DebugRenderMode::Color };
         let mut renderer = PathTracingRenderer::new(sampling);
 
         tee(&mut f, &format!("resolution: {}x{}.", width, height));

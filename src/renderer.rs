@@ -174,7 +174,7 @@ impl Renderer for PathTracingRenderer {
 
                             // 半球外が選ばれた場合はBRDFを0にする
                             // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
-                            if intersection.normal.dot(&next_direction).is_sign_negative() {
+                            if textured_normal.dot(&next_direction).is_sign_negative() {
                                 break;
                             } else {
                                 let view = -ray.direction;
