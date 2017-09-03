@@ -12,7 +12,6 @@ pub struct Intersection {
     pub position: Vector3,
     pub distance: f64,
     pub normal: Vector3,
-    pub tangent: Vector3,
     pub uv: Vector2,
     pub material: PointMaterial,
 }
@@ -23,14 +22,12 @@ impl Intersection {
             position: Vector3::zero(),
             distance: config::INF,
             normal: Vector3::zero(),
-            tangent: Vector3::zero(),
             uv: Vector2::zero(),
             material: PointMaterial {
                 surface: SurfaceType::Diffuse,
                 albedo: Color::one(),
                 emission: Color::zero(),
                 roughness: 0.2,
-                normal: Color::new(0.5, 0.5, 1.0),
             },
         }
     }
@@ -59,7 +56,6 @@ impl Intersectable for Sphere {
             intersection.position = ray.origin + ray.direction * t;
             intersection.distance = t;
             intersection.normal = (intersection.position - self.center).normalize();
-            intersection.tangent = intersection.normal.cross(&Vector3::new(0.0, 1.0, 0.0)).normalize();
 
             intersection.uv.y = 1.0 - intersection.normal.y.acos() / config::PI;
             intersection.uv.x = 0.5
@@ -97,7 +93,6 @@ impl Intersectable for Plane {
         if t > 0.0 && t < intersection.distance {
             intersection.position = ray.origin + ray.direction * t;
             intersection.normal = self.normal;
-            intersection.tangent = intersection.normal.cross(&Vector3::new(0.0, 1.0, 0.0)).normalize();// TODO: fix me
             intersection.distance = t;
 
             // normalがY軸なことを前提にUVを計算
@@ -135,27 +130,21 @@ impl Intersectable for Cuboid {
             // 高速化のためにY軸から先に判定する
             if equals_eps(intersection.position.y, self.aabb.max.y) {
                 intersection.normal = Vector3::new(0.0, 1.0, 0.0);
-                intersection.tangent = Vector3::new(1.0, 0.0, 0.0);
                 intersection.uv = uvw.xz();
             } else if equals_eps(intersection.position.y, self.aabb.min.y) {
                 intersection.normal = Vector3::new(0.0, -1.0, 0.0);
-                intersection.tangent = Vector3::new(1.0, 0.0, 0.0);
                 intersection.uv = uvw.xz();
             } else if equals_eps(intersection.position.x, self.aabb.min.x) {
                 intersection.normal = Vector3::new(-1.0, 0.0, 0.0);
-                intersection.tangent = Vector3::new(0.0, 0.0, 1.0);
                 intersection.uv = uvw.zy();
             } else if equals_eps(intersection.position.x, self.aabb.max.x) {
                 intersection.normal = Vector3::new(1.0, 0.0, 0.0);
-                intersection.tangent = Vector3::new(0.0, 0.0, 1.0);
                 intersection.uv = uvw.zy();
             } else if equals_eps(intersection.position.z, self.aabb.min.z) {
                 intersection.normal = Vector3::new(0.0, 0.0, -1.0);
-                intersection.tangent = Vector3::new(1.0, 1.0, 0.0);
                 intersection.uv = uvw.xy();
             } else if equals_eps(intersection.position.z, self.aabb.max.z) {
                 intersection.normal = Vector3::new(0.0, 0.0, 1.0);
-                intersection.tangent = Vector3::new(1.0, 1.0, 0.0);
                 intersection.uv = uvw.xy();
             }
             true
@@ -303,7 +292,6 @@ impl SceneTrait for Scene {
             intersection.material.albedo = material.albedo.sample(intersection.uv);
             intersection.material.emission = material.emission.sample(intersection.uv);
             intersection.material.roughness = material.roughness.sample(intersection.uv).x;
-            intersection.material.normal = material.normal.sample(intersection.uv);
             (true, intersection)
         } else {
             intersection.material.emission = self.skybox.sample(&ray.direction);
@@ -347,7 +335,6 @@ impl SceneTrait for BvhScene {
             intersection.material.albedo = material.albedo.sample(intersection.uv);
             intersection.material.emission = material.emission.sample(intersection.uv);
             intersection.material.roughness = material.roughness.sample(intersection.uv).x;
-            intersection.material.normal = material.normal.sample(intersection.uv);
             (true, intersection)
         } else {
             intersection.material.emission = self.scene.skybox.sample(&ray.direction);

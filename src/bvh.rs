@@ -284,7 +284,6 @@ pub fn intersect_polygon(v0: &Vector3, v1: &Vector3, v2: &Vector3, ray: &Ray, in
 
     intersection.position = ray.origin + ray.direction * t;
     intersection.normal = edge1.cross(&edge2).normalize();
-    intersection.tangent = intersection.normal.cross(&Vector3::new(0.0, 1.0, 0.0)).normalize();// TODO: fix me
     intersection.distance = t;
     intersection.uv = Vector2::new(u, v);
     true

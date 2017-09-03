@@ -96,11 +96,13 @@ impl Texture {
         }
     }
 
-    pub fn white() -> Texture { Texture::from_color(Color::one()) }
+    pub fn white() -> Texture {
+        Texture::from_color(Color::one())
+    }
 
-    pub fn black() -> Texture { Texture::from_color(Color::zero()) }
-
-    pub fn flat() -> Texture { Texture::from_color(Color::new(0.5, 0.5, 1.0)) }
+    pub fn black() -> Texture {
+        Texture::from_color(Color::zero())
+    }
 
     pub fn sample(&self, uv: Vector2) -> Color {
         if let Some(ref tex) = self.image_texture {

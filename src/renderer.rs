@@ -92,10 +92,6 @@ impl Renderer for DebugRenderer {
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
         let (hit, intersection) = scene.intersect(&ray);
         if hit {
-            let normal = intersection.material.normal * 2.0 - 1.0;
-            let binormal = intersection.tangent.cross(&intersection.normal);
-            let textured_normal = intersection.tangent * normal.x + binormal * normal.y + intersection.normal * normal.z;
-
             match self.mode {
                 DebugRenderMode::Color => {
                     let shadow_ray = Ray {
@@ -104,10 +100,10 @@ impl Renderer for DebugRenderer {
                     };
                     let (shadow_hit, _) = scene.intersect(&shadow_ray);
                     let shadow = if shadow_hit { 0.5 } else { 1.0 };
-                    let diffuse = textured_normal.dot(&light_direction).max(0.0);
+                    let diffuse = intersection.normal.dot(&light_direction).max(0.0);
                     intersection.material.emission + intersection.material.albedo * diffuse * shadow
                 }
-                DebugRenderMode::Normal => textured_normal,
+                DebugRenderMode::Normal => intersection.normal,
                 DebugRenderMode::Depth => Color::from_one(0.5 * intersection.distance / camera.focus_distance),
                 DebugRenderMode::DepthFromFocus => Color::from_one((intersection.distance - camera.focus_distance).abs()),
             }
@@ -150,38 +146,34 @@ impl Renderer for PathTracingRenderer {
                 let random = rng.gen::<(f64, f64)>();
                 let (hit, mut intersection) = scene.intersect(&ray);
 
-                let normal = intersection.material.normal * 2.0 - 1.0;
-                let binormal = intersection.tangent.cross(&intersection.normal);
-                let textured_normal = intersection.tangent * normal.x + binormal * normal.y + intersection.normal * normal.z;
-
                 if hit {
                     match intersection.material.surface {
                         SurfaceType::Diffuse => {
                             ray.origin = intersection.position + intersection.normal * config::OFFSET;
-                            ray.direction = bsdf::importance_sample_diffuse(random, &textured_normal);
+                            ray.direction = bsdf::importance_sample_diffuse(random, &intersection.normal);
                         }
                         SurfaceType::Specular => {
                             ray.origin = intersection.position + intersection.normal * config::OFFSET;
-                            ray.direction = ray.direction.reflect(&textured_normal);
+                            ray.direction = ray.direction.reflect(&intersection.normal);
                         }
                         SurfaceType::Refraction { refractive_index } => {
-                            bsdf::sample_refraction(random, &textured_normal.clone(), refractive_index, &mut intersection, &mut ray);
+                            bsdf::sample_refraction(random, &intersection.normal.clone(), refractive_index, &mut intersection, &mut ray);
                         }
                         SurfaceType::GGX { metalness } => {
                             let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
-                            let half = bsdf::importance_sample_ggx(random, &textured_normal, alpha2);
+                            let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
                             let next_direction = ray.direction.reflect(&half);
 
                             // 半球外が選ばれた場合はBRDFを0にする
                             // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
-                            if textured_normal.dot(&next_direction).is_sign_negative() {
+                            if intersection.normal.dot(&next_direction).is_sign_negative() {
                                 break;
                             } else {
                                 let view = -ray.direction;
-                                let v_dot_n = saturate(view.dot(&textured_normal));
-                                let l_dot_n = saturate(next_direction.dot(&textured_normal));
+                                let v_dot_n = saturate(view.dot(&intersection.normal));
+                                let l_dot_n = saturate(next_direction.dot(&intersection.normal));
                                 let v_dot_h = saturate(view.dot(&half));
-                                let h_dot_n = saturate(half.dot(&textured_normal));
+                                let h_dot_n = saturate(half.dot(&intersection.normal));
 
                                 let g = bsdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
                                 // albedoをフレネル反射率のパラメータのF0として扱う
@@ -196,7 +188,7 @@ impl Renderer for PathTracingRenderer {
                         }
                         SurfaceType::GGXRefraction { refractive_index } => {
                             let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
-                            let half = bsdf::importance_sample_ggx(random, &textured_normal, alpha2);
+                            let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
                             bsdf::sample_refraction(random, &half, refractive_index, &mut intersection, &mut ray);
                         }
                     }
