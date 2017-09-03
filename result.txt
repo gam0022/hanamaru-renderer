@@ -1,4 +1,4 @@
 resolution: 800x600.
 sampling: 75x4 spp.
-init scene: 0.319 sec.
-total 501.80400000000003 sec. used 42.75 % (x 2.34)
+init scene: 0.252 sec.
+total 509.969 sec. used 43.44 % (x 2.30)

@@ -196,14 +196,14 @@ fn init_scene() -> (Camera, Scene) {
                     max: Vector3::new(5.0, 0.0, 5.0),
                 },
                 material: Material {
-                    surface: SurfaceType::GGX { metalness: 0.0 },
+                    surface: SurfaceType::GGX { metalness: 1.0 },
                     //albedo:  Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     //albedo: Texture::from_path("textures/2d/checkered_v2_512.png"),
-                    albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_c_diffuse.tiff"),
+                    albedo: Texture::from_path("textures/2d/checkered_diagonal_12_0.3_1.0_512.png"),
                     emission: Texture::black(),
                     //roughness: Texture::white(),
-                    roughness: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png"),
+                    roughness: Texture::from_path("textures/2d/checkered_diagonal_12_0.1_0.9_512.png"),
                 }
             }),
         ],
