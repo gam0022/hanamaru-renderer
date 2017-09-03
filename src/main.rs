@@ -43,7 +43,9 @@ fn tee(f: &mut BufWriter<File>, message: &String) {
 }
 
 fn init_scene() -> (Camera, Scene) {
-    let seed: &[_] = &[870, 2000, 304, 2];
+    // good: 12, 19
+    // seek to: 33
+    let seed: &[_] = &[870, 2000, 304, 5];
     let mut rng: StdRng = SeedableRng::from_seed(seed);
 
     let camera = Camera::new(
@@ -149,7 +151,7 @@ fn init_scene() -> (Camera, Scene) {
                     roughness: Texture::from_color(Color::from_one(0.05)),
                 },
             }),
-            Box::new(Sphere {
+            /*Box::new(Sphere {
                 center: Vector3::new(-0.9865234498515534, 0.3386858117447873, 2.9809338871934585),
                 radius: 0.3386858117447873,
                 material: Material {
@@ -158,9 +160,9 @@ fn init_scene() -> (Camera, Scene) {
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.02)),
                 },
-            }),
+            }),*/
             Box::new(Sphere {
-                center: Vector3::new(0.4946459502665004, 0.2764689077971783, 2.7455446851003025),
+                center: Vector3::new(0.6946459502665004, 0.2764689077971783, 2.7455446851003025),
                 radius: 0.2764689077971783,
                 material: Material {
                     surface: SurfaceType::GGX { metalness: 1.0 },
@@ -199,11 +201,12 @@ fn init_scene() -> (Camera, Scene) {
                     surface: SurfaceType::GGX { metalness: 1.0 },
                     //albedo:  Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
-                    //albedo: Texture::from_path("textures/2d/checkered_v2_512.png"),
-                    albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
+                    //albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
+                    albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_c_diffuse.tiff"),
                     emission: Texture::black(),
                     //roughness: Texture::white(),
-                    roughness: Texture::from_path("textures/2d/checkered_diagonal_10_0.1_0.6_512.png"),
+                    //roughness: Texture::from_path("textures/2d/checkered_diagonal_10_0.1_0.6_512.png"),
+                    roughness: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png"),
                 }
             }),
         ],
@@ -245,7 +248,7 @@ fn init_scene() -> (Camera, Scene) {
     while count < 12 {
         let px = rng.gen_range(-4.5, 4.5);
         let py = 0.0;
-        let pz = rng.gen_range(-2.5, 4.5);
+        let pz = rng.gen_range(-3.0, 4.5);
         let s = rng.gen_range(0.7, 1.1);
         let ry = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
 
@@ -268,7 +271,7 @@ fn init_scene() -> (Camera, Scene) {
     while count < 30 {
         let px = rng.gen_range(-4.5, 4.5);
         let py = rng.gen_range(0.0, 4.0);
-        let pz = rng.gen_range(-4.5, 3.5);
+        let pz = rng.gen_range(-4.5, 4.5);
         let s = rng.gen_range(0.6, 1.1);
         let ry = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
         let rx = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
@@ -332,7 +335,7 @@ fn main() {
 }
 
 fn inspect_image() {
-    let img = image::open(&Path::new("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_512_roughness.tiff")).unwrap();
+    let img = image::open(&Path::new("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png")).unwrap();
     let mut min = 255.0;
     let mut max = 0.0;
     let mut avg = 0.0;
