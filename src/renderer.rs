@@ -92,11 +92,9 @@ impl Renderer for DebugRenderer {
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
         let (hit, intersection) = scene.intersect(&ray);
         if hit {
-            let binormal = intersection.normal.cross(&intersection.tangent);
-            let textured_normal =
-                (intersection.tangent * (intersection.material.normal.x - 0.5) +
-                    binormal * (intersection.material.normal.y - 0.5) +
-                    intersection.normal * (intersection.material.normal.z - 0.5)).normalize();
+            let normal = intersection.material.normal * 2.0 - 1.0;
+            let binormal = intersection.tangent.cross(&intersection.normal);
+            let textured_normal = intersection.tangent * normal.x + binormal * normal.y + intersection.normal * normal.z;
 
             match self.mode {
                 DebugRenderMode::Color => {
@@ -152,11 +150,9 @@ impl Renderer for PathTracingRenderer {
                 let random = rng.gen::<(f64, f64)>();
                 let (hit, mut intersection) = scene.intersect(&ray);
 
-                let binormal = intersection.normal.cross(&intersection.tangent);
-                let textured_normal =
-                    (intersection.tangent * (intersection.material.normal.x - 0.5) +
-                        binormal * (intersection.material.normal.y - 0.5) +
-                        intersection.normal * (intersection.material.normal.z - 0.5)).normalize();
+                let normal = intersection.material.normal * 2.0 - 1.0;
+                let binormal = intersection.tangent.cross(&intersection.normal);
+                let textured_normal = intersection.tangent * normal.x + binormal * normal.y + intersection.normal * normal.z;
 
                 if hit {
                     match intersection.material.surface {
