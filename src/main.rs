@@ -207,7 +207,7 @@ fn init_scene() -> (Camera, Scene) {
                     max: Vector3::new(5.0, 0.0, 5.0),
                 },
                 material: Material {
-                    surface: SurfaceType::GGX { metalness: 0.0 },
+                    surface: SurfaceType::Specular,
                     //albedo:  Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     //albedo: Texture::from_path("textures/2d/checkered_v2_512.png"),
