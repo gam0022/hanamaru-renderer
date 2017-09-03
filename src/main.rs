@@ -203,7 +203,7 @@ fn init_scene() -> (Camera, Scene) {
                     albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_c_diffuse.tiff"),
                     emission: Texture::black(),
                     //roughness: Texture::white(),
-                    roughness: Texture::new("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_512_roughness.tiff", Vector3::from_one(1.0)),
+                    roughness: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png"),
                 }
             }),
         ],
