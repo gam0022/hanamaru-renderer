@@ -42,7 +42,119 @@ fn tee(f: &mut BufWriter<File>, message: &String) {
     let _ = f.write(b"\n");
 }
 
-fn init_scene() -> (Camera, Scene) {
+fn init_scene_material_examples() -> (Camera, Scene) {
+    let camera = Camera::new(
+        Vector3::new(0.0, 2.0, 9.0), // eye
+        Vector3::new(0.0, 1.0, 0.0), // target
+        Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
+        10.0, // fov
+
+        LensShape::Circle, // lens shape
+        0.2, // * 0.0,// aperture
+        8.8// focus_distance
+    );
+
+    let radius = 0.4;
+
+    let mut scene = Scene {
+        elements: vec![
+            // 球体
+            Box::new(Sphere {
+                center: Vector3::new(-2.0, radius, 0.0),
+                radius: radius,
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::white(),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            }),
+            Box::new(Sphere {
+                center: Vector3::new(-1.0, radius, 0.0),
+                radius: radius,
+                material: Material {
+                    surface: SurfaceType::GGX { metalness: 1.0 },
+                    albedo: Texture::white(),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            }),
+            Box::new(Sphere {
+                center: Vector3::new(0.0, radius, 0.0),
+                radius: radius,
+                material: Material {
+                    surface: SurfaceType::Specular,
+                    albedo: Texture::white(),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            }),
+            Box::new(Sphere {
+                center: Vector3::new(1.0, radius, 0.0),
+                radius: radius,
+                material: Material {
+                    surface: SurfaceType::Refraction { refractive_index: 1.5 },
+                    albedo: Texture::white(),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            }),
+            Box::new(Sphere {
+                center: Vector3::new(2.0, radius, 0.0),
+                radius: radius,
+                material: Material {
+                    surface: SurfaceType::GGXRefraction { refractive_index: 1.5 },
+                    albedo: Texture::white(),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            }),
+
+            // 光源
+            Box::new(Sphere {
+                center: Vector3::new(0.0, 2.0 + radius, -2.0),
+                radius: radius,
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::black(),
+                    emission: Texture::from_color(Color::from_one(20.0)),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            }),
+
+            // 床
+            Box::new(Cuboid {
+                aabb: Aabb {
+                    min: Vector3::new(-5.0, -1.0, -5.0),
+                    max: Vector3::new(5.0, 0.0, 5.0),
+                },
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    //albedo:  Texture::white(),
+                    //albedo: Texture::from_path("textures/2d/stone03.jpg"),
+                    albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
+                    //albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_c_diffuse.tiff"),
+                    emission: Texture::black(),
+                    //roughness: Texture::white(),
+                    roughness: Texture::from_path("textures/2d/checkered_diagonal_10_0.1_0.6_512.png"),
+                    //roughness: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png"),
+                }
+            }),
+        ],
+        skybox: Skybox::new(
+            "textures/cube/LancellottiChapel/posx.jpg",
+            "textures/cube/LancellottiChapel/negx.jpg",
+            "textures/cube/LancellottiChapel/posy.jpg",
+            "textures/cube/LancellottiChapel/negy.jpg",
+            "textures/cube/LancellottiChapel/posz.jpg",
+            "textures/cube/LancellottiChapel/negz.jpg",
+        ),
+    };
+
+    (camera, scene)
+}
+
+fn init_scene_rtcamp5() -> (Camera, Scene) {
     let seed: &[_] = &[870, 2000, 304, 2];
     let mut rng: StdRng = SeedableRng::from_seed(seed);
 
@@ -306,18 +418,21 @@ fn main() {
 
     let total_begin = time::now();
     {
-        //let (width, height, sampling) = (800, 600, 75);// SVGA 480,000 pixel
-        let (width, height, sampling) = (1280, 960, 67);// QVGA 1,228,800 pixel
-        //let (width, height, sampling) = (1920, 1080, 3);// FHD 2,073,600 pixel
+        //let (width, height, sampling) = (800, 600, 5);// SVGA 480,000 pixel
+        //let (width, height, sampling) = (800, 600, 50);// SVGA 480,000 pixel
+        //let (width, height, sampling) = (1280, 960, 67);// QVGA 1,228,800 pixel
+        let (width, height, sampling) = (1920, 1080, 1000);// FHD 2,073,600 pixel
+        //let (width, height, sampling) = (1280, 720, 1000);// HD 921,600 pixel
 
-        let mut renderer = DebugRenderer { mode: DebugRenderMode::Color };
+        let mut renderer = DebugRenderer { mode: DebugRenderMode::DepthFromFocus };
         let mut renderer = PathTracingRenderer::new(sampling);
 
         tee(&mut f, &format!("resolution: {}x{}.", width, height));
         tee(&mut f, &format!("sampling: {}x{} spp.", sampling, config::SUPERSAMPLING * config::SUPERSAMPLING));
 
         let init_scene_begin = time::now();
-        let (camera, scene) = init_scene();
+        //let (camera, scene) = init_scene_rtcamp5();
+        let (camera, scene) = init_scene_material_examples();
         let init_scene_end = time::now();
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
         tee(&mut f, &format!("init scene: {} sec.", init_scene_sec));
