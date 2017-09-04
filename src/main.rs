@@ -43,9 +43,7 @@ fn tee(f: &mut BufWriter<File>, message: &String) {
 }
 
 fn init_scene() -> (Camera, Scene) {
-    // good: 12, 19
-    // seek to: 33
-    let seed: &[_] = &[870, 2000, 304, 5];
+    let seed: &[_] = &[870, 2000, 304, 2];
     let mut rng: StdRng = SeedableRng::from_seed(seed);
 
     let camera = Camera::new(
@@ -151,7 +149,7 @@ fn init_scene() -> (Camera, Scene) {
                     roughness: Texture::from_color(Color::from_one(0.05)),
                 },
             }),
-            /*Box::new(Sphere {
+            Box::new(Sphere {
                 center: Vector3::new(-0.9865234498515534, 0.3386858117447873, 2.9809338871934585),
                 radius: 0.3386858117447873,
                 material: Material {
@@ -160,7 +158,7 @@ fn init_scene() -> (Camera, Scene) {
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.02)),
                 },
-            }),*/
+            }),
             Box::new(Sphere {
                 center: Vector3::new(0.6946459502665004, 0.2764689077971783, 2.7455446851003025),
                 radius: 0.2764689077971783,
@@ -248,7 +246,7 @@ fn init_scene() -> (Camera, Scene) {
     while count < 12 {
         let px = rng.gen_range(-4.5, 4.5);
         let py = 0.0;
-        let pz = rng.gen_range(-3.0, 4.5);
+        let pz = rng.gen_range(-2.5, 4.5);
         let s = rng.gen_range(0.7, 1.1);
         let ry = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
 
@@ -271,7 +269,7 @@ fn init_scene() -> (Camera, Scene) {
     while count < 30 {
         let px = rng.gen_range(-4.5, 4.5);
         let py = rng.gen_range(0.0, 4.0);
-        let pz = rng.gen_range(-4.5, 4.5);
+        let pz = rng.gen_range(-4.5, 3.5);
         let s = rng.gen_range(0.6, 1.1);
         let ry = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
         let rx = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
@@ -308,8 +306,8 @@ fn main() {
 
     let total_begin = time::now();
     {
-        let (width, height, sampling) = (800, 600, 75);// SVGA 480,000 pixel
-        //let (width, height, sampling) = (1280, 960, 75);// QVGA 1,228,800 pixel
+        //let (width, height, sampling) = (800, 600, 75);// SVGA 480,000 pixel
+        let (width, height, sampling) = (1280, 960, 67);// QVGA 1,228,800 pixel
         //let (width, height, sampling) = (1920, 1080, 3);// FHD 2,073,600 pixel
 
         let mut renderer = DebugRenderer { mode: DebugRenderMode::Color };
