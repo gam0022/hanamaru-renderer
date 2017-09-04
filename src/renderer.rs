@@ -21,58 +21,67 @@ use color::{Color, color_to_rgb, linear_to_gamma};
 use math::{saturate, mix};
 
 pub trait Renderer: Sync {
-    fn render_single_thread(&mut self, scene: &SceneTrait, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
-        let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
-        for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
-            let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
-            let liner = self.supersampling(scene, camera, &frag_coord, &resolution);
-            let gamma = linear_to_gamma(liner);
-            *pixel = color_to_rgb(gamma);
-        }
-    }
+    fn max_sampling(&self) -> u32;
+
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2, sampling: u32) -> Color;
 
     fn render(&mut self, scene: &SceneTrait, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
-        for y in 0..imgbuf.height() {
-            let input: Vec<u32> = (0..imgbuf.width()).collect();
-            let mut output = vec![];
+        let num_of_pixel = imgbuf.width() * imgbuf.height();
+        let mut accumulation_buf = vec![Vector3::zero(); num_of_pixel as usize];
+
+        for sampling in 0..self.max_sampling() {
+            let input: Vec<u32> = (0..num_of_pixel).collect();
+            let mut output: Vec<Vector3> = Vec::with_capacity(num_of_pixel as usize);
             input.par_iter()
-                .map(|&x| {
+                .map(|&p| {
+                    let x = p % imgbuf.width();
+                    let y = p / imgbuf.width();
                     let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
-                    let liner = self.supersampling(scene, camera, &frag_coord, &resolution);
-                    let gamma = linear_to_gamma(liner);
-                    color_to_rgb(gamma)
+                    self.supersampling(scene, camera, &frag_coord, &resolution, sampling)
                 }).collect_into(&mut output);
-            for (x, pixel) in output.iter().enumerate() {
-                imgbuf.put_pixel(x as u32, y, *pixel);
+
+            for (p, acc) in output.iter().enumerate() {
+                accumulation_buf[p] += *acc;
             }
 
-            self.report_progress(y, resolution.y, imgbuf);
+            self.report_progress(&mut accumulation_buf, sampling, imgbuf);
         }
     }
 
-    fn report_progress(&mut self, y: u32, height: f64, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>);
-
-    fn save_progress_image(path: &str, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>) {
-        let ref mut fout = File::create(&Path::new(path)).unwrap();
-        let _ = image::ImageRgb8(imgbuf.clone()).save(fout, image::PNG);
-    }
-
-    fn supersampling(&self, scene: &SceneTrait, camera: &Camera, frag_coord: &Vector2, resolution: &Vector2) -> Color {
+    fn supersampling(&self, scene: &SceneTrait, camera: &Camera, frag_coord: &Vector2, resolution: &Vector2, sampling: u32) -> Color {
         let mut accumulation = Color::zero();
 
         for sy in 0..config::SUPERSAMPLING {
             for sx in 0..config::SUPERSAMPLING {
                 let offset = Vector2::new(sx as f64, sy as f64) / config::SUPERSAMPLING as f64 - 0.5;
                 let normalized_coord = ((*frag_coord + offset) * 2.0 - *resolution) / resolution.x.min(resolution.y);
-                accumulation += self.calc_pixel(scene, camera, &normalized_coord);
+                accumulation += self.calc_pixel(scene, camera, &normalized_coord, sampling);
             }
         }
 
-        accumulation / (config::SUPERSAMPLING * config::SUPERSAMPLING) as f64
+        accumulation
     }
 
-    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color;
+    fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>);
+
+    fn update_imgbuf(accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+        let num_of_pixel= imgbuf.width() * imgbuf.height();
+        for p in 0..num_of_pixel {
+            let x = p % imgbuf.width();
+            let y = p / imgbuf.width();
+            let liner = accumulation_buf[p as usize] / (sampling * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64;
+            let gamma = linear_to_gamma(liner);
+            let rgb = color_to_rgb(gamma);
+            imgbuf.put_pixel(x, y, rgb);
+        }
+    }
+
+    fn save_progress_image(path: &str, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+        Self::update_imgbuf(accumulation_buf, sampling, imgbuf);
+        let ref mut fout = File::create(&Path::new(path)).unwrap();
+        let _ = image::ImageRgb8(imgbuf.clone()).save(fout, image::PNG);
+    }
 }
 
 pub enum DebugRenderMode {
@@ -87,7 +96,9 @@ pub struct DebugRenderer {
 }
 
 impl Renderer for DebugRenderer {
-    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
+    fn max_sampling(&self) -> u32 { 1 }
+
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2, sampling: u32) -> Color {
         let ray = camera.ray(&normalized_coord);
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
         let (hit, intersection) = scene.intersect(&ray);
@@ -113,7 +124,7 @@ impl Renderer for DebugRenderer {
     }
 
     #[allow(unused_variables)]
-    fn report_progress(&mut self, y: u32, height: f64, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>) {
+    fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         // Nop
     }
 }
@@ -128,93 +139,88 @@ pub struct PathTracingRenderer {
 }
 
 impl Renderer for PathTracingRenderer {
-    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2) -> Color {
-        let mut all_accumulation = Vector3::zero();
+    fn max_sampling(&self) -> u32 { self.sampling }
 
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2, sampling: u32) -> Color {
         // random generator
         let s = ((4.0 + normalized_coord.x) * 100870.0) as usize;
         let t = ((4.0 + normalized_coord.y) * 100304.0) as usize;
-        let seed: &[_] = &[870, 304, s, t];
+        let seed: &[_] = &[8700304, sampling as usize, s, t];
         let mut rng: StdRng = SeedableRng::from_seed(seed);// self::rand::thread_rng();
+        let mut ray = camera.ray_with_dof(&normalized_coord, &mut rng);
 
-        for _ in 1..self.sampling {
-            let mut ray = camera.ray_with_dof(&normalized_coord, &mut rng);
-            let mut accumulation = Color::zero();
-            let mut reflection = Color::one();
+        let mut accumulation = Color::zero();
+        let mut reflection = Color::one();
 
-            for _ in 1..config::PATHTRACING_BOUNCE_LIMIT {
-                let random = rng.gen::<(f64, f64)>();
-                let (hit, mut intersection) = scene.intersect(&ray);
+        for _ in 1..config::PATHTRACING_BOUNCE_LIMIT {
+            let random = rng.gen::<(f64, f64)>();
+            let (hit, mut intersection) = scene.intersect(&ray);
 
-                if hit {
-                    match intersection.material.surface {
-                        SurfaceType::Diffuse => {
-                            ray.origin = intersection.position + intersection.normal * config::OFFSET;
-                            ray.direction = bsdf::importance_sample_diffuse(random, &intersection.normal);
+            if hit {
+                match intersection.material.surface {
+                    SurfaceType::Diffuse => {
+                        ray.origin = intersection.position + intersection.normal * config::OFFSET;
+                        ray.direction = bsdf::importance_sample_diffuse(random, &intersection.normal);
+                    }
+                    SurfaceType::Specular => {
+                        ray.origin = intersection.position + intersection.normal * config::OFFSET;
+                        ray.direction = ray.direction.reflect(&intersection.normal);
+                    }
+                    SurfaceType::Refraction { refractive_index } => {
+                        bsdf::sample_refraction(random, &intersection.normal.clone(), refractive_index, &mut intersection, &mut ray);
+                    }
+                    SurfaceType::GGX { metalness } => {
+                        let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
+                        let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
+                        let next_direction = ray.direction.reflect(&half);
+
+                        // 半球外が選ばれた場合はBRDFを0にする
+                        // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
+                        if intersection.normal.dot(&next_direction).is_sign_negative() {
+                            break;
+                        } else {
+                            let view = -ray.direction;
+                            let v_dot_n = saturate(view.dot(&intersection.normal));
+                            let l_dot_n = saturate(next_direction.dot(&intersection.normal));
+                            let v_dot_h = saturate(view.dot(&half));
+                            let h_dot_n = saturate(half.dot(&intersection.normal));
+
+                            let g = bsdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
+                            // albedoをフレネル反射率のパラメータのF0として扱う
+                            let f = bsdf::f_schlick(v_dot_h, &intersection.material.albedo);
+                            let weight = f * saturate(g * v_dot_h / (h_dot_n * v_dot_n));
+                            let final_weight = mix(&Color::one(), &weight, metalness);
+                            intersection.material.albedo *= final_weight;
                         }
-                        SurfaceType::Specular => {
-                            ray.origin = intersection.position + intersection.normal * config::OFFSET;
-                            ray.direction = ray.direction.reflect(&intersection.normal);
-                        }
-                        SurfaceType::Refraction { refractive_index } => {
-                            bsdf::sample_refraction(random, &intersection.normal.clone(), refractive_index, &mut intersection, &mut ray);
-                        }
-                        SurfaceType::GGX { metalness } => {
-                            let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
-                            let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
-                            let next_direction = ray.direction.reflect(&half);
 
-                            // 半球外が選ばれた場合はBRDFを0にする
-                            // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
-                            if intersection.normal.dot(&next_direction).is_sign_negative() {
-                                break;
-                            } else {
-                                let view = -ray.direction;
-                                let v_dot_n = saturate(view.dot(&intersection.normal));
-                                let l_dot_n = saturate(next_direction.dot(&intersection.normal));
-                                let v_dot_h = saturate(view.dot(&half));
-                                let h_dot_n = saturate(half.dot(&intersection.normal));
-
-                                let g = bsdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
-                                // albedoをフレネル反射率のパラメータのF0として扱う
-                                let f = bsdf::f_schlick(v_dot_h, &intersection.material.albedo);
-                                let weight = f * saturate(g * v_dot_h / (h_dot_n * v_dot_n));
-                                let final_weight = mix(&Color::one(), &weight, metalness);
-                                intersection.material.albedo *= final_weight;
-                            }
-
-                            ray.origin = intersection.position + intersection.normal * config::OFFSET;
-                            ray.direction = next_direction;
-                        }
-                        SurfaceType::GGXRefraction { refractive_index } => {
-                            let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
-                            let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
-                            bsdf::sample_refraction(random, &half, refractive_index, &mut intersection, &mut ray);
-                        }
+                        ray.origin = intersection.position + intersection.normal * config::OFFSET;
+                        ray.direction = next_direction;
+                    }
+                    SurfaceType::GGXRefraction { refractive_index } => {
+                        let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
+                        let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
+                        bsdf::sample_refraction(random, &half, refractive_index, &mut intersection, &mut ray);
                     }
                 }
-
-                accumulation += reflection * intersection.material.emission;
-                reflection *= intersection.material.albedo;
-
-                if !hit { break; }
             }
-            all_accumulation += accumulation;
-        }
 
-        all_accumulation / self.sampling as f64
+            accumulation += reflection * intersection.material.emission;
+            reflection *= intersection.material.albedo;
+
+            if !hit { break; }
+        }
+        accumulation
     }
 
-    fn report_progress(&mut self, y: u32, height: f64, imgbuf: &ImageBuffer<Rgb<u8>, Vec<u8>>) {
-        let progress = (y as f64 + 1.0) / height * 100.0;
+    fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+        let progress = (sampling + 1) as f64 / self.max_sampling() as f64 * 100.0;
 
         let now = time::now();
         let used = (now - self.begin).num_milliseconds() as f64 * 0.001;
         let used_percent = used / config::TIME_LIMIT_SEC as f64 * 100.0;
-        let progress_per_used = progress / used_percent;
 
-        println!("rendering: {:.2} % {:.3} sec. used: {:.2} % (x {:.2}).",
-                 progress, used, used_percent, progress_per_used);
+        println!("rendering: {} sampling. {:.2} % used: {:.3} sec ({:.2} %).",
+                 sampling + 1, progress, used, used_percent);
 
         // on interval time passed
         let interval_time = (now - self.last_report_image).num_milliseconds() as f64 * 0.001;
@@ -222,7 +228,7 @@ impl Renderer for PathTracingRenderer {
             // save progress image
             let path = format!("progress_{:>03}.png", self.report_image_counter);
             println!("output progress image: {}", path);
-            PathTracingRenderer::save_progress_image(&path, imgbuf);
+            Self::save_progress_image(&path, accumulation_buf, sampling, imgbuf);
             self.report_image_counter += 1;
             self.last_report_image = now;
         }
@@ -232,16 +238,16 @@ impl Renderer for PathTracingRenderer {
             // die when time limit exceeded
             let path = "result_tle.png";
             println!("time limit exceeded: {:.3} sec. {}", used, path);
-            PathTracingRenderer::save_progress_image(path, imgbuf);
+            Self::save_progress_image(&path, accumulation_buf, sampling, imgbuf);
             process::exit(1);
         }
 
         // on finish
-        if y + 1 == height as u32 {
+        if sampling + 1 >= self.max_sampling() {
             let path = format!("progress_{:>03}.png", self.report_image_counter);
             println!("output finish image: {}", path);
             println!("finish!: remain {:.3} sec.", config::TIME_LIMIT_SEC - used);
-            PathTracingRenderer::save_progress_image(&path, imgbuf);
+            Self::save_progress_image(&path, accumulation_buf, sampling, imgbuf);
         }
     }
 }
