@@ -1,4 +1,4 @@
 resolution: 1280x960.
 sampling: 67x4 spp.
-init scene: 0.325 sec.
-total 1155.497 sec. used 98.43 % (x 1.02)
+init scene: 0.326 sec.
+total 1147.219 sec. used 97.73 % (x 1.02)
