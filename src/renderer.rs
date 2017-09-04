@@ -28,20 +28,21 @@ pub trait Renderer: Sync {
     fn render(&mut self, scene: &SceneTrait, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         let num_of_pixel = imgbuf.width() * imgbuf.height();
+
         let mut accumulation_buf = vec![Vector3::zero(); num_of_pixel as usize];
+        let par_input: Vec<u32> = (0..num_of_pixel).collect();
+        let mut par_output: Vec<Vector3> = Vec::with_capacity(num_of_pixel as usize);
 
         for sampling in 0..self.max_sampling() {
-            let input: Vec<u32> = (0..num_of_pixel).collect();
-            let mut output: Vec<Vector3> = Vec::with_capacity(num_of_pixel as usize);
-            input.par_iter()
+            par_input.par_iter()
                 .map(|&p| {
                     let x = p % imgbuf.width();
                     let y = p / imgbuf.width();
                     let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
                     self.supersampling(scene, camera, &frag_coord, &resolution, sampling)
-                }).collect_into(&mut output);
+                }).collect_into(&mut par_output);
 
-            for (p, acc) in output.iter().enumerate() {
+            for (p, acc) in par_output.iter().enumerate() {
                 accumulation_buf[p] += *acc;
             }
 
