@@ -1,4 +1,4 @@
-resolution: 1920x1080.
-sampling: 1000x4 spp.
-init scene: 0.181 sec.
-total 1560.803 sec. used 1.33 % (x 75.21)
+resolution: 1280x960.
+sampling: 10x4 spp.
+init scene: 0.319 sec.
+total 161.05700000000002 sec. used 13.72 % (x 7.29)

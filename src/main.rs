@@ -308,7 +308,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                     max: Vector3::new(5.0, 0.0, 5.0),
                 },
                 material: Material {
-                    surface: SurfaceType::GGX { metalness: 0.0 },
+                    surface: SurfaceType::GGX { metalness: 1.0 },
                     //albedo:  Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     //albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
@@ -420,8 +420,9 @@ fn main() {
     {
         //let (width, height, sampling) = (800, 600, 5);// SVGA 480,000 pixel
         //let (width, height, sampling) = (800, 600, 50);// SVGA 480,000 pixel
-        //let (width, height, sampling) = (1280, 960, 67);// QVGA 1,228,800 pixel
-        let (width, height, sampling) = (1920, 1080, 1000);// FHD 2,073,600 pixel
+        //let (width, height, sampling) = (1280, 960, 67);// QVGA 1,228,800 pixel for rtcamp5
+        let (width, height, sampling) = (1280, 960, 10);
+        //let (width, height, sampling) = (1920, 1080, 1000);// FHD 2,073,600 pixel
         //let (width, height, sampling) = (1280, 720, 1000);// HD 921,600 pixel
 
         let mut renderer = DebugRenderer { mode: DebugRenderMode::DepthFromFocus };
@@ -431,8 +432,8 @@ fn main() {
         tee(&mut f, &format!("sampling: {}x{} spp.", sampling, config::SUPERSAMPLING * config::SUPERSAMPLING));
 
         let init_scene_begin = time::now();
-        //let (camera, scene) = init_scene_rtcamp5();
-        let (camera, scene) = init_scene_material_examples();
+        let (camera, scene) = init_scene_rtcamp5();
+        //let (camera, scene) = init_scene_material_examples();
         let init_scene_end = time::now();
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
         tee(&mut f, &format!("init scene: {} sec.", init_scene_sec));
