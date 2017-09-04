@@ -30,3 +30,7 @@ pub fn det(a: &Vector3, b: &Vector3, c: &Vector3) -> f64 {
         - (a.y * b.x * c.z)
         - (a.z * b.y * c.x)
 }
+
+pub fn mix(x: &Vector3, y: &Vector3, a: f64) -> Vector3 {
+    *x * (1.0 - a) + *y * a
+}

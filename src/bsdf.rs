@@ -42,7 +42,9 @@ pub fn importance_sample_diffuse(random: (f64, f64), normal: &Vector3) -> Vector
 }
 
 pub fn roughness_to_alpha2(roughness: f64) -> f64 {
-    let alpha = roughness * roughness;
+    // UE4の結果に近づけたいなら、alpha = roughness にする
+    // alpha = roughness * roughness の実装をよく見かける
+    let alpha = roughness;
     alpha * alpha
 }
 
