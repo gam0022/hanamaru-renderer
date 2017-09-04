@@ -68,10 +68,11 @@ pub trait Renderer: Sync {
 
     fn update_imgbuf(accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let num_of_pixel= imgbuf.width() * imgbuf.height();
+        let scale = ((sampling * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64).recip();
         for p in 0..num_of_pixel {
             let x = p % imgbuf.width();
             let y = p / imgbuf.width();
-            let liner = accumulation_buf[p as usize] / (sampling * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64;
+            let liner = accumulation_buf[p as usize] * scale;
             let gamma = linear_to_gamma(liner);
             let rgb = color_to_rgb(gamma);
             imgbuf.put_pixel(x, y, rgb);
