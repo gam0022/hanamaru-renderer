@@ -56,7 +56,7 @@ fn init_scene_material_examples() -> (Camera, Scene) {
 
     let radius = 0.4;
 
-    let mut scene = Scene {
+    let scene = Scene {
         elements: vec![
             // 球体
             Box::new(Sphere {
@@ -421,7 +421,7 @@ fn main() {
         //let (width, height, sampling) = (800, 600, 5);// SVGA 480,000 pixel
         //let (width, height, sampling) = (800, 600, 50);// SVGA 480,000 pixel
         //let (width, height, sampling) = (1280, 960, 67);// QVGA 1,228,800 pixel for rtcamp5
-        let (width, height, sampling) = (1280, 960, 9);
+        let (width, height, sampling) = (1280, 960, 900);
         //let (width, height, sampling) = (1920, 1080, 1000);// FHD 2,073,600 pixel
         //let (width, height, sampling) = (1280, 720, 1000);// HD 921,600 pixel
 
@@ -429,7 +429,7 @@ fn main() {
         let mut renderer = PathTracingRenderer::new(sampling);
 
         tee(&mut f, &format!("resolution: {}x{}.", width, height));
-        tee(&mut f, &format!("sampling: {}x{} spp.", sampling, config::SUPERSAMPLING * config::SUPERSAMPLING));
+        tee(&mut f, &format!("max sampling: {}x{} spp.", sampling, config::SUPERSAMPLING * config::SUPERSAMPLING));
 
         let init_scene_begin = time::now();
         let (camera, scene) = init_scene_rtcamp5();

@@ -47,7 +47,7 @@ pub trait Renderer: Sync {
                 accumulation_buf[p] += *acc;
             }
 
-            self.report_progress(&mut accumulation_buf, sampling, imgbuf);
+            if self.report_progress(&mut accumulation_buf, sampling, imgbuf) { break; }
         }
     }
 
@@ -65,7 +65,7 @@ pub trait Renderer: Sync {
         accumulation
     }
 
-    fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>);
+    fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> bool;
 
     fn update_imgbuf(accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let num_of_pixel = imgbuf.width() * imgbuf.height();
@@ -126,9 +126,10 @@ impl Renderer for DebugRenderer {
         }
     }
 
-    fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+    fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> bool {
         // on finish
         Self::update_imgbuf(accumulation_buf, sampling, imgbuf);
+        true
     }
 }
 
@@ -217,34 +218,27 @@ impl Renderer for PathTracingRenderer {
         accumulation
     }
 
-    fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+    fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> bool {
         let now = time::now();
         let used = (now - self.begin).num_milliseconds() as f64 * 0.001;
         let used_percent = used / config::TIME_LIMIT_SEC as f64 * 100.0;
+        let from_last_sampling_sec = (now - self.last_report_progress).num_milliseconds() as f64 * 0.001;
 
-        println!("rendering: {}x{} sampled. used: {:.3} sec ({:.2} %).",
-                 sampling, config::SUPERSAMPLING * config::SUPERSAMPLING, used, used_percent);
-
-        // on interval time passed
-        let interval_time = (now - self.last_report_image).num_milliseconds() as f64 * 0.001;
-        if interval_time >= config::REPORT_INTERVAL_SEC {
-            // save progress image
-            let path = format!("progress_{:>03}.png", self.report_image_counter);
-            println!("output progress image: {}", path);
-            Self::save_progress_image(&path, accumulation_buf, sampling, imgbuf);
-            self.report_image_counter += 1;
-            self.last_report_image = now;
-        }
+        println!("rendering: {}x{} sampled (last {:.3} sec). total: {:.3} sec ({:.2} %).",
+                 sampling, config::SUPERSAMPLING * config::SUPERSAMPLING,
+                 from_last_sampling_sec,
+                 used, used_percent);
 
         // reached time limit
-        let offset = (now - self.last_report_progress).num_milliseconds() as f64 * 0.0011;// 時間超過を防ぐために1.1倍の余裕をもたせる
+        // 前フレームの所要時間から次のフレームが制限時間内に終るかを予測する。時間超過を防ぐために1.1倍に見積もる
+        let offset = from_last_sampling_sec * 1.1;
         if used + offset > config::TIME_LIMIT_SEC {
             let path = format!("progress_{:>03}.png", self.report_image_counter);
             println!("reached time limit");
             println!("output final image: {}", path);
             println!("remain: {:.3} sec.", config::TIME_LIMIT_SEC - used);
             Self::save_progress_image(&path, accumulation_buf, sampling, imgbuf);
-            process::exit(0);
+            return true;
         }
 
         // reached max sampling
@@ -254,9 +248,22 @@ impl Renderer for PathTracingRenderer {
             println!("output final image: {}", path);
             println!("remain: {:.3} sec.", config::TIME_LIMIT_SEC - used);
             Self::save_progress_image(&path, accumulation_buf, sampling, imgbuf);
+            return true;
+        }
+
+        // on interval time passed
+        let from_last_report_image_sec = (now - self.last_report_image).num_milliseconds() as f64 * 0.001;
+        if from_last_report_image_sec >= config::REPORT_INTERVAL_SEC {
+            // save progress image
+            let path = format!("progress_{:>03}.png", self.report_image_counter);
+            println!("output progress image: {}", path);
+            Self::save_progress_image(&path, accumulation_buf, sampling, imgbuf);
+            self.report_image_counter += 1;
+            self.last_report_image = now;
         }
 
         self.last_report_progress = now;
+        false
     }
 }
 
