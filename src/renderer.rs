@@ -31,9 +31,9 @@ pub trait Renderer: Sync {
 
         // NOTICE: sampling is 1 origin
         for sampling in 1..(self.max_sampling() + 1) {
-            accumulation_buf.par_iter_mut().enumerate().for_each(|(n, pixel)| {
-                let x = n as u32 % imgbuf.width();
-                let y = n as u32 / imgbuf.width();
+            accumulation_buf.par_iter_mut().enumerate().for_each(|(i, pixel)| {
+                let y = i as u32 / imgbuf.width();
+                let x = i as u32 - y * imgbuf.width();
                 let frag_coord = Vector2::new(x as f64, (imgbuf.height() - y) as f64);
                 *pixel += self.supersampling(scene, camera, &frag_coord, &resolution, sampling);
             });
@@ -65,10 +65,10 @@ pub trait Renderer: Sync {
     fn update_imgbuf(accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let num_of_pixel = imgbuf.width() * imgbuf.height();
         let scale = ((sampling * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64).recip();
-        for p in 0..num_of_pixel {
-            let x = p % imgbuf.width();
-            let y = p / imgbuf.width();
-            let liner = accumulation_buf[p as usize] * scale;
+        for i in 0..num_of_pixel {
+            let y = i / imgbuf.width();
+            let x = i - y * imgbuf.width();
+            let liner = accumulation_buf[i as usize] * scale;
             let gamma = linear_to_gamma(liner);
             let rgb = color_to_rgb(gamma);
             imgbuf.put_pixel(x, y, rgb);
