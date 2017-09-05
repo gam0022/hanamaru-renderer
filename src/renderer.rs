@@ -63,12 +63,11 @@ pub trait Renderer: Sync {
     fn report_progress(&mut self, accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> bool;
 
     fn update_imgbuf(accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
-        let num_of_pixel = imgbuf.width() * imgbuf.height();
         let scale = ((sampling * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64).recip();
-        for i in 0..num_of_pixel {
-            let y = i / imgbuf.width();
-            let x = i - y * imgbuf.width();
-            let liner = accumulation_buf[i as usize] * scale;
+        for (i, pixel) in accumulation_buf.iter().enumerate() {
+            let y = i as u32 / imgbuf.width();
+            let x = i as u32 - y * imgbuf.width();
+            let liner = *pixel * scale;
             let gamma = linear_to_gamma(liner);
             let rgb = color_to_rgb(gamma);
             imgbuf.put_pixel(x, y, rgb);
