@@ -403,11 +403,12 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
     (camera, scene)
 }
 
-fn render<R: Renderer>(renderer: &mut R, width: u32, height: u32, camera: &Camera, scene: Scene) {
+fn render<R: Renderer>(renderer: &mut R, width: u32, height: u32, camera: &Camera, scene: Scene) -> u32 {
     let mut imgbuf = image::ImageBuffer::new(width, height);
-    renderer.render(&BvhScene::from_scene(scene), camera, &mut imgbuf);
+    let sampled = renderer.render(&BvhScene::from_scene(scene), camera, &mut imgbuf);
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
     let _ = image::ImageRgb8(imgbuf).save(fout, image::PNG);
+    sampled
 }
 
 fn main() {
@@ -421,7 +422,7 @@ fn main() {
         //let (width, height, sampling) = (800, 600, 5);// SVGA 480,000 pixel
         //let (width, height, sampling) = (800, 600, 50);// SVGA 480,000 pixel
         //let (width, height, sampling) = (1280, 960, 67);// QVGA 1,228,800 pixel for rtcamp5
-        let (width, height, sampling) = (1280, 960, 900);
+        let (width, height, sampling) = (1280, 960, 9);
         //let (width, height, sampling) = (1920, 1080, 1000);// FHD 2,073,600 pixel
         //let (width, height, sampling) = (1280, 720, 1000);// HD 921,600 pixel
 
@@ -438,7 +439,8 @@ fn main() {
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
         tee(&mut f, &format!("init scene: {} sec.", init_scene_sec));
 
-        render(&mut renderer, width, height, &camera, scene);
+        let sampled = render(&mut renderer, width, height, &camera, scene);
+        tee(&mut f, &format!("sampled: {}x{} spp.", sampled, config::SUPERSAMPLING * config::SUPERSAMPLING));
     }
     let total_end = time::now();
 

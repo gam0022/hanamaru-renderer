@@ -25,7 +25,7 @@ pub trait Renderer: Sync {
 
     fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2, sampling: u32) -> Color;
 
-    fn render(&mut self, scene: &SceneTrait, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+    fn render(&mut self, scene: &SceneTrait, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> u32 {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         let num_of_pixel = imgbuf.width() * imgbuf.height();
 
@@ -47,8 +47,12 @@ pub trait Renderer: Sync {
                 accumulation_buf[p] += *acc;
             }
 
-            if self.report_progress(&mut accumulation_buf, sampling, imgbuf) { break; }
+            if self.report_progress(&mut accumulation_buf, sampling, imgbuf) {
+                return sampling;
+            }
         }
+
+        self.max_sampling()
     }
 
     fn supersampling(&self, scene: &SceneTrait, camera: &Camera, frag_coord: &Vector2, resolution: &Vector2, sampling: u32) -> Color {
