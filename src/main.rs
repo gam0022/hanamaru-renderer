@@ -2,6 +2,7 @@ extern crate num;
 extern crate image;
 extern crate time;
 extern crate rand;
+extern crate rayon;
 
 use image::GenericImage;
 use std::fs::File;
@@ -10,6 +11,7 @@ use std::fs;
 use std::io::{BufWriter, Write};
 use num::Float;
 use self::rand::{Rng, SeedableRng, StdRng};
+use rayon::current_num_threads;
 
 mod config;
 mod vector;
@@ -429,6 +431,7 @@ fn main() {
         let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
         let mut renderer = PathTracingRenderer::new(sampling);
 
+        tee(&mut f, &format!("num threads: {}.", current_num_threads()));
         tee(&mut f, &format!("resolution: {}x{}.", width, height));
         tee(&mut f, &format!("max sampling: {}x{} spp.", sampling, config::SUPERSAMPLING * config::SUPERSAMPLING));
 
