@@ -5,7 +5,6 @@ extern crate time;
 
 use std::fs::File;
 use std::path::Path;
-use std::process;
 use time::Tm;
 use image::{ImageBuffer, Rgb};
 use self::rand::{Rng, SeedableRng, StdRng};
@@ -39,7 +38,7 @@ pub trait Renderer: Sync {
                 *pixel += self.supersampling(scene, camera, &frag_coord, &resolution, sampling);
             });
 
-            if self.report_progress(&mut accumulation_buf, sampling, imgbuf) {
+            if self.report_progress(&accumulation_buf, sampling, imgbuf) {
                 return sampling;
             }
         }
@@ -61,9 +60,9 @@ pub trait Renderer: Sync {
         accumulation
     }
 
-    fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> bool;
+    fn report_progress(&mut self, accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> bool;
 
-    fn update_imgbuf(accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+    fn update_imgbuf(accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let num_of_pixel = imgbuf.width() * imgbuf.height();
         let scale = ((sampling * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64).recip();
         for p in 0..num_of_pixel {
@@ -76,7 +75,7 @@ pub trait Renderer: Sync {
         }
     }
 
-    fn save_progress_image(path: &str, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+    fn save_progress_image(path: &str, accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         Self::update_imgbuf(accumulation_buf, sampling, imgbuf);
         let ref mut fout = File::create(&Path::new(path)).unwrap();
         let _ = image::ImageRgb8(imgbuf.clone()).save(fout, image::PNG);
@@ -122,7 +121,7 @@ impl Renderer for DebugRenderer {
         }
     }
 
-    fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> bool {
+    fn report_progress(&mut self, accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> bool {
         // on finish
         Self::update_imgbuf(accumulation_buf, sampling, imgbuf);
         true
@@ -214,7 +213,7 @@ impl Renderer for PathTracingRenderer {
         accumulation
     }
 
-    fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> bool {
+    fn report_progress(&mut self, accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> bool {
         let now = time::now();
         let used = (now - self.begin).num_milliseconds() as f64 * 0.001;
         let used_percent = used / config::TIME_LIMIT_SEC as f64 * 100.0;

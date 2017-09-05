@@ -1,5 +1,5 @@
 resolution: 1280x960.
 max sampling: 9x4 spp.
-init scene: 0.327 sec.
+init scene: 0.331 sec.
 sampled: 9x4 spp.
-total 167.476 sec. used 14.27 % (x 7.01)
+total 166.399 sec. used 14.17 % (x 7.05)
