@@ -87,7 +87,7 @@ pub trait Renderer: Sync {
 }
 
 pub enum DebugRenderMode {
-    Color,
+    AlbedoAndShadow,
     Normal,
     Depth,
     DepthFromFocus,
@@ -106,7 +106,7 @@ impl Renderer for DebugRenderer {
         let (hit, intersection) = scene.intersect(&ray);
         if hit {
             match self.mode {
-                DebugRenderMode::Color => {
+                DebugRenderMode::AlbedoAndShadow => {
                     let shadow_ray = Ray {
                         origin: intersection.position + intersection.normal * config::OFFSET,
                         direction: light_direction,
@@ -125,9 +125,9 @@ impl Renderer for DebugRenderer {
         }
     }
 
-    #[allow(unused_variables)]
     fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
-        // Nop
+        // on finish
+        Self::update_imgbuf(accumulation_buf, sampling, imgbuf);
     }
 }
 
