@@ -30,22 +30,15 @@ pub trait Renderer: Sync {
         let num_of_pixel = imgbuf.width() * imgbuf.height();
 
         let mut accumulation_buf = vec![Vector3::zero(); num_of_pixel as usize];
-        let par_input: Vec<u32> = (0..num_of_pixel).collect();
-        let mut par_output: Vec<Vector3> = Vec::with_capacity(num_of_pixel as usize);
 
         // NOTICE: sampling is 1 origin
         for sampling in 1..(self.max_sampling() + 1) {
-            par_input.par_iter()
-                .map(|&p| {
-                    let x = p % imgbuf.width();
-                    let y = p / imgbuf.width();
-                    let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
-                    self.supersampling(scene, camera, &frag_coord, &resolution, sampling)
-                }).collect_into(&mut par_output);
-
-            for (p, acc) in par_output.iter().enumerate() {
-                accumulation_buf[p] += *acc;
-            }
+            accumulation_buf.par_iter_mut().enumerate().for_each(|(n, pixel)| {
+                let x = n as u32 % imgbuf.width();
+                let y = n as u32 / imgbuf.width();
+                let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
+                *pixel += self.supersampling(scene, camera, &frag_coord, &resolution, sampling);
+            });
 
             if self.report_progress(&mut accumulation_buf, sampling, imgbuf) {
                 return sampling;
