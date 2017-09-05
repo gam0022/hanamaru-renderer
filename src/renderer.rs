@@ -30,21 +30,22 @@ pub trait Renderer: Sync {
         let num_of_pixel = imgbuf.width() * imgbuf.height();
 
         let mut accumulation_buf = vec![Vector3::zero(); num_of_pixel as usize];
-        let par_input: Vec<u32> = (0..imgbuf.width()).collect();
-        let mut par_output: Vec<Vector3> = Vec::with_capacity(imgbuf.width() as usize);
+        let par_input: Vec<u32> = (0..num_of_pixel).collect();
+        let mut par_output: Vec<Vector3> = Vec::with_capacity(num_of_pixel as usize);
 
         for sampling in 0..self.max_sampling() {
-            for y in 0..imgbuf.height() {
-                par_input.par_iter()
-                    .map(|&x| {
-                        let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
-                        self.supersampling(scene, camera, &frag_coord, &resolution, sampling)
-                    }).collect_into(&mut par_output);
+            par_input.par_iter()
+                .map(|&p| {
+                    let x = p % imgbuf.width();
+                    let y = p / imgbuf.width();
+                    let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
+                    self.supersampling(scene, camera, &frag_coord, &resolution, sampling)
+                }).collect_into(&mut par_output);
 
-                for (x, acc) in par_output.iter().enumerate() {
-                    accumulation_buf[(y * imgbuf.width()) as usize + x] += *acc;
-                }
+            for (p, acc) in par_output.iter().enumerate() {
+                accumulation_buf[p] += *acc;
             }
+
             self.report_progress(&mut accumulation_buf, sampling, imgbuf);
         }
     }
@@ -66,7 +67,7 @@ pub trait Renderer: Sync {
     fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>);
 
     fn update_imgbuf(accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
-        let num_of_pixel = imgbuf.width() * imgbuf.height();
+        let num_of_pixel= imgbuf.width() * imgbuf.height();
         let scale = (((sampling + 1) * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64).recip();
         for p in 0..num_of_pixel {
             let x = p % imgbuf.width();
