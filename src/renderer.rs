@@ -33,7 +33,8 @@ pub trait Renderer: Sync {
         let par_input: Vec<u32> = (0..num_of_pixel).collect();
         let mut par_output: Vec<Vector3> = Vec::with_capacity(num_of_pixel as usize);
 
-        for sampling in 0..self.max_sampling() {
+        // NOTICE: sampling is 1 origin
+        for sampling in 1..(self.max_sampling() + 1) {
             par_input.par_iter()
                 .map(|&p| {
                     let x = p % imgbuf.width();
@@ -68,7 +69,7 @@ pub trait Renderer: Sync {
 
     fn update_imgbuf(accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let num_of_pixel = imgbuf.width() * imgbuf.height();
-        let scale = (((sampling + 1) * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64).recip();
+        let scale = ((sampling * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64).recip();
         for p in 0..num_of_pixel {
             let x = p % imgbuf.width();
             let y = p / imgbuf.width();
@@ -211,18 +212,19 @@ impl Renderer for PathTracingRenderer {
 
             if !hit { break; }
         }
+
         accumulation
     }
 
     fn report_progress(&mut self, accumulation_buf: &mut Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
-        let progress = (sampling + 1) as f64 / self.max_sampling() as f64 * 100.0;
+        let progress = sampling as f64 / self.max_sampling() as f64 * 100.0;
 
         let now = time::now();
         let used = (now - self.begin).num_milliseconds() as f64 * 0.001;
         let used_percent = used / config::TIME_LIMIT_SEC as f64 * 100.0;
 
         println!("rendering: {} sampling. {:.2} % used: {:.3} sec ({:.2} %).",
-                 sampling + 1, progress, used, used_percent);
+                 sampling, progress, used, used_percent);
 
         // on interval time passed
         let interval_time = (now - self.last_report_image).num_milliseconds() as f64 * 0.001;
@@ -244,8 +246,8 @@ impl Renderer for PathTracingRenderer {
             process::exit(1);
         }
 
-        // on finish
-        if sampling + 1 >= self.max_sampling() {
+        // reached max sampling
+        if sampling >= self.max_sampling() {
             let path = format!("progress_{:>03}.png", self.report_image_counter);
             println!("output finish image: {}", path);
             println!("finish!: remain {:.3} sec.", config::TIME_LIMIT_SEC - used);
