@@ -28,7 +28,6 @@ pub trait Renderer: Sync {
     fn render(&mut self, scene: &SceneTrait, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> u32 {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         let num_of_pixel = imgbuf.width() * imgbuf.height();
-
         let mut accumulation_buf = vec![Vector3::zero(); num_of_pixel as usize];
 
         // NOTICE: sampling is 1 origin
@@ -36,7 +35,7 @@ pub trait Renderer: Sync {
             accumulation_buf.par_iter_mut().enumerate().for_each(|(n, pixel)| {
                 let x = n as u32 % imgbuf.width();
                 let y = n as u32 / imgbuf.width();
-                let frag_coord = Vector2::new(x as f64, resolution.y - y as f64);
+                let frag_coord = Vector2::new(x as f64, (imgbuf.height() - y) as f64);
                 *pixel += self.supersampling(scene, camera, &frag_coord, &resolution, sampling);
             });
 
