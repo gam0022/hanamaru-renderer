@@ -87,7 +87,7 @@ pub trait Renderer: Sync {
 }
 
 pub enum DebugRenderMode {
-    AlbedoAndShadow,
+    Shading,
     Normal,
     Depth,
     DepthFromFocus,
@@ -106,7 +106,7 @@ impl Renderer for DebugRenderer {
         let (hit, intersection) = scene.intersect(&ray);
         if hit {
             match self.mode {
-                DebugRenderMode::AlbedoAndShadow => {
+                DebugRenderMode::Shading => {
                     let shadow_ray = Ray {
                         origin: intersection.position + intersection.normal * config::OFFSET,
                         direction: light_direction,

@@ -425,7 +425,7 @@ fn main() {
         //let (width, height, sampling) = (1920, 1080, 1000);// FHD 2,073,600 pixel
         //let (width, height, sampling) = (1280, 720, 1000);// HD 921,600 pixel
 
-        let mut renderer = DebugRenderer { mode: DebugRenderMode::AlbedoAndShadow };
+        let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
         let mut renderer = PathTracingRenderer::new(sampling);
 
         tee(&mut f, &format!("resolution: {}x{}.", width, height));
