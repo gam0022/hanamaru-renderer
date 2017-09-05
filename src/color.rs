@@ -23,7 +23,7 @@ pub fn rgba_to_color(color: Rgba<u8>) -> Color {
     )
 }
 
-fn gamma_to_linear_f64(v: f64) -> f64 {
+pub fn gamma_to_linear_f64(v: f64) -> f64 {
     v.powf(config::GAMMA_FACTOR)
 }
 
@@ -35,7 +35,7 @@ pub fn gamma_to_linear(color: Color) -> Color {
     )
 }
 
-fn linear_to_gamma_f64(v: f64) -> f64 {
+pub fn linear_to_gamma_f64(v: f64) -> f64 {
     v.powf(config::GAMMA_FACTOR.recip())
 }
 

@@ -6,7 +6,7 @@ extern crate time;
 use std::fs::File;
 use std::path::Path;
 use time::Tm;
-use image::{ImageBuffer, Rgb};
+use image::{ImageBuffer, Rgb, save_buffer};
 use self::rand::{Rng, SeedableRng, StdRng};
 use self::rayon::prelude::*;
 
@@ -16,7 +16,7 @@ use scene::SceneTrait;
 use camera::{Camera, Ray};
 use material::SurfaceType;
 use bsdf;
-use color::{Color, color_to_rgb, linear_to_gamma};
+use color::{Color, color_to_rgb, linear_to_gamma_f64};
 use math::{saturate, mix};
 
 pub trait Renderer: Sync {
@@ -63,19 +63,32 @@ pub trait Renderer: Sync {
     fn report_progress(&mut self, accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> bool;
 
     fn update_imgbuf(accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+
+    }
+
+    fn save_progress_image(path: &str, accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+        // Self::update_imgbuf(accumulation_buf, sampling, imgbuf);
+
         let scale = ((sampling * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64).recip();
-        for (i, pixel) in imgbuf.pixels_mut().enumerate() {
+
+        /*for (i, pixel) in imgbuf.pixels_mut().enumerate() {
             let liner = accumulation_buf[i] * scale;
             let gamma = linear_to_gamma(liner);
             let rgb = color_to_rgb(gamma);
             *pixel = rgb;
-        }
-    }
+        }*/
 
-    fn save_progress_image(path: &str, accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
-        Self::update_imgbuf(accumulation_buf, sampling, imgbuf);
+        let mut buffer = vec![0; (imgbuf.width() * imgbuf.height() * 3) as usize];
+        let data: Vec<f64> = accumulation_buf.into_iter().flat_map(|p| vec![p.x, p.y, p.z].into_iter()).collect();
+        data.par_iter().map(|c| {
+            let liner = c * scale;
+            let gamma = linear_to_gamma_f64(liner);
+            (255.0 * saturate(gamma)) as u8
+        }).collect_into(&mut buffer);
+
         let ref mut fout = File::create(&Path::new(path)).unwrap();
-        let _ = image::ImageRgb8(imgbuf.clone()).save(fout, image::PNG);
+        //let _ = image::ImageRgb8(imgbuf.clone()).save(fout, image::PNG);
+        save_buffer(&Path::new(path), buffer.as_slice(), imgbuf.width(), imgbuf.height(), image::RGB(8)).unwrap();
     }
 }
 
