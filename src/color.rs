@@ -8,7 +8,7 @@ use config;
 pub type Color = Vector3;
 
 pub fn color_to_rgb(color: Color) -> Rgb<u8> {
-    image::Rgb([
+    Rgb([
        (255.0 * saturate(color.x)) as u8,
        (255.0 * saturate(color.y)) as u8,
        (255.0 * saturate(color.z)) as u8,
