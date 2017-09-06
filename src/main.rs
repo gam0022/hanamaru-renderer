@@ -420,11 +420,12 @@ fn main() {
 
     let total_begin = time::now();
     {
-        //let (width, height, sampling) = (800, 600, 5);// SVGA 480,000 pixel
-        //let (width, height, sampling) = (800, 600, 50);// SVGA 480,000 pixel
-        let (width, height, sampling) = (1280, 960, 900);
-        //let (width, height, sampling) = (1920, 1080, 1000);// FHD 2,073,600 pixel
-        //let (width, height, sampling) = (1280, 720, 1000);// HD 921,600 pixel
+
+        //let (width, height, sampling) = (1280, 720, 10);// 16:9 HD 921,600 pixel
+        //let (width, height, sampling) = (1920, 1080, 10);// 16:9 FHD 2,073,600 pixel
+        //let (width, height, sampling) = (800, 600, 10);// 4:3 SVGA 480,000 pixel
+        //let (width, height, sampling) = (1280, 960, 1000);// 4:3 960p 1,228,800 pixel
+        let (width, height, sampling) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel
 
         let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
         let mut renderer = PathTracingRenderer::new(sampling);
