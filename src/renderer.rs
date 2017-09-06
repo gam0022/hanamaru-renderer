@@ -101,7 +101,7 @@ pub struct DebugRenderer {
 impl Renderer for DebugRenderer {
     fn max_sampling(&self) -> u32 { 1 }
 
-    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2, sampling: u32) -> Color {
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2, _: u32) -> Color {
         let ray = camera.ray(&normalized_coord);
         let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
         let (hit, intersection) = scene.intersect(&ray);
