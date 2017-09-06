@@ -2,6 +2,7 @@ extern crate num;
 extern crate image;
 extern crate time;
 extern crate rand;
+extern crate rayon;
 
 use image::GenericImage;
 use std::fs::File;
@@ -56,7 +57,7 @@ fn init_scene_material_examples() -> (Camera, Scene) {
 
     let radius = 0.4;
 
-    let mut scene = Scene {
+    let scene = Scene {
         elements: vec![
             // 球体
             Box::new(Sphere {
@@ -308,7 +309,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                     max: Vector3::new(5.0, 0.0, 5.0),
                 },
                 material: Material {
-                    surface: SurfaceType::GGX { metalness: 0.0 },
+                    surface: SurfaceType::GGX { metalness: 1.0 },
                     //albedo:  Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     //albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
@@ -403,11 +404,12 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
     (camera, scene)
 }
 
-fn render<R: Renderer>(renderer: &mut R, width: u32, height: u32, camera: &Camera, scene: Scene) {
+fn render<R: Renderer>(renderer: &mut R, width: u32, height: u32, camera: &Camera, scene: Scene) -> u32 {
     let mut imgbuf = image::ImageBuffer::new(width, height);
-    renderer.render(&BvhScene::from_scene(scene), camera, &mut imgbuf);
+    let sampled = renderer.render(&BvhScene::from_scene(scene), camera, &mut imgbuf);
     let ref mut fout = File::create(&Path::new("test.png")).unwrap();
     let _ = image::ImageRgb8(imgbuf).save(fout, image::PNG);
+    sampled
 }
 
 fn main() {
@@ -420,24 +422,28 @@ fn main() {
     {
         //let (width, height, sampling) = (800, 600, 5);// SVGA 480,000 pixel
         //let (width, height, sampling) = (800, 600, 50);// SVGA 480,000 pixel
-        //let (width, height, sampling) = (1280, 960, 67);// QVGA 1,228,800 pixel
-        let (width, height, sampling) = (1920, 1080, 1000);// FHD 2,073,600 pixel
+        //let (width, height, sampling) = (1280, 960, 67);// QVGA 1,228,800 pixel for rtcamp5
+        let (width, height, sampling) = (1280, 960, 9);
+        //let (width, height, sampling) = (1920, 1080, 1000);// FHD 2,073,600 pixel
         //let (width, height, sampling) = (1280, 720, 1000);// HD 921,600 pixel
 
-        let mut renderer = DebugRenderer { mode: DebugRenderMode::DepthFromFocus };
+        let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
         let mut renderer = PathTracingRenderer::new(sampling);
 
+        tee(&mut f, &format!("num threads: {}.", rayon::current_num_threads()));
         tee(&mut f, &format!("resolution: {}x{}.", width, height));
-        tee(&mut f, &format!("sampling: {}x{} spp.", sampling, config::SUPERSAMPLING * config::SUPERSAMPLING));
+        tee(&mut f, &format!("max sampling: {}x{} spp.", sampling, config::SUPERSAMPLING * config::SUPERSAMPLING));
+        tee(&mut f, &format!("time limit: {:.2} sec.", config::TIME_LIMIT_SEC));
 
         let init_scene_begin = time::now();
-        //let (camera, scene) = init_scene_rtcamp5();
-        let (camera, scene) = init_scene_material_examples();
+        let (camera, scene) = init_scene_rtcamp5();
+        //let (camera, scene) = init_scene_material_examples();
         let init_scene_end = time::now();
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
-        tee(&mut f, &format!("init scene: {} sec.", init_scene_sec));
+        tee(&mut f, &format!("init scene: {:.2} sec.", init_scene_sec));
 
-        render(&mut renderer, width, height, &camera, scene);
+        let sampled = render(&mut renderer, width, height, &camera, scene);
+        tee(&mut f, &format!("sampled: {}x{} spp.", sampled, config::SUPERSAMPLING * config::SUPERSAMPLING));
     }
     let total_end = time::now();
 
