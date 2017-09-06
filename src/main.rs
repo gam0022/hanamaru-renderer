@@ -11,7 +11,6 @@ use std::fs;
 use std::io::{BufWriter, Write};
 use num::Float;
 use self::rand::{Rng, SeedableRng, StdRng};
-use rayon::current_num_threads;
 
 mod config;
 mod vector;
@@ -431,16 +430,17 @@ fn main() {
         let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
         let mut renderer = PathTracingRenderer::new(sampling);
 
-        tee(&mut f, &format!("num threads: {}.", current_num_threads()));
+        tee(&mut f, &format!("num threads: {}.", rayon::current_num_threads()));
         tee(&mut f, &format!("resolution: {}x{}.", width, height));
         tee(&mut f, &format!("max sampling: {}x{} spp.", sampling, config::SUPERSAMPLING * config::SUPERSAMPLING));
+        tee(&mut f, &format!("time limit: {:.2} sec.", config::TIME_LIMIT_SEC));
 
         let init_scene_begin = time::now();
         let (camera, scene) = init_scene_rtcamp5();
         //let (camera, scene) = init_scene_material_examples();
         let init_scene_end = time::now();
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
-        tee(&mut f, &format!("init scene: {} sec.", init_scene_sec));
+        tee(&mut f, &format!("init scene: {:.2} sec.", init_scene_sec));
 
         let sampled = render(&mut renderer, width, height, &camera, scene);
         tee(&mut f, &format!("sampled: {}x{} spp.", sampled, config::SUPERSAMPLING * config::SUPERSAMPLING));
