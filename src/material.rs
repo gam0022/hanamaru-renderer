@@ -6,7 +6,7 @@ pub enum SurfaceType {
     Diffuse,
     Specular,
     Refraction { refractive_index: f64 },
-    GGX { metalness: f64 },
+    GGX,
     GGXRefraction { refractive_index: f64 },
 }
 

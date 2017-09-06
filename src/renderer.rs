@@ -174,7 +174,7 @@ impl Renderer for PathTracingRenderer {
                     SurfaceType::Refraction { refractive_index } => {
                         bsdf::sample_refraction(random, &intersection.normal.clone(), refractive_index, &mut intersection, &mut ray);
                     }
-                    SurfaceType::GGX { metalness } => {
+                    SurfaceType::GGX => {
                         let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
                         let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
                         let next_direction = ray.direction.reflect(&half);
@@ -190,12 +190,16 @@ impl Renderer for PathTracingRenderer {
                             let v_dot_h = saturate(view.dot(&half));
                             let h_dot_n = saturate(half.dot(&intersection.normal));
 
+                            // Masking-shadowing関数
                             let g = bsdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
+
                             // albedoをフレネル反射率のパラメータのF0として扱う
                             let f = bsdf::f_schlick(v_dot_h, &intersection.material.albedo);
+
                             let weight = f * saturate(g * v_dot_h / (h_dot_n * v_dot_n));
-                            let final_weight = mix(&Color::one(), &weight, metalness);
-                            intersection.material.albedo *= final_weight;
+
+                            // フレネルの計算でalbedoは乗算済みなので、albedoをweightで上書き（いいんだろうか？）
+                            intersection.material.albedo = weight;
                         }
 
                         ray.origin = intersection.position + intersection.normal * config::OFFSET;

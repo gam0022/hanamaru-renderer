@@ -2,6 +2,6 @@ num threads: 8.
 resolution: 1280x960.
 max sampling: 9x4 spp.
 time limit: 1173.90 sec.
-init scene: 0.32 sec.
+init scene: 0.33 sec.
 sampled: 9x4 spp.
-total 166.428 sec. used 14.18 % (x 7.05)
+total 165.707 sec. used 14.12 % (x 7.08)
