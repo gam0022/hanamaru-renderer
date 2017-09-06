@@ -189,7 +189,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                 Matrix44::scale(1.5, 1.5, 1.5) * Matrix44::translate(-1.2, 0.0, 0.0) * Matrix44::rotate_y(-0.2),
                 Material {
                     surface: SurfaceType::GGX,
-                    albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
+                    albedo: Texture::from_color(Color::new(1.0, 0.05, 0.05)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
                 },
@@ -422,8 +422,7 @@ fn main() {
     {
         //let (width, height, sampling) = (800, 600, 5);// SVGA 480,000 pixel
         //let (width, height, sampling) = (800, 600, 50);// SVGA 480,000 pixel
-        //let (width, height, sampling) = (1280, 960, 67);// QVGA 1,228,800 pixel for rtcamp5
-        let (width, height, sampling) = (1280, 960, 9);
+        let (width, height, sampling) = (1280, 960, 900);
         //let (width, height, sampling) = (1920, 1080, 1000);// FHD 2,073,600 pixel
         //let (width, height, sampling) = (1280, 720, 1000);// HD 921,600 pixel
 
