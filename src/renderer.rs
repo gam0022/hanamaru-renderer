@@ -63,23 +63,25 @@ pub trait Renderer: Sync {
     fn report_progress(&mut self, accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> bool;
 
     fn update_imgbuf(accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+        let mut tmp: Vec<Rgb<u8>> = Vec::with_capacity((imgbuf.width() * imgbuf.height()) as usize);
         let scale = ((sampling * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64).recip();
-
-        let mut pre_buffer: Vec<Rgb<u8>> = Vec::with_capacity((imgbuf.width() * imgbuf.height()) as usize);
-
         accumulation_buf.par_iter().map(|p| {
             let liner = *p * scale;
             let gamma = linear_to_gamma(liner);
             color_to_rgb(gamma)
-        }).collect_into(&mut pre_buffer);
+        }).collect_into(&mut tmp);
 
         for (i, pixel) in imgbuf.pixels_mut().enumerate() {
-            *pixel = pre_buffer[i];
+            *pixel = tmp[i];
         }
     }
 
     fn save_progress_image(path: &str, accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
+        let begin = time::now();
         Self::update_imgbuf(accumulation_buf, sampling, imgbuf);
+        let end = time::now();
+        println!("update_imgbuf: {:.3} sec", (end - begin).num_milliseconds() as f64 * 0.001);
+
         let ref mut fout = File::create(&Path::new(path)).unwrap();
         let _ = image::ImageRgb8(imgbuf.clone()).save(fout, image::PNG);
     }
