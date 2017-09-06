@@ -197,9 +197,7 @@ impl Renderer for PathTracingRenderer {
                             let f = bsdf::f_schlick(v_dot_h, &intersection.material.albedo);
 
                             let weight = f * saturate(g * v_dot_h / (h_dot_n * v_dot_n));
-
-                            // フレネルの計算でalbedoは乗算済みなので、albedoをweightで上書き（いいんだろうか？）
-                            intersection.material.albedo = weight;
+                            intersection.material.albedo *= weight;
                         }
 
                         ray.origin = intersection.position + intersection.normal * config::OFFSET;
