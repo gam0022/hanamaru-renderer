@@ -91,7 +91,7 @@ pub enum DebugRenderMode {
     Shading,
     Normal,
     Depth,
-    DepthFromFocus,
+    FocalPlane,
 }
 
 pub struct DebugRenderer {
@@ -119,7 +119,7 @@ impl Renderer for DebugRenderer {
                 }
                 DebugRenderMode::Normal => intersection.normal,
                 DebugRenderMode::Depth => Color::from_one(0.5 * intersection.distance / camera.focus_distance),
-                DebugRenderMode::DepthFromFocus => Color::from_one((intersection.distance - camera.focus_distance).abs()),
+                DebugRenderMode::FocalPlane => Color::from_one((intersection.distance - camera.focus_distance).abs()),
             }
         } else {
             intersection.material.emission

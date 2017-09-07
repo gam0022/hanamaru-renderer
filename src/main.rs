@@ -427,7 +427,7 @@ fn main() {
         //let (width, height, sampling) = (1280, 960, 1000);// 4:3 960p 1,228,800 pixel
         //let (width, height, sampling) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel
 
-        let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
+        let mut renderer = DebugRenderer { mode: DebugRenderMode::FocalPlane };
         let mut renderer = PathTracingRenderer::new(sampling);
 
         tee(&mut f, &format!("num threads: {}.", rayon::current_num_threads()));
