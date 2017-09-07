@@ -74,7 +74,7 @@ fn init_scene_material_examples() -> (Camera, Scene) {
                 center: Vector3::new(-1.0, radius, 0.0),
                 radius: radius,
                 material: Material {
-                    surface: SurfaceType::GGX { metalness: 1.0 },
+                    surface: SurfaceType::GGX,
                     albedo: Texture::white(),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.05)),
@@ -188,7 +188,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                 "models/bunny/bunny_face1000_flip.obj",
                 Matrix44::scale(1.5, 1.5, 1.5) * Matrix44::translate(-1.2, 0.0, 0.0) * Matrix44::rotate_y(-0.2),
                 Material {
-                    surface: SurfaceType::GGX { metalness: 1.0 },
+                    surface: SurfaceType::GGX,
                     albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
@@ -224,7 +224,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                 center: Vector3::new(0.0, 0.5, -0.5),
                 radius: 0.5,
                 material: Material {
-                    surface: SurfaceType::GGX { metalness: 1.0 },
+                    surface: SurfaceType::GGX,
                     albedo: Texture::white(),
                     emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(5.0, 5.0, 2.0)),
                     roughness: Texture::from_color(Color::from_one(0.05)),
@@ -235,7 +235,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                 center: Vector3::new(-3.5, 0.5, 0.0),
                 radius: 0.5,
                 material: Material {
-                    surface: SurfaceType::GGX { metalness: 1.0 },
+                    surface: SurfaceType::GGX,
                     albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
                     emission: Texture::black(),
                     roughness: Texture::from_path("textures/2d/earth_inverse_2048.jpg"),
@@ -246,7 +246,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                 center: Vector3::new(0.5018854352719382, 0.3899602675366644, 1.8484239850862165),
                 radius: 0.3899602675366644,
                 material: Material {
-                    surface: SurfaceType::GGX { metalness: 1.0 },
+                    surface: SurfaceType::GGX,
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.2, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.01)),
@@ -256,7 +256,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                 center: Vector3::new(-0.5748933256792994, 0.2951263257801348, 2.266298272012876),
                 radius: 0.2951263257801348,
                 material: Material {
-                    surface: SurfaceType::GGX { metalness: 1.0 },
+                    surface: SurfaceType::GGX,
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.4, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.05)),
@@ -266,7 +266,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                 center: Vector3::new(-0.9865234498515534, 0.3386858117447873, 2.9809338871934585),
                 radius: 0.3386858117447873,
                 material: Material {
-                    surface: SurfaceType::GGX { metalness: 1.0 },
+                    surface: SurfaceType::GGX,
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.6, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.02)),
@@ -276,7 +276,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                 center: Vector3::new(0.6946459502665004, 0.2764689077971783, 2.7455446851003025),
                 radius: 0.2764689077971783,
                 material: Material {
-                    surface: SurfaceType::GGX { metalness: 1.0 },
+                    surface: SurfaceType::GGX,
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.05, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.0)),
@@ -296,7 +296,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                 center: Vector3::new(3.7027464198816952, 0.3917608374245498, -0.40505849281451556),
                 radius: 0.3917608374245498,
                 material: Material {
-                    surface: SurfaceType::GGX { metalness: 1.0 },
+                    surface: SurfaceType::GGX,
                     albedo: Texture::from_color(hsv_to_rgb(Color::new(0.8, 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
@@ -309,7 +309,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                     max: Vector3::new(5.0, 0.0, 5.0),
                 },
                 material: Material {
-                    surface: SurfaceType::GGX { metalness: 1.0 },
+                    surface: SurfaceType::GGX,
                     //albedo:  Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     //albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
@@ -343,7 +343,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
             center: Vector3::new(px, r + py, pz),
             radius: r,
             material: Material {
-                surface: SurfaceType::GGX { metalness: 1.0 },
+                surface: SurfaceType::GGX,
                 albedo: Texture::from_color(hsv_to_rgb(Color::new(0.2 + 0.1 * count as f64, 1.0, 1.0))),
                 emission: Texture::black(),
                 roughness: Texture::from_color(Color::from_one(rng.gen_range(0.0, 0.2))),
@@ -420,14 +420,14 @@ fn main() {
 
     let total_begin = time::now();
     {
-        //let (width, height, sampling) = (800, 600, 5);// SVGA 480,000 pixel
-        //let (width, height, sampling) = (800, 600, 50);// SVGA 480,000 pixel
-        //let (width, height, sampling) = (1280, 960, 67);// QVGA 1,228,800 pixel for rtcamp5
-        let (width, height, sampling) = (1280, 960, 9);
-        //let (width, height, sampling) = (1920, 1080, 1000);// FHD 2,073,600 pixel
-        //let (width, height, sampling) = (1280, 720, 1000);// HD 921,600 pixel
 
-        let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
+        //let (width, height, sampling) = (1280, 720, 10);// 16:9 HD 921,600 pixel
+        let (width, height, sampling) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
+        //let (width, height, sampling) = (800, 600, 10);// 4:3 SVGA 480,000 pixel
+        //let (width, height, sampling) = (1280, 960, 1000);// 4:3 960p 1,228,800 pixel
+        //let (width, height, sampling) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel
+
+        let mut renderer = DebugRenderer { mode: DebugRenderMode::FocalPlane };
         let mut renderer = PathTracingRenderer::new(sampling);
 
         tee(&mut f, &format!("num threads: {}.", rayon::current_num_threads()));
