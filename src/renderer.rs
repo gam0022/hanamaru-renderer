@@ -17,7 +17,7 @@ use camera::{Camera, Ray};
 use material::SurfaceType;
 use bsdf;
 use color::{Color, color_to_rgb, linear_to_gamma};
-use math::{saturate, mix};
+use math::saturate;
 
 pub trait Renderer: Sync {
     fn max_sampling(&self) -> u32;
