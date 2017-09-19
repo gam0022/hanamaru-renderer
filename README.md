@@ -5,7 +5,7 @@
 
 ## Build & Run
 
-[cargo](https://rustup.rs/)をインストールすればすぐにビルド＋実行ができます。
+[cargo](https://rustup.rs/)をインストールすればすぐにビルド+実行ができます。
 
 ```bash
 git clone git@github.com:gam0022/hanamaru-renderer.git
