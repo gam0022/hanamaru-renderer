@@ -1,7 +1,7 @@
 # hanamaru-renderer
 [レイトレ合宿5‽](https://sites.google.com/site/raytracingcamp5/)に向けて開発したRustによるパストレーサーです。
 
-BVHなどでポリゴンとの衝突判定を高速化したり、薄レンズモデルによる被写界深度を入れたり、IBLしたりしました。
+BVHでポリゴンとの衝突判定を高速化したり、薄レンズモデルによる被写界深度を入れたり、IBLしたりしました。
 
 [![test.png](test.png)](test.png)
 
