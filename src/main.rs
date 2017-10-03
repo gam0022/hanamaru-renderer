@@ -425,11 +425,17 @@ fn init_scene_tbf3() -> (Camera, Scene) {
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/klab_logo/klab_logo_triangle.obj",
                 Matrix44::scale_linear(0.5) * Matrix44::translate(0.0, 3.1782, 0.0) * Matrix44::rotate_y(-0.5),
-                Material {
+                /*Material {
                     surface: SurfaceType::Refraction { refractive_index: 1.5 },
                     albedo: Texture::from_color(Color::new(0.7, 0.7, 1.0)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
+                },*/
+                Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(Color::new(0.4, 0.4, 1.0)),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
                 },
             ))),
             // 背後にある地図ガラス

@@ -3,5 +3,5 @@ resolution: 1000x1000.
 max sampling: 1000x4 spp.
 time limit: 273.00 sec.
 init scene: 0.29 sec.
-sampled: 6x4 spp.
-total 258.471 sec. used 94.68 % (x 1.06)
+sampled: 11x4 spp.
+total 249.191 sec. used 91.28 % (x 1.10)
