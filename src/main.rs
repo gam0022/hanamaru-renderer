@@ -412,7 +412,7 @@ fn init_scene_tbf3() -> (Camera, Scene) {
         Vector3::new(0.0, 2.5, 9.0), // eye
         Vector3::new(0.0, 1.0, 0.0), // target
         Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
-        17.0, // fov
+        19.0, // fov
 
         LensShape::Circle, // lens shape
         0.15, // * 0.0,// aperture
@@ -423,8 +423,8 @@ fn init_scene_tbf3() -> (Camera, Scene) {
         elements: vec![
             // KLab logo
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
-                "models/klab_logo.obj",
-                Matrix44::scale_linear(0.5) * Matrix44::translate(0.0, 3.2 * 0.5, 0.0) * Matrix44::rotate_y(0.2),
+                "models/klab_logo/klab_logo_triangle.obj",
+                Matrix44::scale_linear(0.5) * Matrix44::translate(0.0, 3.1782, 0.0) * Matrix44::rotate_y(-0.5),
                 Material {
                     surface: SurfaceType::Refraction { refractive_index: 1.5 },
                     albedo: Texture::from_color(Color::new(0.7, 0.7, 1.0)),
@@ -571,7 +571,7 @@ fn init_scene_tbf3() -> (Camera, Scene) {
 
     // 金属の球体
     let mut count = 0;
-    while count < 0 {
+    while count < 10 {
         let px = rng.gen_range(-2.5, 3.5);
         let py = 0.0;//rng.gen_range(0.0, 3.0);
         let pz = rng.gen_range(-2.0, 3.0);
@@ -594,7 +594,7 @@ fn init_scene_tbf3() -> (Camera, Scene) {
 
     // 床に落ちているダイヤモンド
     count = 0;
-    while count < 0 {
+    while count < 20 {
         let px = rng.gen_range(-4.5, 4.5);
         let py = 0.0;
         let pz = rng.gen_range(-2.5, 4.5);
@@ -660,13 +660,14 @@ fn main() {
     {
 
         //let (width, height, sampling) = (1280, 720, 10);// 16:9 HD 921,600 pixel
-        let (width, height, sampling) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
+        //let (width, height, sampling) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
         //let (width, height, sampling) = (800, 600, 10);// 4:3 SVGA 480,000 pixel
         //let (width, height, sampling) = (1280, 960, 1000);// 4:3 960p 1,228,800 pixel
         //let (width, height, sampling) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel
+        let (width, height, sampling) = (1000, 1000, 1000);// 16:9 FHD 2,073,600 pixel
 
         let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
-        //let mut renderer = PathTracingRenderer::new(sampling);
+        let mut renderer = PathTracingRenderer::new(sampling);
 
         tee(&mut f, &format!("num threads: {}.", rayon::current_num_threads()));
         tee(&mut f, &format!("resolution: {}x{}.", width, height));
