@@ -410,12 +410,12 @@ fn init_scene_tbf3() -> (Camera, Scene) {
 
     let camera = Camera::new(
         Vector3::new(0.0, 2.5, 9.0), // eye
-        Vector3::new(0.0, 1.0, 0.0), // target
+        Vector3::new(0.0, 1.5, 0.0), // target
         Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
         19.0, // fov
 
         LensShape::Circle, // lens shape
-        0.15, // * 0.0,// aperture
+        0.1, // * 0.0,// aperture
         8.5// focus_distance
     );
 
@@ -451,11 +451,11 @@ fn init_scene_tbf3() -> (Camera, Scene) {
                     roughness: Texture::from_color(Color::from_one(0.3)),
                 }
             }),*/
-
+            /*
             // 固定のダイヤモンド
-            /*Box::new(BvhMesh::from_mesh(ObjLoader::load(
+            Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/dia/dia.obj",
-                Matrix44::translate(3.1, 0.0, 0.8) * Matrix44::scale_linear(1.0) * Matrix44::rotate_y(-0.5) * Matrix44::rotate_x(40.35.to_radians()),
+                Matrix44::translate(5.1, 0.0, 0.8) * Matrix44::scale_linear(1.0) * Matrix44::rotate_y(-0.5) * Matrix44::rotate_x(40.35.to_radians()),
                 Material {
                     surface: SurfaceType::Refraction { refractive_index: 2.42 },
                     albedo: Texture::white(),
@@ -474,6 +474,7 @@ fn init_scene_tbf3() -> (Camera, Scene) {
                     roughness: Texture::from_color(Color::from_one(0.05)),
                 },
             }),
+
             // 地球のテクスチャをラフネスにした球体
             Box::new(Sphere {
                 center: Vector3::new(-3.5, 0.5, 0.0),
@@ -625,7 +626,7 @@ fn init_scene_tbf3() -> (Camera, Scene) {
     count = 0;
     while count < 0 {
         let px = rng.gen_range(-4.5, 4.5);
-        let py = rng.gen_range(0.0, 4.0);
+        let py = rng.gen_range(0.0, 7.0);
         let pz = rng.gen_range(-4.5, 3.5);
         let s = rng.gen_range(0.6, 1.1);
         let ry = rng.gen_range(-180.0.to_radians(), 180.0.to_radians());
@@ -670,7 +671,8 @@ fn main() {
         //let (width, height, sampling) = (800, 600, 10);// 4:3 SVGA 480,000 pixel
         //let (width, height, sampling) = (1280, 960, 1000);// 4:3 960p 1,228,800 pixel
         //let (width, height, sampling) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel
-        let (width, height, sampling) = (1000, 1000, 1000);// 16:9 FHD 2,073,600 pixel
+        let (width, height, sampling) = (2592, 3625, 1000);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
+        //let (width, height, sampling) = (2592/4, 3625/4, 1000);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
 
         let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
         let mut renderer = PathTracingRenderer::new(sampling);
