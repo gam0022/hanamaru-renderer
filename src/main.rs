@@ -415,8 +415,8 @@ fn init_scene_tbf3() -> (Camera, Scene) {
         19.0, // fov
 
         LensShape::Circle, // lens shape
-        0.1, // * 0.0,// aperture
-        8.5// focus_distance
+        0.15, // * 0.0,// aperture
+        7.0// focus_distance
     );
 
     let mut scene = Scene {
@@ -439,18 +439,18 @@ fn init_scene_tbf3() -> (Camera, Scene) {
                 },
             ))),
             // 背後にある地図ガラス
-            /*Box::new(Cuboid {
+            Box::new(Cuboid {
                 aabb: Aabb {
-                    min: Vector3::new(-4.0, 0.0, -3.6),
-                    max: Vector3::new(4.0, 3.0, -3.5),
+                    min: Vector3::new(-4.0, 0.0, -5.1),
+                    max: Vector3::new(4.0, 4.0, -5.0),
                 },
                 material: Material {
-                    surface: SurfaceType::GGXReflection { refractive_index: 1.2 },
+                    surface: SurfaceType::GGXRefraction { refractive_index: 1.2 },
                     albedo: Texture::white(),
                     emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
                     roughness: Texture::from_color(Color::from_one(0.3)),
                 }
-            }),*/
+            }),
             /*
             // 固定のダイヤモンド
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
@@ -550,8 +550,8 @@ fn init_scene_tbf3() -> (Camera, Scene) {
             // 床
             Box::new(Cuboid {
                 aabb: Aabb {
-                    min: Vector3::new(-5.0, -1.0, -5.0),
-                    max: Vector3::new(5.0, 0.0, 5.0),
+                    min: Vector3::new(-6.0, -1.0, -6.0),
+                    max: Vector3::new(6.0, 0.0, 6.0),
                 },
                 material: Material {
                     surface: SurfaceType::GGX,
@@ -671,10 +671,10 @@ fn main() {
         //let (width, height, sampling) = (800, 600, 10);// 4:3 SVGA 480,000 pixel
         //let (width, height, sampling) = (1280, 960, 1000);// 4:3 960p 1,228,800 pixel
         //let (width, height, sampling) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel
-        let (width, height, sampling) = (2592, 3625, 1000);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
-        //let (width, height, sampling) = (2592/4, 3625/4, 1000);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
+        //let (width, height, sampling) = (2592, 3625, 1000);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
+        let (width, height, sampling) = (2592/4, 3625/4, 100);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
 
-        let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
+        let mut renderer = DebugRenderer { mode: DebugRenderMode::FocalPlane };
         let mut renderer = PathTracingRenderer::new(sampling);
 
         tee(&mut f, &format!("num threads: {}.", rayon::current_num_threads()));
