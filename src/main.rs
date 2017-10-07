@@ -463,6 +463,19 @@ fn init_scene_tbf3() -> (Camera, Scene) {
                     roughness: Texture::black(),
                 },
             ))),
+
+            // 光源の球体
+            Box::new(Sphere {
+                center: Vector3::new(-1.0, 0.4, 4.0),
+                radius: 0.4,
+                material: Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(Color::one()),
+                    emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
+                    roughness: Texture::from_color(Color::from_one(0.01)),
+                },
+            }),
+
             // 床
             Box::new(Cuboid {
                 aabb: Aabb {
@@ -495,7 +508,7 @@ fn init_scene_tbf3() -> (Camera, Scene) {
     // 金属の球体
     let mut count = 0;
     while count < 10  {
-        let px = rng.gen_range(-4.0, 4.0);
+        let px = rng.gen_range(-3.0, 3.0);
         let py = 0.0;//rng.gen_range(0.0, 3.0);
         let pz = rng.gen_range(-5.0, 5.0);
         let r = rng.gen_range(0.2, 0.4);
@@ -564,12 +577,12 @@ fn init_scene_tbf3() -> (Camera, Scene) {
 
     // 光源
     let mut count = 0;
-    while count < 10 {
+    while count < 3 {
         let px = rng.gen_range(-4.0, 4.0);
         let py = 0.0;//rng.gen_range(0.0, 3.0);
         let pz = rng.gen_range(-5.0, 5.0);
         let r = rng.gen_range(0.2, 0.4);
-        let color = hsv_to_rgb(Color::new(1.0, 1.0, 1.0));
+        let color = hsv_to_rgb(Color::new(0.2 + 0.1 * count as f64, 1.0, 1.0));
 
         if scene.add_with_check_collisions((Box::new(Sphere {
             center: Vector3::new(px, r + py, pz),
