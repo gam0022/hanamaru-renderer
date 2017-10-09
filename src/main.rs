@@ -43,6 +43,77 @@ fn tee(f: &mut BufWriter<File>, message: &String) {
     let _ = f.write(b"\n");
 }
 
+fn init_scene_simple() -> (Camera, Scene) {
+    let camera = Camera::new(
+        Vector3::new(0.0, 2.0, 9.0), // eye
+        Vector3::new(0.0, 1.0, 0.0), // target
+        Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
+        10.0, // fov
+
+        LensShape::Circle, // lens shape
+        0.2 * 0.0,// aperture
+        8.8// focus_distance
+    );
+
+    let radius = 0.6;
+
+    let scene = Scene {
+        elements: vec![
+            Box::new(Sphere {
+                center: Vector3::new(0.0, radius, 0.0),
+                radius: radius,
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::white(),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            }),
+
+            // 光源
+            Box::new(Sphere {
+                center: Vector3::new(3.0, 2.0 + radius, -2.0),
+                radius: radius,
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::black(),
+                    emission: Texture::from_color(Color::from_one(20.0)),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            }),
+
+            // 床
+            Box::new(Cuboid {
+                aabb: Aabb {
+                    min: Vector3::new(-5.0, -1.0, -5.0),
+                    max: Vector3::new(5.0, 0.0, 5.0),
+                },
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    //albedo:  Texture::white(),
+                    //albedo: Texture::from_path("textures/2d/stone03.jpg"),
+                    albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
+                    //albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_c_diffuse.tiff"),
+                    emission: Texture::black(),
+                    //roughness: Texture::white(),
+                    roughness: Texture::from_path("textures/2d/checkered_diagonal_10_0.1_0.6_512.png"),
+                    //roughness: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png"),
+                }
+            }),
+        ],
+        skybox: Skybox::new(
+            "textures/cube/LancellottiChapel/posx.jpg",
+            "textures/cube/LancellottiChapel/negx.jpg",
+            "textures/cube/LancellottiChapel/posy.jpg",
+            "textures/cube/LancellottiChapel/negy.jpg",
+            "textures/cube/LancellottiChapel/posz.jpg",
+            "textures/cube/LancellottiChapel/negz.jpg",
+        ),
+    };
+
+    (camera, scene)
+}
+
 fn init_scene_material_examples() -> (Camera, Scene) {
     let camera = Camera::new(
         Vector3::new(0.0, 2.0, 9.0), // eye
@@ -626,9 +697,10 @@ fn main() {
         //let (width, height, sampling) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel
         //let (width, height, sampling) = (2592, 3625, 1000);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
         let (width, height, sampling) = (2592/4, 3625/4, 100);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
+        let (width, height, sampling) = (1024, 1024, 1000);
 
         let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
-        let mut renderer = PathTracingRenderer::new(sampling);
+        //let mut renderer = PathTracingRenderer::new(sampling);
 
         tee(&mut f, &format!("num threads: {}.", rayon::current_num_threads()));
         tee(&mut f, &format!("resolution: {}x{}.", width, height));
@@ -638,7 +710,8 @@ fn main() {
         let init_scene_begin = time::now();
         //let (camera, scene) = init_scene_rtcamp5();
         //let (camera, scene) = init_scene_material_examples();
-        let (camera, scene) = init_scene_tbf3();
+        //let (camera, scene) = init_scene_tbf3();
+        let (camera, scene) = init_scene_simple();
         let init_scene_end = time::now();
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
         tee(&mut f, &format!("init scene: {:.2} sec.", init_scene_sec));

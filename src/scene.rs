@@ -244,23 +244,25 @@ impl Skybox {
         let abs_y = direction.y.abs();
         let abs_z = direction.z.abs();
 
+        let scale = 1.0;
+
         if abs_x > abs_y && abs_x > abs_z {
             if direction.x.is_sign_positive() {
-                self.px_texture.sample_bilinear_0center(-direction.z / direction.x, direction.y / direction.x)
+                scale * self.px_texture.sample_bilinear_0center(-direction.z / direction.x, direction.y / direction.x)
             } else {
-                self.nx_texture.sample_bilinear_0center(-direction.z / direction.x, -direction.y / direction.x)
+                scale * self.nx_texture.sample_bilinear_0center(-direction.z / direction.x, -direction.y / direction.x)
             }
         } else if abs_y > abs_x && abs_y > abs_z {
             if direction.y.is_sign_positive() {
-                self.py_texture.sample_bilinear_0center(direction.x / direction.y, -direction.z / direction.y)
+                scale * self.py_texture.sample_bilinear_0center(direction.x / direction.y, -direction.z / direction.y)
             } else {
-                self.ny_texture.sample_bilinear_0center(-direction.x / direction.y, -direction.z / direction.y)
+                scale * self.ny_texture.sample_bilinear_0center(-direction.x / direction.y, -direction.z / direction.y)
             }
         } else {
             if direction.z.is_sign_positive() {
-                self.pz_texture.sample_bilinear_0center(direction.x / direction.z, direction.y / direction.z)
+                scale * self.pz_texture.sample_bilinear_0center(direction.x / direction.z, direction.y / direction.z)
             } else {
-                self.nz_texture.sample_bilinear_0center(direction.x / direction.z, -direction.y / direction.z)
+                scale * self.nz_texture.sample_bilinear_0center(direction.x / direction.z, -direction.y / direction.z)
             }
         }
     }
