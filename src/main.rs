@@ -487,7 +487,7 @@ fn init_scene_tbf3() -> (Camera, Scene) {
         19.0, // fov
 
         LensShape::Circle, // lens shape
-        0.15, // * 0.0,// aperture
+        0.18, // * 0.0,// aperture
         7.0// focus_distance
     );
 
@@ -505,7 +505,7 @@ fn init_scene_tbf3() -> (Camera, Scene) {
                 },*/
                 Material {
                     surface: SurfaceType::GGX,
-                    albedo: Texture::from_color(Color::new(0.4, 0.4, 1.0)),
+                    albedo: Texture::from_color(Color::new(0.5, 0.5, 1.0)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.05)),
                 },
@@ -523,7 +523,7 @@ fn init_scene_tbf3() -> (Camera, Scene) {
                     roughness: Texture::from_color(Color::from_one(0.3)),
                 }
             }),*/
-            // 固定のダイヤモンド
+            // 固定のダイヤモンド（右）
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/dia/dia.obj",
                 Matrix44::translate(1.3, 0.0, 2.2) * Matrix44::scale_linear(1.0) * Matrix44::rotate_y(-0.4) * Matrix44::rotate_x(40.35.to_radians()),
@@ -535,7 +535,19 @@ fn init_scene_tbf3() -> (Camera, Scene) {
                 },
             ))),
 
-            // 光源の球体
+            // 固定のダイヤモンド（中央）
+            Box::new(BvhMesh::from_mesh(ObjLoader::load(
+                "models/dia/dia.obj",
+                Matrix44::translate(-0.1, 0.0, 2.4) * Matrix44::scale_linear(1.0) * Matrix44::rotate_y(-1.4) * Matrix44::rotate_x(40.35.to_radians()),
+                Material {
+                    surface: SurfaceType::Refraction { refractive_index: 2.42 },
+                    albedo: Texture::white(),
+                    emission: Texture::black(),
+                    roughness: Texture::black(),
+                },
+            ))),
+
+            // 光源の球体（手前）
             Box::new(Sphere {
                 center: Vector3::new(-1.0, 0.4, 4.0),
                 radius: 0.4,
@@ -547,11 +559,46 @@ fn init_scene_tbf3() -> (Camera, Scene) {
                 },
             }),
 
+            // 光源の球体（奥）
+            Box::new(Sphere {
+                center: Vector3::new(-3.0, 0.4, -3.5),
+                radius: 0.4,
+                material: Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(Color::new(0.5, 1.0, 1.0)),
+                    emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(1.0, 3.0, 3.5)),
+                    roughness: Texture::from_color(Color::from_one(0.01)),
+                },
+            }),
+
+            // 光源の球体（奥）
+            Box::new(Sphere {
+                center: Vector3::new(4.0, 0.2, -4.5),
+                radius: 0.2,
+                material: Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(Color::new(0.3, 0.7, 1.0)),
+                    emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
+                    roughness: Texture::from_color(Color::from_one(0.01)),
+                },
+            }),
+
+            Box::new(Sphere {
+                center: Vector3::new(3.0, 0.2, -4.2),
+                radius: 0.2,
+                material: Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(Color::new(1.0, 0.7, 0.9)),
+                    emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(2.0, 3.0, 1.0)),
+                    roughness: Texture::from_color(Color::from_one(0.01)),
+                },
+            }),
+
             // 床
             Box::new(Cuboid {
                 aabb: Aabb {
-                    min: Vector3::new(-6.0, -1.0, -6.0),
-                    max: Vector3::new(6.0, 0.0, 6.0),
+                    min: Vector3::new(-5.0, -1.0, -5.0),
+                    max: Vector3::new(5.0, 0.0, 5.0),
                 },
                 material: Material {
                     surface: SurfaceType::GGX,
@@ -578,7 +625,7 @@ fn init_scene_tbf3() -> (Camera, Scene) {
 
     // 金属の球体
     let mut count = 0;
-    while count < 10  {
+    while count < 8  {
         let px = rng.gen_range(-3.0, 3.0);
         let py = 0.0;//rng.gen_range(0.0, 3.0);
         let pz = rng.gen_range(-5.0, 5.0);
@@ -646,30 +693,6 @@ fn init_scene_tbf3() -> (Camera, Scene) {
         }
     }
 
-    // 光源
-    let mut count = 0;
-    while count < 3 {
-        let px = rng.gen_range(-4.0, 4.0);
-        let py = 0.0;//rng.gen_range(0.0, 3.0);
-        let pz = rng.gen_range(-5.0, 5.0);
-        let r = rng.gen_range(0.2, 0.4);
-        let color = hsv_to_rgb(Color::new(0.2 + 0.1 * count as f64, 1.0, 1.0));
-
-        if scene.add_with_check_collisions((Box::new(Sphere {
-            center: Vector3::new(px, r + py, pz),
-            radius: r,
-            material: Material {
-                surface: SurfaceType::GGX,
-                albedo: Texture::from_color(color),
-                emission: Texture::new("textures/2d/earth_inverse_2048.jpg", Color::new(3.0, 3.0, 1.1)),
-                roughness: Texture::from_color(Color::from_one(rng.gen_range(0.0, 0.01))),
-            },
-        }))) {
-            println!("{}, {}, {} : {}", px, r, pz, 0.2 + 0.1 * count as f64);
-            count += 1;
-        }
-    }
-
     (camera, scene)
 }
 
@@ -695,12 +718,12 @@ fn main() {
         //let (width, height, sampling) = (800, 600, 10);// 4:3 SVGA 480,000 pixel
         //let (width, height, sampling) = (1280, 960, 1000);// 4:3 960p 1,228,800 pixel
         //let (width, height, sampling) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel
-        //let (width, height, sampling) = (2592, 3625, 1000);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
-        let (width, height, sampling) = (2592/4, 3625/4, 100);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
-        let (width, height, sampling) = (1024, 1024, 1000);
+        let (width, height, sampling) = (2592, 3625, 1000);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
+        //let (width, height, sampling) = (2592/4, 3625/4, 100);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
+        //let (width, height, sampling) = (1024, 1024, 1000);
 
         let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
-        //let mut renderer = PathTracingRenderer::new(sampling);
+        let mut renderer = PathTracingRenderer::new(sampling);
 
         tee(&mut f, &format!("num threads: {}.", rayon::current_num_threads()));
         tee(&mut f, &format!("resolution: {}x{}.", width, height));
@@ -710,8 +733,8 @@ fn main() {
         let init_scene_begin = time::now();
         //let (camera, scene) = init_scene_rtcamp5();
         //let (camera, scene) = init_scene_material_examples();
-        //let (camera, scene) = init_scene_tbf3();
-        let (camera, scene) = init_scene_simple();
+        let (camera, scene) = init_scene_tbf3();
+        //let (camera, scene) = init_scene_simple();
         let init_scene_end = time::now();
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
         tee(&mut f, &format!("init scene: {:.2} sec.", init_scene_sec));
