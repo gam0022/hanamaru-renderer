@@ -505,7 +505,7 @@ fn init_scene_tbf3() -> (Camera, Scene) {
                 },*/
                 Material {
                     surface: SurfaceType::GGX,
-                    albedo: Texture::from_color(Color::new(0.5, 0.5, 1.0)),
+                    albedo: Texture::from_color(Color::new(0.4, 0.4, 1.0)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.05)),
                 },

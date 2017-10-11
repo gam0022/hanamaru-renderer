@@ -244,7 +244,7 @@ impl Skybox {
         let abs_y = direction.y.abs();
         let abs_z = direction.z.abs();
 
-        let scale = 2.0;
+        let scale = Color::new(2.0, 2.0, 3.0);
 
         if abs_x > abs_y && abs_x > abs_z {
             if direction.x.is_sign_positive() {
