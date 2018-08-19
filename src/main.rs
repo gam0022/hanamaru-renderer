@@ -714,11 +714,11 @@ fn main() {
     {
 
         //let (width, height, sampling) = (1280, 720, 10);// 16:9 HD 921,600 pixel
-        //let (width, height, sampling) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
+        let (width, height, sampling) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
         //let (width, height, sampling) = (800, 600, 10);// 4:3 SVGA 480,000 pixel
         //let (width, height, sampling) = (1280, 960, 1000);// 4:3 960p 1,228,800 pixel
         //let (width, height, sampling) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel
-        let (width, height, sampling) = (2592, 3625, 1000);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
+        //let (width, height, sampling) = (2592, 3625, 1000);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
         //let (width, height, sampling) = (2592/4, 3625/4, 100);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
         //let (width, height, sampling) = (1024, 1024, 1000);
 
@@ -731,9 +731,9 @@ fn main() {
         tee(&mut f, &format!("time limit: {:.2} sec.", config::TIME_LIMIT_SEC));
 
         let init_scene_begin = time::now();
-        //let (camera, scene) = init_scene_rtcamp5();
+        let (camera, scene) = init_scene_rtcamp5();
         //let (camera, scene) = init_scene_material_examples();
-        let (camera, scene) = init_scene_tbf3();
+        //let (camera, scene) = init_scene_tbf3();
         //let (camera, scene) = init_scene_simple();
         let init_scene_end = time::now();
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
