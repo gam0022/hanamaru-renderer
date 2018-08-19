@@ -225,10 +225,11 @@ pub struct Skybox {
     pub ny_texture: ImageTexture,
     pub pz_texture: ImageTexture,
     pub nz_texture: ImageTexture,
+    pub intensity: Vector3,
 }
 
 impl Skybox {
-    pub fn new(px_path: &str, nx_path: &str, py_path: &str, ny_path: &str, pz_path: &str, nz_path: &str) -> Skybox {
+    pub fn new(px_path: &str, nx_path: &str, py_path: &str, ny_path: &str, pz_path: &str, nz_path: &str, intensity: &Vector3) -> Skybox {
         Skybox {
             px_texture: ImageTexture::new(px_path),
             nx_texture: ImageTexture::new(nx_path),
@@ -236,7 +237,12 @@ impl Skybox {
             ny_texture: ImageTexture::new(ny_path),
             pz_texture: ImageTexture::new(pz_path),
             nz_texture: ImageTexture::new(nz_path),
+            intensity: *intensity,
         }
+    }
+
+    pub fn one(px_path: &str, nx_path: &str, py_path: &str, ny_path: &str, pz_path: &str, nz_path: &str) -> Skybox {
+        Skybox::new(px_path, nx_path, py_path, ny_path, pz_path, nz_path, &Vector3::one())
     }
 
     pub fn sample(&self, direction: &Vector3) -> Vector3 {
@@ -244,25 +250,23 @@ impl Skybox {
         let abs_y = direction.y.abs();
         let abs_z = direction.z.abs();
 
-        let scale = Color::new(2.0, 2.0, 3.0);
-
         if abs_x > abs_y && abs_x > abs_z {
             if direction.x.is_sign_positive() {
-                scale * self.px_texture.sample_bilinear_0center(-direction.z / direction.x, direction.y / direction.x)
+                self.intensity * self.px_texture.sample_bilinear_0center(-direction.z / direction.x, direction.y / direction.x)
             } else {
-                scale * self.nx_texture.sample_bilinear_0center(-direction.z / direction.x, -direction.y / direction.x)
+                self.intensity * self.nx_texture.sample_bilinear_0center(-direction.z / direction.x, -direction.y / direction.x)
             }
         } else if abs_y > abs_x && abs_y > abs_z {
             if direction.y.is_sign_positive() {
-                scale * self.py_texture.sample_bilinear_0center(direction.x / direction.y, -direction.z / direction.y)
+                self.intensity * self.py_texture.sample_bilinear_0center(direction.x / direction.y, -direction.z / direction.y)
             } else {
-                scale * self.ny_texture.sample_bilinear_0center(-direction.x / direction.y, -direction.z / direction.y)
+                self.intensity * self.ny_texture.sample_bilinear_0center(-direction.x / direction.y, -direction.z / direction.y)
             }
         } else {
             if direction.z.is_sign_positive() {
-                scale * self.pz_texture.sample_bilinear_0center(direction.x / direction.z, direction.y / direction.z)
+                self.intensity * self.pz_texture.sample_bilinear_0center(direction.x / direction.z, direction.y / direction.z)
             } else {
-                scale * self.nz_texture.sample_bilinear_0center(direction.x / direction.z, -direction.y / direction.z)
+                self.intensity * self.nz_texture.sample_bilinear_0center(direction.x / direction.z, -direction.y / direction.z)
             }
         }
     }

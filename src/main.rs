@@ -101,7 +101,7 @@ fn init_scene_simple() -> (Camera, Scene) {
                 }
             }),
         ],
-        skybox: Skybox::new(
+        skybox: Skybox::one(
             "textures/cube/LancellottiChapel/posx.jpg",
             "textures/cube/LancellottiChapel/negx.jpg",
             "textures/cube/LancellottiChapel/posy.jpg",
@@ -213,7 +213,7 @@ fn init_scene_material_examples() -> (Camera, Scene) {
                 }
             }),
         ],
-        skybox: Skybox::new(
+        skybox: Skybox::one(
             "textures/cube/LancellottiChapel/posx.jpg",
             "textures/cube/LancellottiChapel/negx.jpg",
             "textures/cube/LancellottiChapel/posy.jpg",
@@ -392,7 +392,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                 }
             }),
         ],
-        skybox: Skybox::new(
+        skybox: Skybox::one(
             "textures/cube/LancellottiChapel/posx.jpg",
             "textures/cube/LancellottiChapel/negx.jpg",
             "textures/cube/LancellottiChapel/posy.jpg",
@@ -620,6 +620,7 @@ fn init_scene_tbf3() -> (Camera, Scene) {
             "textures/cube/LancellottiChapel/negy.jpg",
             "textures/cube/LancellottiChapel/posz.jpg",
             "textures/cube/LancellottiChapel/negz.jpg",
+            &Vector3::new(2.0, 2.0, 3.0),
         ),
     };
 
