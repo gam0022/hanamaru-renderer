@@ -5,6 +5,7 @@ target/
 progress_*.png
 result_tle.png
 compare_*.png
+result*.png
 
 #
 # https://github.com/github/gitignore/blob/master/Global/JetBrains.gitignore
