@@ -103,7 +103,7 @@ impl Renderer for DebugRenderer {
 
     fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2, _: u32) -> Color {
         let ray = camera.ray(&normalized_coord);
-        let light_direction = Vector3::new(1.0, 2.0, 1.0).normalize();
+        let light_direction = Vector3::new(1.0, 2.0, -1.0).normalize();
         let (hit, intersection) = scene.intersect(&ray);
         if hit {
             match self.mode {
