@@ -697,6 +697,96 @@ fn init_scene_tbf3() -> (Camera, Scene) {
     (camera, scene)
 }
 
+fn init_scene_rtcamp6() -> (Camera, Scene) {
+    let camera = Camera::new(
+        Vector3::new(0.0, 2.0, 9.0), // eye
+        Vector3::new(0.0, 1.0, 0.0), // target
+        Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
+        10.0, // fov
+
+        LensShape::Circle, // lens shape
+        0.2 * 0.0,// aperture
+        8.8// focus_distance
+    );
+
+    let radius = 0.6;
+
+    let scene = Scene {
+        elements: vec![
+            Box::new(Sphere {
+                center: Vector3::new(0.0, radius, 0.0),
+                radius: radius,
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::white(),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            }),
+
+            // 光源
+            /*Box::new(Sphere {
+                center: Vector3::new(3.0, 2.0 + radius, -2.0),
+                radius: radius,
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::black(),
+                    emission: Texture::from_color(Color::from_one(20.0)),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            }),*/
+
+            // Mesh
+            Box::new(BvhMesh::from_mesh(ObjLoader::load(
+                "models/houdini_boss.obj",
+                Matrix44::scale_linear(0.4) * Matrix44::translate(0.0, 3.1782, 2.0) * Matrix44::rotate_y(-0.5),
+                Material {
+                    surface: SurfaceType::Refraction { refractive_index: 1.5 },
+                    albedo: Texture::from_color(Color::new(0.7, 0.7, 1.0)),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                },
+                /*Material {
+                    surface: SurfaceType::GGX,
+                    albedo: Texture::from_color(Color::new(0.4, 0.4, 1.0)),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },*/
+            ))),
+
+            // 床
+            Box::new(Cuboid {
+                aabb: Aabb {
+                    min: Vector3::new(-5.0, -1.0, -5.0),
+                    max: Vector3::new(5.0, 0.0, 5.0),
+                },
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    //albedo:  Texture::white(),
+                    //albedo: Texture::from_path("textures/2d/stone03.jpg"),
+                    albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
+                    //albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_c_diffuse.tiff"),
+                    emission: Texture::black(),
+                    //roughness: Texture::white(),
+                    roughness: Texture::from_path("textures/2d/checkered_diagonal_10_0.1_0.6_512.png"),
+                    //roughness: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png"),
+                }
+            }),
+        ],
+        skybox: Skybox::new(
+            "textures/cube/LancellottiChapel/posx.jpg",
+            "textures/cube/LancellottiChapel/negx.jpg",
+            "textures/cube/LancellottiChapel/posy.jpg",
+            "textures/cube/LancellottiChapel/negy.jpg",
+            "textures/cube/LancellottiChapel/posz.jpg",
+            "textures/cube/LancellottiChapel/negz.jpg",
+            &Vector3::new(2.0, 2.0, 3.0),
+        ),
+    };
+
+    (camera, scene)
+}
+
 fn render<R: Renderer>(renderer: &mut R, width: u32, height: u32, camera: &Camera, scene: Scene) -> u32 {
     let mut imgbuf = image::ImageBuffer::new(width, height);
     let sampled = renderer.render(&BvhScene::from_scene(scene), camera, &mut imgbuf);
@@ -732,7 +822,8 @@ fn main() {
         tee(&mut f, &format!("time limit: {:.2} sec.", config::TIME_LIMIT_SEC));
 
         let init_scene_begin = time::now();
-        let (camera, scene) = init_scene_rtcamp5();
+        //let (camera, scene) = init_scene_rtcamp5();
+        let (camera, scene) = init_scene_rtcamp6();
         //let (camera, scene) = init_scene_material_examples();
         //let (camera, scene) = init_scene_tbf3();
         //let (camera, scene) = init_scene_simple();
