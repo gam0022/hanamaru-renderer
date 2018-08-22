@@ -1,5 +1,6 @@
 use std::ops::{Add, Sub, Mul, Div, Neg, AddAssign, MulAssign};
 use std::cmp::PartialEq;
+use config::EPS;
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]
@@ -71,13 +72,16 @@ impl Vector3 {
         Vector2::new(self.x, self.y)
     }
 
-
     pub fn zy(&self) -> Vector2 {
         Vector2::new(self.z, self.y)
     }
 
     pub fn xz(&self) -> Vector2 {
         Vector2::new(self.x, self.z)
+    }
+
+    pub fn approximately(&self, other: &Vector3) -> bool {
+        (*self - *other).norm() < EPS
     }
 }
 
@@ -269,6 +273,10 @@ impl Vector2 {
 
     pub fn cross(&self, other: &Vector2) -> f64 {
         self.x * other.y - other.x * self.y
+    }
+
+    pub fn approximately(&self, other: &Vector2) -> bool {
+        (*self - *other).norm() < EPS
     }
 }
 

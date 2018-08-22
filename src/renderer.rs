@@ -12,7 +12,7 @@ use self::rayon::prelude::*;
 
 use config;
 use vector::{Vector3, Vector2};
-use scene::SceneTrait;
+use scene::{SceneTrait, Intersectable};
 use camera::{Camera, Ray};
 use material::SurfaceType;
 use bsdf;
@@ -22,12 +22,13 @@ use math::saturate;
 pub trait Renderer: Sync {
     fn max_sampling(&self) -> u32;
 
-    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2, sampling: u32) -> Color;
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, emissions: &Vec<Box<Intersectable>>, normalized_coord: &Vector2, sampling: u32) -> Color;
 
     fn render(&mut self, scene: &SceneTrait, camera: &Camera, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> u32 {
         let resolution = Vector2::new(imgbuf.width() as f64, imgbuf.height() as f64);
         let num_of_pixel = imgbuf.width() * imgbuf.height();
         let mut accumulation_buf = vec![Vector3::zero(); num_of_pixel as usize];
+        let emissions = scene.emissions();
 
         // NOTICE: sampling is 1 origin
         for sampling in 1..(self.max_sampling() + 1) {
@@ -35,7 +36,7 @@ pub trait Renderer: Sync {
                 let y = i as u32 / imgbuf.width();
                 let x = i as u32 - y * imgbuf.width();
                 let frag_coord = Vector2::new(x as f64, (imgbuf.height() - y) as f64);
-                *pixel += self.supersampling(scene, camera, &frag_coord, &resolution, sampling);
+                *pixel += self.supersampling(scene, camera, &emissions, &frag_coord, &resolution, sampling);
             });
 
             if self.report_progress(&accumulation_buf, sampling, imgbuf) {
@@ -46,14 +47,14 @@ pub trait Renderer: Sync {
         self.max_sampling()
     }
 
-    fn supersampling(&self, scene: &SceneTrait, camera: &Camera, frag_coord: &Vector2, resolution: &Vector2, sampling: u32) -> Color {
+    fn supersampling(&self, scene: &SceneTrait, camera: &Camera, emissions: &Vec<Box<Intersectable>>, frag_coord: &Vector2, resolution: &Vector2, sampling: u32) -> Color {
         let mut accumulation = Color::zero();
 
         for sy in 0..config::SUPERSAMPLING {
             for sx in 0..config::SUPERSAMPLING {
                 let offset = Vector2::new(sx as f64, sy as f64) / config::SUPERSAMPLING as f64 - 0.5;
                 let normalized_coord = ((*frag_coord + offset) * 2.0 - *resolution) / resolution.x.min(resolution.y);
-                accumulation += self.calc_pixel(scene, camera, &normalized_coord, sampling);
+                accumulation += self.calc_pixel(scene, camera, &emissions, &normalized_coord, sampling);
             }
         }
 
@@ -101,7 +102,7 @@ pub struct DebugRenderer {
 impl Renderer for DebugRenderer {
     fn max_sampling(&self) -> u32 { 1 }
 
-    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2, _: u32) -> Color {
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, emissions: &Vec<Box<Intersectable>>, normalized_coord: &Vector2, _: u32) -> Color {
         let ray = camera.ray(&normalized_coord);
         let light_direction = Vector3::new(1.0, 2.0, -1.0).normalize();
         let (hit, intersection) = scene.intersect(&ray);
@@ -146,7 +147,7 @@ pub struct PathTracingRenderer {
 impl Renderer for PathTracingRenderer {
     fn max_sampling(&self) -> u32 { self.sampling }
 
-    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, normalized_coord: &Vector2, sampling: u32) -> Color {
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, emissions: &Vec<Box<Intersectable>>, normalized_coord: &Vector2, sampling: u32) -> Color {
         // random generator
         let s = ((4.0 + normalized_coord.x) * 100870.0) as usize;
         let t = ((4.0 + normalized_coord.y) * 100304.0) as usize;
@@ -164,6 +165,27 @@ impl Renderer for PathTracingRenderer {
             if hit {
                 match intersection.material.surface {
                     SurfaceType::Diffuse => {
+                        // TODO: forに置き換えて全光源でNEEしたらどうなるのか調査
+                        if emissions.len() > 0 {
+                            // NEE
+                            let emission = emissions[rng.gen_range(0, emissions.len())];
+                            let surface = emission.sample_on_surface(random);
+                            let shadow_vec = surface.position - intersection.position;
+                            let shadow_dir = shadow_vec.normalize();
+                            let shadow_ray = Ray{ origin: intersection.position, direction: shadow_dir };
+                            let (shadow_hit, mut shadow_intersection) = scene.intersect(&ray);
+
+                            if shadow_hit && intersection.position.approximately(&shadow_intersection.position) {
+                                let dot_0 = intersection.normal.dot(&shadow_dir).abs();
+                                let dot_l = surface.normal.dot(&shadow_dir).abs();
+                                let distance_pow2 = shadow_vec.dot(&shadow_vec);
+                                let g = (dot_0 * dot_l) / distance_pow2;
+                                let pdf = surface.pdf / emissions.len() as f64;
+                                accumulation *= reflection * shadow_intersection.material.emission * (intersection.material.albedo / config::PI) * (g / pdf);
+
+                            }
+                        }
+
                         ray.origin = intersection.position + intersection.normal * config::OFFSET;
                         ray.direction = bsdf::importance_sample_diffuse(random, &intersection.normal);
                     }
