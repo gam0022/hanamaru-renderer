@@ -1,6 +1,6 @@
 use std::ops::{Add, Sub, Mul, Div, Neg, AddAssign, MulAssign};
 use std::cmp::PartialEq;
-use config::EPS;
+use config;
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]
@@ -81,7 +81,7 @@ impl Vector3 {
     }
 
     pub fn approximately(&self, other: &Vector3) -> bool {
-        (*self - *other).norm() < EPS
+        (*self - *other).norm() < config::OFFSET * 4.0
     }
 }
 
@@ -276,7 +276,7 @@ impl Vector2 {
     }
 
     pub fn approximately(&self, other: &Vector2) -> bool {
-        (*self - *other).norm() < EPS
+        (*self - *other).norm() < config::OFFSET * 4.0
     }
 }
 

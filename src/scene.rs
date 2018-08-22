@@ -96,7 +96,7 @@ impl Intersectable for Sphere {
         // TODO: normalize が必要か確認する
         let normal = (Vector3::new(r3 * r1.cos(), r3 * r1.sin(), r2)).normalize();
         let position = self.center + (self.radius + config::OFFSET) * normal;
-        let pdf = 1.0 / (4.0 * self.radius * self.radius);
+        let pdf = (4.0 * config::PI * self.radius * self.radius).recip();
         Surface{ position, normal, pdf }
     }
 }
@@ -321,7 +321,7 @@ impl Skybox {
 
 pub trait SceneTrait: Sync {
     fn intersect(&self, ray: &Ray) -> (bool, Intersection);
-    fn emissions(&self) -> Vec<Box<Intersectable>>;
+    fn emissions(&self) -> Vec<&Box<Intersectable>>;
 }
 
 pub struct Scene {
@@ -353,8 +353,8 @@ impl SceneTrait for Scene {
         }
     }
 
-    fn emissions(&self) -> Vec<Box<Intersectable>> {
-        self.elements.iter().filter(|e| e.nee_available() && e.material().emission.color != Color::zero())
+    fn emissions(&self) -> Vec<&Box<Intersectable>> {
+        self.elements.iter().filter(|e| e.nee_available() && e.material().emission.color != Color::zero()).collect()
     }
 }
 
@@ -400,7 +400,7 @@ impl SceneTrait for BvhScene {
         }
     }
 
-    fn emissions(&self) -> Vec<Box<Intersectable>> {
+    fn emissions(&self) -> Vec<&Box<Intersectable>> {
         self.scene.emissions()
     }
 }
