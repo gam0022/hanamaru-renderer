@@ -184,7 +184,7 @@ impl Renderer for PathTracingRenderer {
                                 let distance_pow2 = shadow_vec.dot(&shadow_vec);
                                 let g = (dot_0 * dot_l) / distance_pow2;
                                 let pdf = surface.pdf / emissions.len() as f64;
-                                accumulation += reflection * shadow_intersection.material.emission * intersection.material.albedo * (dot_l / config::PI) * (g / pdf);
+                                accumulation += reflection * shadow_intersection.material.emission * (intersection.material.albedo / config::PI) * (g / pdf);
                             }
                         }
                     }
