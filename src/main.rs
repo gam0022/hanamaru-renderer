@@ -73,7 +73,7 @@ fn init_scene_simple() -> (Camera, Scene) {
             // 光源
             Box::new(Sphere {
                 center: Vector3::new(3.0, 2.0 + radius, -2.0),
-                radius: radius,
+                radius: radius * 0.2,
                 material: Material {
                     surface: SurfaceType::Diffuse,
                     albedo: Texture::black(),
@@ -101,13 +101,14 @@ fn init_scene_simple() -> (Camera, Scene) {
                 }
             }),
         ],
-        skybox: Skybox::one(
+        skybox: Skybox::new(
             "textures/cube/LancellottiChapel/posx.jpg",
             "textures/cube/LancellottiChapel/negx.jpg",
             "textures/cube/LancellottiChapel/posy.jpg",
             "textures/cube/LancellottiChapel/negy.jpg",
             "textures/cube/LancellottiChapel/posz.jpg",
             "textures/cube/LancellottiChapel/negz.jpg",
+            &Vector3::zero()
         ),
     };
 

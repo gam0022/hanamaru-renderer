@@ -88,16 +88,16 @@ impl Intersectable for Sphere {
 
     fn nee_available(&self) -> bool { true }
 
+    // http://apollon.issp.u-tokyo.ac.jp/~watanabe/pdf/prob.pdf
     fn sample_on_surface(&self, random: (f64, f64)) -> Surface {
-        let r1 = config::PI2 * random.0;
-        let r2 = 1.0 - 2.0 * random.1;
-        let r3 = (1.0 - r2 * r2).sqrt();
+        let theta = config::PI2 * random.0;
+        let unit_z = 1.0 - 2.0 * random.1;
+        let a = (1.0 - unit_z * unit_z).sqrt();
 
-        // TODO: normalize が必要か確認する
-        let normal = (Vector3::new(r3 * r1.cos(), r3 * r1.sin(), r2)).normalize();
+        let normal = Vector3::new(a * theta.cos(), a * theta.sin(), unit_z);
         let position = self.center + (self.radius + config::OFFSET) * normal;
         let pdf = (4.0 * config::PI * self.radius * self.radius).recip();
-        Surface{ position, normal, pdf }
+        Surface { position, normal, pdf }
     }
 }
 
