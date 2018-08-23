@@ -77,7 +77,7 @@ fn init_scene_simple() -> (Camera, Scene) {
                 material: Material {
                     surface: SurfaceType::Diffuse,
                     albedo: Texture::black(),
-                    emission: Texture::from_color(Color::from_one(10.0)),
+                    emission: Texture::from_color(Color::from_one(200.0)),
                     roughness: Texture::from_color(Color::from_one(0.05)),
                 },
             }),
@@ -807,7 +807,7 @@ fn main() {
 
         //let (width, height, sampling) = (1280, 720, 10);// 16:9 HD 921,600 pixel
         //let (width, height, sampling) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
-        let (width, height, sampling) = (1920 / 2, 1080 / 2, 100);
+        let (width, height, sampling) = (1920 / 2, 1080 / 2, 20000);
         //let (width, height, sampling) = (800, 600, 10);// 4:3 SVGA 480,000 pixel
         //let (width, height, sampling) = (1280, 960, 1000);// 4:3 960p 1,228,800 pixel
         //let (width, height, sampling) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel
