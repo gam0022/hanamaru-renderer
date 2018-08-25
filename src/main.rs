@@ -273,7 +273,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                 Matrix44::scale(1.5, 1.5, 1.5) * Matrix44::translate(-1.2, 0.0, 0.0) * Matrix44::rotate_y(-0.2),
                 Material {
                     surface: SurfaceType::GGX{ f0: 0.8 },
-                    albedo: Texture::from_color(Color::new(1.0, 0.2, 0.2)),
+                    albedo: Texture::from_color(Color::new(1.0, 0.04, 0.04)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
                 },

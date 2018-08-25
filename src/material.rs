@@ -158,7 +158,7 @@ impl PointMaterial {
         let reflect_direction = view.reflect(&oriented_normal);
         let refract_direction = view.refract(&oriented_normal, nnt);
         if refract_direction == Vector3::zero() {
-            // 完全反射のケース
+            // 全反射のケース
             Some(SampleResult {
                 ray: Ray {
                     origin: *position + config::OFFSET * oriented_normal,
@@ -182,7 +182,7 @@ impl PointMaterial {
                         origin: *position + config::OFFSET * oriented_normal,
                         direction: reflect_direction,
                     },
-                    reflectance: 1.0,// TODO: r な気がするので調査
+                    reflectance: r.recip(),// 1.0 / pdf
                 })
             } else {
                 // 屈折
@@ -191,7 +191,7 @@ impl PointMaterial {
                         origin: *position - config::OFFSET * oriented_normal,// 物体内部にレイの原点を移動する
                         direction: refract_direction,
                     },
-                    reflectance: nnt.powf(2.0),// 立体角の変化に伴う放射輝度の補正。 // TODO: (1.0 - r)が抜けている気がするので調査
+                    reflectance: nnt.powf(2.0) / (1.0 - r),// 立体角の変化に伴う放射輝度の補正 / pdf
                 })
             }
         }
