@@ -190,14 +190,14 @@ impl Renderer for PathTracingRenderer {
 
                         // 半球外が選ばれた場合はBRDFを0にする
                         // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
-                        if intersection.normal.dot(&next_direction).is_sign_negative() {
+                        let l_dot_n = saturate(next_direction.dot(&intersection.normal));
+                        if l_dot_n.is_sign_negative() {
                             break;
                         } else {
                             let view = -ray.direction;
-                            let v_dot_n = saturate(view.dot(&intersection.normal));
-                            let l_dot_n = saturate(next_direction.dot(&intersection.normal));
-                            let v_dot_h = saturate(view.dot(&half));
-                            let h_dot_n = saturate(half.dot(&intersection.normal));
+                            let v_dot_n = view.dot(&intersection.normal);
+                            let v_dot_h = view.dot(&half);
+                            let h_dot_n = half.dot(&intersection.normal);
 
                             // Masking-shadowing関数
                             let g = bsdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);

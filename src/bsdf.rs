@@ -20,9 +20,9 @@ pub fn ggx_brdf(view: &Vector3, light: &Vector3, normal: &Vector3, alpha2: f64, 
         return 0.0;
     }
 
-    let v_dot_n = saturate(view.dot(normal));
-    let v_dot_h = saturate(view.dot(&half));
-    let h_dot_n = saturate(half.dot(normal));
+    let v_dot_n = view.dot(normal);
+    let v_dot_h = view.dot(&half);
+    let h_dot_n = half.dot(normal);
 
     // D: Microfacet Distribution Functions GGX(Trowbridge-Reitz model)
     let tmp = (1.0 - (1.0 - alpha2) * h_dot_n * h_dot_n);
