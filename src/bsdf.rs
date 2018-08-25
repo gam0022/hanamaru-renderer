@@ -15,8 +15,12 @@ pub fn diffuse_brdf() -> f64 {
 pub fn ggx_brdf(view: &Vector3, light: &Vector3, normal: &Vector3, alpha2: f64, f0: f64) -> f64 {
     let half = (*light + *view).normalize();
 
+    let l_dot_n = light.dot(normal);
+    if l_dot_n.is_negative() {
+        return 0.0;
+    }
+
     let v_dot_n = saturate(view.dot(normal));
-    let l_dot_n = saturate(light.dot(normal));
     let v_dot_h = saturate(view.dot(&half));
     let h_dot_n = saturate(half.dot(normal));
 
