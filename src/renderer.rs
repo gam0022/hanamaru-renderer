@@ -156,71 +156,24 @@ impl Renderer for PathTracingRenderer {
         let mut ray = camera.ray_with_dof(&normalized_coord, &mut rng);
 
         let mut accumulation = Color::zero();
-        let mut reflection = Color::one();
+        let mut reflectance = Color::one();
+        let mut current_reflectance = 1.0;
 
         for _ in 1..config::PATHTRACING_BOUNCE_LIMIT {
             let random = rng.gen::<(f64, f64)>();
             let (hit, mut intersection) = scene.intersect(&ray);
 
             if hit {
-                match intersection.material.surface {
-                    SurfaceType::Diffuse => {
-                        let intersection_position = intersection.position + intersection.normal * config::OFFSET;
-
-                        accumulation += PathTracingRenderer::next_event_estimation(scene, emissions, &ray, &intersection, &intersection_position, &reflection, random);
-
-                        ray.origin = intersection_position;
-                        ray.direction = bsdf::importance_sample_diffuse(random, &intersection.normal);
-                    }
-                    SurfaceType::Specular => {
-                        ray.origin = intersection.position + intersection.normal * config::OFFSET;
-                        ray.direction = ray.direction.reflect(&intersection.normal);
-                    }
-                    SurfaceType::Refraction { refractive_index } => {
-                        bsdf::sample_refraction(random, &intersection.normal.clone(), refractive_index, &mut intersection, &mut ray);
-                    }
-                    SurfaceType::GGX{ f0 } => {
-                        let intersection_position = intersection.position + intersection.normal * config::OFFSET;
-
-                        accumulation += PathTracingRenderer::next_event_estimation(scene, emissions, &ray, &intersection, &intersection_position, &reflection, random);
-
-                        let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
-                        let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
-                        let next_direction = ray.direction.reflect(&half);
-
-                        // 半球外が選ばれた場合はBRDFを0にする
-                        // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
-                        let l_dot_n = saturate(next_direction.dot(&intersection.normal));
-                        if l_dot_n.is_sign_negative() {
-                            break;
-                        } else {
-                            let view = -ray.direction;
-                            let v_dot_n = view.dot(&intersection.normal);
-                            let v_dot_h = view.dot(&half);
-                            let h_dot_n = half.dot(&intersection.normal);
-
-                            // Masking-shadowing関数
-                            let g = bsdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
-
-                            let f = bsdf::f_schlick_f64(v_dot_h, f0);
-
-                            let weight = f * saturate(g * v_dot_h / (h_dot_n * v_dot_n));
-                            intersection.material.albedo *= weight;
-                        }
-
-                        ray.origin = intersection_position;
-                        ray.direction = next_direction;
-                    }
-                    SurfaceType::GGXRefraction { f0, refractive_index } => {
-                        let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
-                        let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
-                        bsdf::sample_refraction(random, &half, refractive_index, &mut intersection, &mut ray);
-                    }
+                if let Some(result) = intersection.material.sample(random, &intersection.position, &-ray.direction, &intersection.normal) {
+                    ray = result.ray;
+                    current_reflectance = result.reflectance;
+                } else {
+                    break;
                 }
             }
 
-            accumulation += reflection * intersection.material.emission;
-            reflection *= intersection.material.albedo;
+            accumulation += reflectance * intersection.material.emission;
+            reflectance *= intersection.material.albedo * current_reflectance;
 
             if !hit { break; }
         }
@@ -319,10 +272,10 @@ impl PathTracingRenderer {
                     SurfaceType::Diffuse => bsdf::diffuse_brdf(),
                     SurfaceType::Specular => unimplemented!(),
                     SurfaceType::Refraction { refractive_index } => unimplemented!(),
-                    SurfaceType::GGX{ f0 } => {
+                    SurfaceType::GGX { f0 } => {
                         let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
                         bsdf::ggx_brdf(&-ray.direction, &shadow_dir, &intersection.normal, alpha2, f0)
-                    },
+                    }
                     SurfaceType::GGXRefraction { f0, refractive_index } => unimplemented!()
                 };
 
