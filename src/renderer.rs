@@ -260,7 +260,8 @@ impl PathTracingRenderer {
         // TODO: forに置き換えて全光源でNEEしたらどうなるのか調査
         if emissions.len() > 0 {
             // NEE
-            let emission = emissions[0]; //emissions[rng.gen_range(0, emissions.len())];
+            let mut rng = self::rand::thread_rng();
+            let emission = emissions[rng.gen_range(0, emissions.len())];
             let surface = emission.sample_on_surface(random);
             let shadow_vec = surface.position - *position;
             let shadow_dir = shadow_vec.normalize();

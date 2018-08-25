@@ -63,7 +63,7 @@ fn init_scene_simple() -> (Camera, Scene) {
                 center: Vector3::new(0.0, radius, 0.0),
                 radius: radius,
                 material: Material {
-                    surface: SurfaceType::GGX{ f0: 0.8 },
+                    surface: SurfaceType::Diffuse,
                     albedo: Texture::white(),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.99)),
@@ -77,7 +77,19 @@ fn init_scene_simple() -> (Camera, Scene) {
                 material: Material {
                     surface: SurfaceType::Diffuse,
                     albedo: Texture::black(),
-                    emission: Texture::from_color(Color::from_one(200.0)),
+                    emission: Texture::from_color(Color::new(200.0, 10.0, 10.0)),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            }),
+
+            // 光源
+            Box::new(Sphere {
+                center: Vector3::new(-3.0, 2.0 + radius, -2.0),
+                radius: radius * 0.2,
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::black(),
+                    emission: Texture::from_color(Color::new(10.0, 200.0, 10.0)),
                     roughness: Texture::from_color(Color::from_one(0.05)),
                 },
             }),
