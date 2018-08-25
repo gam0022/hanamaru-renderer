@@ -63,10 +63,10 @@ fn init_scene_simple() -> (Camera, Scene) {
                 center: Vector3::new(0.0, radius, 0.0),
                 radius: radius,
                 material: Material {
-                    surface: SurfaceType::Diffuse,
+                    surface: SurfaceType::GGX,
                     albedo: Texture::white(),
                     emission: Texture::black(),
-                    roughness: Texture::from_color(Color::from_one(0.05)),
+                    roughness: Texture::from_color(Color::from_one(0.99)),
                 },
             }),
 
@@ -89,7 +89,7 @@ fn init_scene_simple() -> (Camera, Scene) {
                     max: Vector3::new(5.0, 0.0, 5.0),
                 },
                 material: Material {
-                    surface: SurfaceType::Diffuse,
+                    surface: SurfaceType::GGX,
                     //albedo:  Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
@@ -807,7 +807,7 @@ fn main() {
 
         //let (width, height, sampling) = (1280, 720, 10);// 16:9 HD 921,600 pixel
         //let (width, height, sampling) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
-        let (width, height, sampling) = (1920 / 2, 1080 / 2, 20000);
+        let (width, height, sampling) = (1920 / 2, 1080 / 2, 2000);
         //let (width, height, sampling) = (800, 600, 10);// 4:3 SVGA 480,000 pixel
         //let (width, height, sampling) = (1280, 960, 1000);// 4:3 960p 1,228,800 pixel
         //let (width, height, sampling) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel

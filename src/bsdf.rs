@@ -3,6 +3,28 @@ use vector::Vector3;
 use scene::Intersection;
 use camera::Ray;
 use color::Color;
+use math::saturate;
+
+pub fn diffuse_brdf() -> f64 {
+    config::PI.recip()
+}
+
+pub fn ggx_brdf(view: &Vector3, light: &Vector3, normal: &Vector3, alpha2: f64, f0: f64) -> f64 {
+    let half = (*light + *view).normalize();
+
+    let v_dot_n = saturate(view.dot(normal));
+    let l_dot_n = saturate(light.dot(normal));
+    let v_dot_h = saturate(view.dot(&half));
+    let h_dot_n = saturate(half.dot(normal));
+
+    // Masking-shadowing関数
+    let g = g_smith_joint(l_dot_n, v_dot_n, alpha2);
+
+    // albedoをフレネル反射率のパラメータのF0として扱う
+    let f = f_schlick_f64(v_dot_h, f0);
+
+    f * saturate(g * v_dot_h / (4.0 * h_dot_n * v_dot_n))
+}
 
 // 法線を基準とした空間の基底ベクトルを計算
 fn get_tangent_space_basis(normal: &Vector3) -> (Vector3, Vector3) {

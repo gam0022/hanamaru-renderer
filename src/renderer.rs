@@ -12,7 +12,7 @@ use self::rayon::prelude::*;
 
 use config;
 use vector::{Vector3, Vector2};
-use scene::{SceneTrait, Intersectable};
+use scene::{SceneTrait, Intersectable, Intersection};
 use camera::{Camera, Ray};
 use material::SurfaceType;
 use bsdf;
@@ -165,28 +165,12 @@ impl Renderer for PathTracingRenderer {
             if hit {
                 match intersection.material.surface {
                     SurfaceType::Diffuse => {
-                        ray.origin = intersection.position + intersection.normal * config::OFFSET;
+                        let intersection_position = intersection.position + intersection.normal * config::OFFSET;
+
+                        accumulation += PathTracingRenderer::next_event_estimation(scene, emissions, &ray, &intersection, &intersection_position, &reflection, random);
+
+                        ray.origin = intersection_position;
                         ray.direction = bsdf::importance_sample_diffuse(random, &intersection.normal);
-
-                        // TODO: forに置き換えて全光源でNEEしたらどうなるのか調査
-                        if emissions.len() > 0 {
-                            // NEE
-                            let emission = emissions[rng.gen_range(0, emissions.len())];
-                            let surface = emission.sample_on_surface(random);
-                            let shadow_vec = surface.position - ray.origin  ;
-                            let shadow_dir = shadow_vec.normalize();
-                            let shadow_ray = Ray { origin: ray.origin, direction: shadow_dir };
-                            let (shadow_hit, shadow_intersection) = scene.intersect(&shadow_ray);
-
-                            if shadow_hit && shadow_intersection.position.approximately(&surface.position) {
-                                let dot_0 = intersection.normal.dot(&shadow_dir).abs();
-                                let dot_l = surface.normal.dot(&shadow_dir).abs();
-                                let distance_pow2 = shadow_vec.dot(&shadow_vec);
-                                let g = (dot_0 * dot_l) / distance_pow2;
-                                let pdf = surface.pdf / emissions.len() as f64;
-                                accumulation += reflection * shadow_intersection.material.emission * (intersection.material.albedo / config::PI) * (g / pdf);
-                            }
-                        }
                     }
                     SurfaceType::Specular => {
                         ray.origin = intersection.position + intersection.normal * config::OFFSET;
@@ -196,6 +180,10 @@ impl Renderer for PathTracingRenderer {
                         bsdf::sample_refraction(random, &intersection.normal.clone(), refractive_index, &mut intersection, &mut ray);
                     }
                     SurfaceType::GGX => {
+                        let intersection_position = intersection.position + intersection.normal * config::OFFSET;
+
+                        accumulation += PathTracingRenderer::next_event_estimation(scene, emissions, &ray, &intersection, &intersection_position, &reflection, random);
+
                         let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
                         let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
                         let next_direction = ray.direction.reflect(&half);
@@ -221,7 +209,7 @@ impl Renderer for PathTracingRenderer {
                             intersection.material.albedo *= weight;
                         }
 
-                        ray.origin = intersection.position + intersection.normal * config::OFFSET;
+                        ray.origin = intersection_position;
                         ray.direction = next_direction;
                     }
                     SurfaceType::GGXRefraction { refractive_index } => {
@@ -301,5 +289,48 @@ impl PathTracingRenderer {
             last_report_image: now,
             report_image_counter: 0,
         }
+    }
+
+    fn next_event_estimation(scene: &SceneTrait, emissions: &Vec<&Box<Intersectable>>,
+                             ray: &Ray, intersection: &Intersection, intersection_position: &Vector3,
+                             reflection: &Vector3, random: (f64, f64)) -> Vector3 {
+        return Vector3::zero();
+
+        let mut accumulation = Vector3::zero();
+
+        // TODO: forに置き換えて全光源でNEEしたらどうなるのか調査
+        if emissions.len() > 0 {
+            // NEE
+            let emission = emissions[0]; //emissions[rng.gen_range(0, emissions.len())];
+            let surface = emission.sample_on_surface(random);
+            let shadow_vec = surface.position - *intersection_position;
+            let shadow_dir = shadow_vec.normalize();
+            let shadow_ray = Ray { origin: *intersection_position, direction: shadow_dir };
+            let (shadow_hit, shadow_intersection) = scene.intersect(&shadow_ray);
+
+            if shadow_hit && shadow_intersection.position.approximately(&surface.position) {
+                let dot_0 = intersection.normal.dot(&shadow_dir).abs();
+                let dot_l = surface.normal.dot(&shadow_dir).abs();
+                let distance_pow2 = shadow_vec.dot(&shadow_vec);
+                let g = (dot_0 * dot_l) / distance_pow2;
+                let pdf = surface.pdf / emissions.len() as f64;
+
+                // TODO: Bsdf trait を SurfaceType に実装してリファクターしたい
+                let f = match intersection.material.surface {
+                    SurfaceType::Diffuse => bsdf::diffuse_brdf(),
+                    SurfaceType::Specular => unimplemented!(),
+                    SurfaceType::Refraction { refractive_index } => unimplemented!(),
+                    SurfaceType::GGX => {
+                        let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
+                        bsdf::ggx_brdf(&-ray.direction, &shadow_dir, &intersection.normal, alpha2, 0.95)
+                    },
+                    SurfaceType::GGXRefraction { refractive_index } => unimplemented!()
+                };
+
+                accumulation += *reflection * shadow_intersection.material.emission * intersection.material.albedo * f * (g / pdf);
+            }
+        }
+
+        accumulation
     }
 }
