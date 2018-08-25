@@ -4,6 +4,7 @@ use vector::Vector3;
 use camera::Ray;
 use config;
 use bsdf;
+use math::saturate;
 
 #[derive(Clone, Debug)]
 pub enum SurfaceType {
@@ -138,7 +139,7 @@ impl PointMaterial {
                             origin: *position + *normal * config::OFFSET,
                             direction: next_direction,
                         },
-                        reflectance: f * g * v_dot_h / (h_dot_n * v_dot_n),
+                        reflectance: f * saturate(g * v_dot_h / (h_dot_n * v_dot_n)),
                     })
                 }
             }
