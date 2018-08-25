@@ -293,7 +293,7 @@ impl PathTracingRenderer {
     fn next_event_estimation(scene: &SceneTrait, emissions: &Vec<&Box<Intersectable>>,
                              ray: &Ray, intersection: &Intersection, intersection_position: &Vector3,
                              reflection: &Vector3, random: (f64, f64)) -> Vector3 {
-        return Vector3::zero();
+        //return Vector3::zero();
 
         let mut accumulation = Vector3::zero();
 

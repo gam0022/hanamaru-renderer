@@ -9,6 +9,9 @@ pub fn diffuse_brdf() -> f64 {
     config::PI.recip()
 }
 
+// https://schuttejoe.github.io/post/ggximportancesamplingpart1/
+// i: view, g: light, m: half
+// https://qiita.com/_Pheema_/items/f1ffb2e38cc766e6e668
 pub fn ggx_brdf(view: &Vector3, light: &Vector3, normal: &Vector3, alpha2: f64, f0: f64) -> f64 {
     let half = (*light + *view).normalize();
 
@@ -17,13 +20,17 @@ pub fn ggx_brdf(view: &Vector3, light: &Vector3, normal: &Vector3, alpha2: f64, 
     let v_dot_h = saturate(view.dot(&half));
     let h_dot_n = saturate(half.dot(normal));
 
-    // Masking-shadowing関数
+    // D: Microfacet Distribution Functions GGX(Trowbridge-Reitz model)
+    let tmp = (1.0 - (1.0 - alpha2) * h_dot_n * h_dot_n);
+    let d = alpha2 / (config::PI * tmp * tmp);
+
+    // G: Masking-Shadowing Fucntion
     let g = g_smith_joint(l_dot_n, v_dot_n, alpha2);
 
-    // albedoをフレネル反射率のパラメータのF0として扱う
+    // F: Fresnel term
     let f = f_schlick_f64(v_dot_h, f0);
 
-    f * saturate(g * v_dot_h / (4.0 * h_dot_n * v_dot_n))
+    d * g * f / (4.0 * l_dot_n * v_dot_n)
 }
 
 // 法線を基準とした空間の基底ベクトルを計算
@@ -97,14 +104,6 @@ pub fn g_smith_joint(l_dot_n :f64, v_dot_n: f64, alpha2: f64) -> f64 {
 
 pub fn f_schlick_f64(v_dot_h: f64, f0: f64) -> f64 {
     f0 + (1.0 - f0) * (1.0 - v_dot_h).powi(5)
-}
-
-pub fn f_schlick(v_dot_h: f64, f0: &Color) -> Color {
-    Color::new(
-        f_schlick_f64(v_dot_h,f0.x),
-        f_schlick_f64(v_dot_h,f0.y),
-        f_schlick_f64(v_dot_h,f0.z),
-    )
 }
 
 pub fn sample_refraction(random: (f64, f64), normal: &Vector3, refractive_index: f64, intersection: &mut Intersection, ray: &mut Ray) {
