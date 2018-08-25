@@ -169,7 +169,7 @@ impl PointMaterial {
             })
         } else {
             // フレネル反射率rの計算
-            // 入射角をI、屈折角をT、r_sをS波の反射率、r_pをP波の反射率、rをフレネル反射率とする
+            // 入射角をi、屈折角をt、r_sをS波の反射率、r_pをP波の反射率、frをフレネル反射率とする
             let cos_i = view.dot(&-oriented_normal);
             //float cos_t = sqrt(1.0 - nnt * nnt * (1.0 - cos_i * cos_i));
             let cos_t = refract_direction.dot(&-oriented_normal);
