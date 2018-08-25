@@ -158,17 +158,18 @@ impl Renderer for PathTracingRenderer {
 
         let mut accumulation = Color::zero();
         let mut reflectance = Color::one();
-        let mut current_reflectance = 1.0;
 
         for _ in 1..config::PATHTRACING_BOUNCE_LIMIT {
             let random = rng.gen::<(f64, f64)>();
             let (hit, mut intersection) = scene.intersect(&ray);
+            let mut current_reflectance = 1.0;
 
             if hit {
-                if let Some(result) = intersection.material.sample(random, &intersection.position, &-ray.direction, &intersection.normal) {
+                let view = &-ray.direction;
+                if let Some(result) = intersection.material.sample(random, &intersection.position, view, &intersection.normal) {
                     if intersection.material.nee_available() {
                         accumulation += reflectance * PathTracingRenderer::next_event_estimation(
-                            random, &intersection.position, &-ray.direction, &intersection.normal,
+                            random, &result.ray.origin, view, &intersection.normal,
                             scene, &emissions, &intersection.material);
                     }
 
