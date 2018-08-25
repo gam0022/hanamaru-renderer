@@ -183,7 +183,7 @@ impl Renderer for PathTracingRenderer {
             accumulation += reflectance * intersection.material.emission;
             reflectance *= intersection.material.albedo * current_reflectance;
 
-            if !hit { break; }
+            if !hit || reflectance == Vector3::zero() { break; }
         }
 
         accumulation

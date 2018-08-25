@@ -836,11 +836,13 @@ fn main() {
         tee(&mut f, &format!("time limit: {:.2} sec.", config::TIME_LIMIT_SEC));
 
         let init_scene_begin = time::now();
-        //let (camera, scene) = init_scene_rtcamp5();
+
+        let (camera, scene) = init_scene_rtcamp5();
         //let (camera, scene) = init_scene_rtcamp6();
         //let (camera, scene) = init_scene_material_examples();
         //let (camera, scene) = init_scene_tbf3();
-        let (camera, scene) = init_scene_simple();
+        //let (camera, scene) = init_scene_simple();
+
         let init_scene_end = time::now();
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
         tee(&mut f, &format!("init scene: {:.2} sec.", init_scene_sec));
