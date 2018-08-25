@@ -5,38 +5,6 @@ use camera::Ray;
 use color::Color;
 use math::saturate;
 
-pub fn diffuse_brdf() -> f64 {
-    config::PI.recip()
-}
-
-// https://schuttejoe.github.io/post/ggximportancesamplingpart1/
-// i: view, g: light, m: half
-// https://qiita.com/_Pheema_/items/f1ffb2e38cc766e6e668
-pub fn ggx_brdf(view: &Vector3, light: &Vector3, normal: &Vector3, alpha2: f64, f0: f64) -> f64 {
-    let half = (*light + *view).normalize();
-
-    let l_dot_n = light.dot(normal);
-    if l_dot_n.is_negative() {
-        return 0.0;
-    }
-
-    let v_dot_n = view.dot(normal);
-    let v_dot_h = view.dot(&half);
-    let h_dot_n = half.dot(normal);
-
-    // D: Microfacet Distribution Functions GGX(Trowbridge-Reitz model)
-    let tmp = (1.0 - (1.0 - alpha2) * h_dot_n * h_dot_n);
-    let d = alpha2 / (config::PI * tmp * tmp);
-
-    // G: Masking-Shadowing Fucntion
-    let g = g_smith_joint(l_dot_n, v_dot_n, alpha2);
-
-    // F: Fresnel term
-    let f = f_schlick_f64(v_dot_h, f0);
-
-    d * g * f / (4.0 * l_dot_n * v_dot_n)
-}
-
 // 法線を基準とした空間の基底ベクトルを計算
 fn get_tangent_space_basis(normal: &Vector3) -> (Vector3, Vector3) {
     let up = if normal.x.abs() > config::EPS {
@@ -108,40 +76,4 @@ pub fn g_smith_joint(l_dot_n :f64, v_dot_n: f64, alpha2: f64) -> f64 {
 
 pub fn f_schlick_f64(v_dot_h: f64, f0: f64) -> f64 {
     f0 + (1.0 - f0) * (1.0 - v_dot_h).powi(5)
-}
-
-pub fn sample_refraction(random: (f64, f64), normal: &Vector3, refractive_index: f64, intersection: &mut Intersection, ray: &mut Ray) {
-    let is_incoming = ray.direction.dot(&normal).is_sign_negative();
-    let oriented_normal = if is_incoming { *normal } else { -*normal };
-    let nnt = if is_incoming { 1.0 / refractive_index } else { refractive_index };
-    let reflect_direction = ray.direction.reflect(&oriented_normal);
-    let refract_direction = ray.direction.refract(&oriented_normal, nnt);
-    if refract_direction == Vector3::zero() {
-        // 完全反射のケース
-        ray.origin = intersection.position + config::OFFSET * oriented_normal;
-        ray.direction = reflect_direction;
-    } else {
-        // フレネル反射率rの計算
-        // 入射角をI、屈折角をT、r_sをS波の反射率、r_pをP波の反射率、rをフレネル反射率とする
-        let cos_i = ray.direction.dot(&-oriented_normal);
-        //float cos_t = sqrt(1.0 - nnt * nnt * (1.0 - cos_i * cos_i));
-        let cos_t = refract_direction.dot(&-oriented_normal);
-        let r_s = (nnt * cos_i - cos_t) * (nnt * cos_i - cos_t) / ((nnt * cos_i + cos_t) * (nnt * cos_i + cos_t));
-        let r_p = (nnt * cos_t - cos_i) * (nnt * cos_t - cos_i) / ((nnt * cos_t + cos_i) * (nnt * cos_t + cos_i));
-        let r = 0.5 * (r_s + r_p);
-        if random.0 <= r {
-            // 反射
-            ray.origin = intersection.position + config::OFFSET * oriented_normal;
-            ray.direction = reflect_direction;
-        } else {
-            // 屈折
-
-            // 立体角の変化に伴う放射輝度の補正
-            intersection.material.albedo *= nnt.powf(2.0);
-
-            // 物体内部にレイの原点を移動する
-            ray.origin = intersection.position - config::OFFSET * oriented_normal;
-            ray.direction = refract_direction;
-        }
-    }
 }

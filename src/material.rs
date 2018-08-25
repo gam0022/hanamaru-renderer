@@ -49,8 +49,42 @@ impl PointMaterial {
         }
     }
 
-    pub fn eval_bsdf(view: &Vector3, normal: &Vector3, light: &Vector3) -> f64 {
-        1.0
+    pub fn bsdf(&self, view: &Vector3, normal: &Vector3, light: &Vector3) -> f64 {
+        match self.surface {
+            SurfaceType::Diffuse => config::PI.recip(),
+            SurfaceType::Specular => unimplemented!(),
+            SurfaceType::Refraction { refractive_index } => unimplemented!(),
+            SurfaceType::GGX { f0 } => {
+                // https://schuttejoe.github.io/post/ggximportancesamplingpart1/
+                // i: view, g: light, m: half
+
+                // https://qiita.com/_Pheema_/items/f1ffb2e38cc766e6e668
+                let alpha2 = bsdf::roughness_to_alpha2(self.roughness);
+                let half = (*light + *view).normalize();
+
+                let l_dot_n = light.dot(normal);
+                if l_dot_n.is_sign_negative() {
+                    return 0.0;
+                }
+
+                let v_dot_n = view.dot(normal);
+                let v_dot_h = view.dot(&half);
+                let h_dot_n = half.dot(normal);
+
+                // D: Microfacet Distribution Functions GGX(Trowbridge-Reitz model)
+                let tmp = (1.0 - (1.0 - alpha2) * h_dot_n * h_dot_n);
+                let d = alpha2 / (config::PI * tmp * tmp);
+
+                // G: Masking-Shadowing Fucntion
+                let g = bsdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
+
+                // F: Fresnel term
+                let f = bsdf::f_schlick_f64(v_dot_h, f0);
+
+                d * g * f / (4.0 * l_dot_n * v_dot_n)
+            }
+            SurfaceType::GGXRefraction { f0, refractive_index } => unimplemented!()
+        }
     }
 
     pub fn sample(&self, random: (f64, f64), position: &Vector3, view: &Vector3, normal: &Vector3) -> Option<SampleResult> {

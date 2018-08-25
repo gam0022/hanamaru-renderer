@@ -18,6 +18,7 @@ use material::SurfaceType;
 use bsdf;
 use color::{Color, color_to_rgb, linear_to_gamma};
 use math::saturate;
+use material::PointMaterial;
 
 pub trait Renderer: Sync {
     fn max_sampling(&self) -> u32;
@@ -165,6 +166,12 @@ impl Renderer for PathTracingRenderer {
 
             if hit {
                 if let Some(result) = intersection.material.sample(random, &intersection.position, &-ray.direction, &intersection.normal) {
+                    if intersection.material.nee_available() {
+                        accumulation += reflectance * PathTracingRenderer::next_event_estimation(
+                            random, &intersection.position, &-ray.direction, &intersection.normal,
+                            scene, &emissions, &intersection.material);
+                    }
+
                     ray = result.ray;
                     current_reflectance = result.reflectance;
                 } else {
@@ -243,9 +250,8 @@ impl PathTracingRenderer {
         }
     }
 
-    fn next_event_estimation(scene: &SceneTrait, emissions: &Vec<&Box<Intersectable>>,
-                             ray: &Ray, intersection: &Intersection, intersection_position: &Vector3,
-                             reflection: &Vector3, random: (f64, f64)) -> Vector3 {
+    fn next_event_estimation(random: (f64, f64), position: &Vector3, view: &Vector3, normal: &Vector3,
+                             scene: &SceneTrait, emissions: &Vec<&Box<Intersectable>>, material: &PointMaterial) -> Vector3 {
         //return Vector3::zero();
 
         let mut accumulation = Vector3::zero();
@@ -255,31 +261,22 @@ impl PathTracingRenderer {
             // NEE
             let emission = emissions[0]; //emissions[rng.gen_range(0, emissions.len())];
             let surface = emission.sample_on_surface(random);
-            let shadow_vec = surface.position - *intersection_position;
+            let shadow_vec = surface.position - *position;
             let shadow_dir = shadow_vec.normalize();
-            let shadow_ray = Ray { origin: *intersection_position, direction: shadow_dir };
+            let shadow_ray = Ray { origin: *position, direction: shadow_dir };
             let (shadow_hit, shadow_intersection) = scene.intersect(&shadow_ray);
 
             if shadow_hit && shadow_intersection.position.approximately(&surface.position) {
-                let dot_0 = intersection.normal.dot(&shadow_dir).abs();
+                let dot_0 = normal.dot(&shadow_dir).abs();
                 let dot_l = surface.normal.dot(&shadow_dir).abs();
                 let distance_pow2 = shadow_vec.dot(&shadow_vec);
                 let g = (dot_0 * dot_l) / distance_pow2;
                 let pdf = surface.pdf / emissions.len() as f64;
 
-                // TODO: Bsdf trait を SurfaceType に実装してリファクターしたい
-                let f = match intersection.material.surface {
-                    SurfaceType::Diffuse => bsdf::diffuse_brdf(),
-                    SurfaceType::Specular => unimplemented!(),
-                    SurfaceType::Refraction { refractive_index } => unimplemented!(),
-                    SurfaceType::GGX { f0 } => {
-                        let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
-                        bsdf::ggx_brdf(&-ray.direction, &shadow_dir, &intersection.normal, alpha2, f0)
-                    }
-                    SurfaceType::GGXRefraction { f0, refractive_index } => unimplemented!()
-                };
-
-                accumulation += *reflection * shadow_intersection.material.emission * intersection.material.albedo * f * (g / pdf);
+                accumulation += shadow_intersection.material.emission
+                    * material.albedo
+                    * material.bsdf(view, normal, &shadow_dir)
+                    * g / pdf;
             }
         }
 
