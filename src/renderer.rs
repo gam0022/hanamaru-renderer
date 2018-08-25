@@ -257,11 +257,7 @@ impl PathTracingRenderer {
 
         let mut accumulation = Vector3::zero();
 
-        // TODO: forに置き換えて全光源でNEEしたらどうなるのか調査
-        if emissions.len() > 0 {
-            // NEE
-            let mut rng = self::rand::thread_rng();
-            let emission = emissions[rng.gen_range(0, emissions.len())];
+        for emission in emissions {
             let surface = emission.sample_on_surface(random);
             let shadow_vec = surface.position - *position;
             let shadow_dir = shadow_vec.normalize();
@@ -273,15 +269,14 @@ impl PathTracingRenderer {
                 let dot_l = surface.normal.dot(&shadow_dir).abs();
                 let distance_pow2 = shadow_vec.dot(&shadow_vec);
                 let g = (dot_0 * dot_l) / distance_pow2;
-                let pdf = surface.pdf / emissions.len() as f64;
+                let pdf = surface.pdf;
 
                 accumulation += shadow_intersection.material.emission
-                    * material.albedo
                     * material.bsdf(view, normal, &shadow_dir)
                     * g / pdf;
             }
         }
 
-        accumulation
+        accumulation * material.albedo
     }
 }
