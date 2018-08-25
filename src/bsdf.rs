@@ -95,7 +95,7 @@ pub fn g_smith_joint(l_dot_n :f64, v_dot_n: f64, alpha2: f64) -> f64 {
     (1.0 + lambda_l + lambda_v).recip()
 }
 
-fn f_schlick_f64(v_dot_h: f64, f0: f64) -> f64 {
+pub fn f_schlick_f64(v_dot_h: f64, f0: f64) -> f64 {
     f0 + (1.0 - f0) * (1.0 - v_dot_h).powi(5)
 }
 

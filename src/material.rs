@@ -6,8 +6,8 @@ pub enum SurfaceType {
     Diffuse,
     Specular,
     Refraction { refractive_index: f64 },
-    GGX,// NOTE: f0 をもたせたい
-    GGXRefraction { refractive_index: f64 },// NOTE: f0 をもたせたい
+    GGX { f0: f64 },
+    GGXRefraction { f0: f64, refractive_index: f64 },
 }
 
 #[derive(Debug)]

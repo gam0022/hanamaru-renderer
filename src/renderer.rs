@@ -179,7 +179,7 @@ impl Renderer for PathTracingRenderer {
                     SurfaceType::Refraction { refractive_index } => {
                         bsdf::sample_refraction(random, &intersection.normal.clone(), refractive_index, &mut intersection, &mut ray);
                     }
-                    SurfaceType::GGX => {
+                    SurfaceType::GGX{ f0 } => {
                         let intersection_position = intersection.position + intersection.normal * config::OFFSET;
 
                         accumulation += PathTracingRenderer::next_event_estimation(scene, emissions, &ray, &intersection, &intersection_position, &reflection, random);
@@ -202,8 +202,7 @@ impl Renderer for PathTracingRenderer {
                             // Masking-shadowing関数
                             let g = bsdf::g_smith_joint(l_dot_n, v_dot_n, alpha2);
 
-                            // albedoをフレネル反射率のパラメータのF0として扱う
-                            let f = bsdf::f_schlick(v_dot_h, &intersection.material.albedo);
+                            let f = bsdf::f_schlick_f64(v_dot_h, f0);
 
                             let weight = f * saturate(g * v_dot_h / (h_dot_n * v_dot_n));
                             intersection.material.albedo *= weight;
@@ -212,7 +211,7 @@ impl Renderer for PathTracingRenderer {
                         ray.origin = intersection_position;
                         ray.direction = next_direction;
                     }
-                    SurfaceType::GGXRefraction { refractive_index } => {
+                    SurfaceType::GGXRefraction { f0, refractive_index } => {
                         let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
                         let half = bsdf::importance_sample_ggx(random, &intersection.normal, alpha2);
                         bsdf::sample_refraction(random, &half, refractive_index, &mut intersection, &mut ray);
@@ -320,11 +319,11 @@ impl PathTracingRenderer {
                     SurfaceType::Diffuse => bsdf::diffuse_brdf(),
                     SurfaceType::Specular => unimplemented!(),
                     SurfaceType::Refraction { refractive_index } => unimplemented!(),
-                    SurfaceType::GGX => {
+                    SurfaceType::GGX{ f0 } => {
                         let alpha2 = bsdf::roughness_to_alpha2(intersection.material.roughness);
-                        bsdf::ggx_brdf(&-ray.direction, &shadow_dir, &intersection.normal, alpha2, 0.95)
+                        bsdf::ggx_brdf(&-ray.direction, &shadow_dir, &intersection.normal, alpha2, f0)
                     },
-                    SurfaceType::GGXRefraction { refractive_index } => unimplemented!()
+                    SurfaceType::GGXRefraction { f0, refractive_index } => unimplemented!()
                 };
 
                 accumulation += *reflection * shadow_intersection.material.emission * intersection.material.albedo * f * (g / pdf);
