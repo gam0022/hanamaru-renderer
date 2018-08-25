@@ -35,6 +35,7 @@ pub struct SampleResult {
     pub ray: Ray,
 
     // reflectance = bsdf * cos(normal, light) / pdf
+    // 重点的サンプリングを行うと、bsdf * cos を pdf が打ち消すケースが多いので、このような定義とした
     pub reflectance: f64,
 }
 
@@ -98,7 +99,7 @@ impl PointMaterial {
                         origin: *position + *normal * config::OFFSET,
                         direction: bsdf::importance_sample_diffuse(random, normal),
                     },
-                    reflectance: 1.0,
+                    reflectance: 1.0,// bsdf * cos と pdf が打ち消し合う
                 })
             }
             SurfaceType::Specular => {
@@ -107,7 +108,7 @@ impl PointMaterial {
                         origin: *position + *normal * config::OFFSET,
                         direction: ray.reflect(normal),
                     },
-                    reflectance: 1.0,
+                    reflectance: 1.0,// bsdf * cos と pdf が打ち消し合う
                 })
             }
             SurfaceType::Refraction { refractive_index } => {
@@ -164,7 +165,7 @@ impl PointMaterial {
                     origin: *position + config::OFFSET * oriented_normal,
                     direction: reflect_direction,
                 },
-                reflectance: 1.0,
+                reflectance: 1.0,// bsdf * cos と pdf が打ち消し合う
             })
         } else {
             // フレネル反射率rの計算
@@ -174,15 +175,16 @@ impl PointMaterial {
             let cos_t = refract_direction.dot(&-oriented_normal);
             let r_s = (nnt * cos_i - cos_t) * (nnt * cos_i - cos_t) / ((nnt * cos_i + cos_t) * (nnt * cos_i + cos_t));
             let r_p = (nnt * cos_t - cos_i) * (nnt * cos_t - cos_i) / ((nnt * cos_t + cos_i) * (nnt * cos_t + cos_i));
-            let r = 0.5 * (r_s + r_p);
-            if random.0 <= r {
+            let fr = 0.5 * (r_s + r_p);
+
+            if random.0 <= fr {
                 // 反射
                 Some(SampleResult {
                     ray: Ray {
                         origin: *position + config::OFFSET * oriented_normal,
                         direction: reflect_direction,
                     },
-                    reflectance: r.recip(),// 1.0 / pdf
+                    reflectance: 1.0,// bsdf * cos と pdf が打ち消し合う
                 })
             } else {
                 // 屈折
@@ -191,7 +193,7 @@ impl PointMaterial {
                         origin: *position - config::OFFSET * oriented_normal,// 物体内部にレイの原点を移動する
                         direction: refract_direction,
                     },
-                    reflectance: nnt.powf(2.0) / (1.0 - r),// 立体角の変化に伴う放射輝度の補正 / pdf
+                    reflectance: nnt * nnt,// 立体角の変化に伴う放射輝度の補正
                 })
             }
         }
