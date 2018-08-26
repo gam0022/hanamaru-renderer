@@ -120,7 +120,6 @@ impl PointMaterial {
                 let next_direction = ray.reflect(&half);
 
                 // 半球外が選ばれた場合はBRDFを0にする
-                // 真値よりも暗くなるので、サンプリングやり直す方が理想的ではありそう
                 let l_dot_n = next_direction.dot(normal);
                 if l_dot_n.is_sign_negative() {
                     None

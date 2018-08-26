@@ -171,6 +171,7 @@ impl Renderer for PathTracingRenderer {
                     ray = result.ray;
                     current_reflectance = result.reflectance;
                 } else {
+                    // 半球外をサンプリングしたら計算を打ち切る
                     break;
                 }
             }
