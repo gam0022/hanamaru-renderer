@@ -15,6 +15,7 @@ use camera::{Camera, Ray};
 use color::{Color, color_to_rgb, linear_to_gamma};
 use material::PointMaterial;
 use tonemap;
+use filter;
 
 pub trait Renderer: Sync {
     fn max_sampling(&self) -> u32;
@@ -72,6 +73,8 @@ pub trait Renderer: Sync {
         for (i, pixel) in imgbuf.pixels_mut().enumerate() {
             *pixel = tmp[i];
         }
+
+        filter::execute(imgbuf)
     }
 
     fn save_progress_image(path: &str, accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {

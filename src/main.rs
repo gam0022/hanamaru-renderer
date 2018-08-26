@@ -25,6 +25,7 @@ mod math;
 mod loader;
 mod bvh;
 mod tonemap;
+mod filter;
 
 use vector::Vector3;
 use matrix::Matrix44;
@@ -824,7 +825,7 @@ fn main() {
 
         //let (width, height, sampling) = (1280, 720, 10);// 16:9 HD 921,600 pixel
         //let (width, height, sampling) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
-        let (width, height, sampling) = (1920 / 2, 1080 / 2, 20);
+        let (width, height, sampling) = (1920 / 2, 1080 / 2, 3);
         //let (width, height, sampling) = (800, 600, 10);// 4:3 SVGA 480,000 pixel
         //let (width, height, sampling) = (1280, 960, 1000);// 4:3 960p 1,228,800 pixel
         //let (width, height, sampling) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel
@@ -843,11 +844,11 @@ fn main() {
 
         let init_scene_begin = time::now();
 
-        let (camera, scene) = init_scene_rtcamp5();
+        //let (camera, scene) = init_scene_rtcamp5();
         //let (camera, scene) = init_scene_rtcamp6();
         //let (camera, scene) = init_scene_material_examples();
         //let (camera, scene) = init_scene_tbf3();
-        //let (camera, scene) = init_scene_simple();
+        let (camera, scene) = init_scene_simple();
 
         let init_scene_end = time::now();
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
