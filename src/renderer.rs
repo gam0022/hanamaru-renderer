@@ -64,7 +64,7 @@ pub trait Renderer: Sync {
         let scale = ((sampling * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64).recip();
         let tmp: Vec<_> = accumulation_buf.par_iter().map(|p| {
             let liner = *p * scale;
-            let ldr = tonemap::reinhard(&liner);
+            let ldr = tonemap::execute(&liner);
             let gamma = linear_to_gamma(ldr);
             color_to_rgb(gamma)
         }).collect();
