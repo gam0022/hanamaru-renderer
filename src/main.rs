@@ -803,8 +803,7 @@ fn init_scene_rtcamp6() -> (Camera, Scene) {
 fn render<R: Renderer>(renderer: &mut R, width: u32, height: u32, camera: &Camera, scene: Scene) -> u32 {
     let mut imgbuf = image::ImageBuffer::new(width, height);
     let sampled = renderer.render(&BvhScene::from_scene(scene), camera, &mut imgbuf);
-    let ref mut fout = File::create(&Path::new("result.png")).unwrap();
-    let _ = image::ImageRgb8(imgbuf).save(fout, image::PNG);
+    let _ = image::ImageRgb8(imgbuf).save("result.png");
     sampled
 }
 

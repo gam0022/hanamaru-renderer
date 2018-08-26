@@ -83,9 +83,7 @@ pub trait Renderer: Sync {
         Self::update_imgbuf(accumulation_buf, sampling, imgbuf);
         let end = time::now();
         println!("update_imgbuf: {:.3} sec", (end - begin).num_milliseconds() as f64 * 0.001);
-
-        let ref mut fout = File::create(&Path::new(path)).unwrap();
-        let _ = image::ImageRgb8(imgbuf.clone()).save(fout, image::PNG);
+        let _ = image::ImageRgb8(imgbuf.clone()).save(path);
     }
 }
 
