@@ -7,7 +7,9 @@ use vector::Vector3;
 use color;
 
 pub fn execute(imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
-    bilateral(imgbuf, 3, 60.0, 5.0)
+    for _ in 0..config::BILATERAL_FILTER_ITERATION {
+        bilateral(imgbuf, config::BILATERAL_FILTER_DIAMETER, config::BILATERAL_FILTER_SIGMA_I, config::BILATERAL_FILTER_SIGMA_S)
+    }
 }
 
 fn distance(x: u32, y: u32, i: u32, j: u32) -> f64 {
