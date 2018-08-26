@@ -24,7 +24,7 @@ pub const TONE_MAPPING_EXPOSURE: f64 = 2.0;
 pub const TONE_MAPPING_WHITE_POINT: f64 = 100.0;
 
 // Denoising - Bilateral Fileter
-pub const BILATERAL_FILTER_ITERATION: u32 = 1;
+pub const BILATERAL_FILTER_ITERATION: u32 = 3;
 pub const BILATERAL_FILTER_DIAMETER: u32 = 3;
-pub const BILATERAL_FILTER_SIGMA_I: f64 = 60.0;
-pub const BILATERAL_FILTER_SIGMA_S: f64 = 5.0;
+pub const BILATERAL_FILTER_SIGMA_I: f64 = 22.0;// これを無限大にすると Gaussian Blur となる
+pub const BILATERAL_FILTER_SIGMA_S: f64 = 16.0;
