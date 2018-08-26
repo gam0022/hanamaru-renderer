@@ -19,7 +19,6 @@ mod scene;
 mod camera;
 mod renderer;
 mod material;
-mod bsdf;
 mod color;
 mod texture;
 mod math;
