@@ -238,7 +238,7 @@ impl PathTracingRenderer {
     pub fn new(sampling: u32) -> PathTracingRenderer {
         let now = time::now();
         PathTracingRenderer {
-            sampling: sampling,
+            sampling,
 
             begin: now,
             last_report_progress: now,
