@@ -29,6 +29,7 @@ pub struct Camera {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum LensShape {
     Square,
     Circle,
@@ -62,7 +63,7 @@ impl Camera {
         }
     }
 
-    fn sample_on_lens(&self, mut rng: &mut StdRng) -> Vector2 {
+    fn sample_on_lens(&self, rng: &mut StdRng) -> Vector2 {
         loop {
             let (u, v) = rng.gen::<(f64, f64)>();
             let square = Vector2::new(2.0 * u - 1.0, 2.0 * v - 1.0);

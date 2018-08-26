@@ -138,7 +138,7 @@ impl Intersectable for Plane {
 
     fn nee_available(&self) -> bool { false }
 
-    fn sample_on_surface(&self, random: (f64, f64)) -> Surface {
+    fn sample_on_surface(&self, _random: (f64, f64)) -> Surface {
         unimplemented!()
     }
 }
@@ -188,7 +188,7 @@ impl Intersectable for Cuboid {
 
     fn nee_available(&self) -> bool { false }
 
-    fn sample_on_surface(&self, random: (f64, f64)) -> Surface {
+    fn sample_on_surface(&self, _random: (f64, f64)) -> Surface {
         unimplemented!()
     }
 }
@@ -228,7 +228,7 @@ impl Intersectable for Mesh {
 
     fn nee_available(&self) -> bool { false }
 
-    fn sample_on_surface(&self, random: (f64, f64)) -> Surface {
+    fn sample_on_surface(&self, _random: (f64, f64)) -> Surface {
         unimplemented!()
     }
 }
@@ -249,7 +249,7 @@ impl Intersectable for BvhMesh {
 
     fn nee_available(&self) -> bool { false }
 
-    fn sample_on_surface(&self, random: (f64, f64)) -> Surface {
+    fn sample_on_surface(&self, _random: (f64, f64)) -> Surface {
         unimplemented!()
     }
 }

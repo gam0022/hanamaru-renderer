@@ -43,11 +43,11 @@ impl PointMaterial {
     pub fn nee_available(&self) -> bool {
         match self.surface {
             SurfaceType::Diffuse => true,
-            SurfaceType::GGX { f0 } => true,
+            SurfaceType::GGX { f0: _ } => true,
 
             SurfaceType::Specular => false,
-            SurfaceType::Refraction { refractive_index } => false,
-            SurfaceType::GGXRefraction { f0, refractive_index } => false,
+            SurfaceType::Refraction { refractive_index: _ } => false,
+            SurfaceType::GGXRefraction { f0: _, refractive_index: _ } => false,
         }
     }
 
@@ -55,7 +55,7 @@ impl PointMaterial {
         match self.surface {
             SurfaceType::Diffuse => config::PI.recip(),
             SurfaceType::Specular => unimplemented!(),
-            SurfaceType::Refraction { refractive_index } => unimplemented!(),
+            SurfaceType::Refraction { refractive_index: _ } => unimplemented!(),
             SurfaceType::GGX { f0 } => {
                 // https://schuttejoe.github.io/post/ggximportancesamplingpart1/
                 // i: view, g: light, m: half
@@ -74,7 +74,7 @@ impl PointMaterial {
                 let h_dot_n = half.dot(normal);
 
                 // D: Microfacet Distribution Functions GGX(Trowbridge-Reitz model)
-                let tmp = (1.0 - (1.0 - alpha2) * h_dot_n * h_dot_n);
+                let tmp = 1.0 - (1.0 - alpha2) * h_dot_n * h_dot_n;
                 let d = alpha2 / (config::PI * tmp * tmp);
 
                 // G: Masking-Shadowing Fucntion
@@ -85,7 +85,7 @@ impl PointMaterial {
 
                 d * g * f / (4.0 * l_dot_n * v_dot_n)
             }
-            SurfaceType::GGXRefraction { f0, refractive_index } => unimplemented!()
+            SurfaceType::GGXRefraction { f0: _, refractive_index: _ } => unimplemented!()
         }
     }
 
@@ -144,7 +144,7 @@ impl PointMaterial {
                     })
                 }
             }
-            SurfaceType::GGXRefraction { f0, refractive_index } => {
+            SurfaceType::GGXRefraction { f0: _, refractive_index } => {
                 let alpha2 = bsdf::roughness_to_alpha2(self.roughness);
                 let half = bsdf::importance_sample_ggx(random, normal, alpha2);
                 self.sample_refraction(random, position, &ray, &half, refractive_index)

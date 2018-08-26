@@ -44,6 +44,7 @@ fn tee(f: &mut BufWriter<File>, message: &String) {
     let _ = f.write(b"\n");
 }
 
+#[allow(dead_code)]
 fn init_scene_simple() -> (Camera, Scene) {
     let camera = Camera::new(
         Vector3::new(0.0, 2.0, 9.0), // eye
@@ -128,6 +129,7 @@ fn init_scene_simple() -> (Camera, Scene) {
     (camera, scene)
 }
 
+#[allow(dead_code)]
 fn init_scene_material_examples() -> (Camera, Scene) {
     let camera = Camera::new(
         Vector3::new(0.0, 2.0, 9.0), // eye
@@ -240,6 +242,7 @@ fn init_scene_material_examples() -> (Camera, Scene) {
     (camera, scene)
 }
 
+#[allow(dead_code)]
 fn init_scene_rtcamp5() -> (Camera, Scene) {
     let seed: &[_] = &[870, 2000, 304, 2];
     let mut rng: StdRng = SeedableRng::from_seed(seed);
@@ -424,7 +427,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
         let pz = rng.gen_range(-2.0, 3.0);
         let r = rng.gen_range(0.2, 0.4);
 
-        if scene.add_with_check_collisions((Box::new(Sphere {
+        if scene.add_with_check_collisions(Box::new(Sphere {
             center: Vector3::new(px, r + py, pz),
             radius: r,
             material: Material {
@@ -433,7 +436,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
                 emission: Texture::black(),
                 roughness: Texture::from_color(Color::from_one(rng.gen_range(0.0, 0.2))),
             },
-        }))) {
+        })) {
             println!("{}, {}, {} : {}", px, r, pz, 0.2 + 0.1 * count as f64);
             count += 1;
         }
@@ -489,6 +492,7 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
     (camera, scene)
 }
 
+#[allow(dead_code)]
 fn init_scene_tbf3() -> (Camera, Scene) {
     let seed: &[_] = &[870, 2000, 304, 1];
     let mut rng: StdRng = SeedableRng::from_seed(seed);
@@ -640,13 +644,14 @@ fn init_scene_tbf3() -> (Camera, Scene) {
 
     // 金属の球体
     let mut count = 0;
+    #[allow(unused_parens)]
     while count < 8  {
         let px = rng.gen_range(-3.0, 3.0);
         let py = 0.0;//rng.gen_range(0.0, 3.0);
         let pz = rng.gen_range(-5.0, 5.0);
         let r = rng.gen_range(0.2, 0.4);
 
-        if scene.add_with_check_collisions((Box::new(Sphere {
+        if scene.add_with_check_collisions(Box::new(Sphere {
             center: Vector3::new(px, r + py, pz),
             radius: r,
             material: Material {
@@ -655,7 +660,7 @@ fn init_scene_tbf3() -> (Camera, Scene) {
                 emission: Texture::black(),
                 roughness: Texture::from_color(Color::from_one(rng.gen_range(0.0, 0.2))),
             },
-        }))) {
+        })) {
             println!("{}, {}, {} : {}", px, r, pz, 0.2 + 0.1 * count as f64);
             count += 1;
         }
@@ -711,6 +716,7 @@ fn init_scene_tbf3() -> (Camera, Scene) {
     (camera, scene)
 }
 
+#[allow(dead_code)]
 fn init_scene_rtcamp6() -> (Camera, Scene) {
     let camera = Camera::new(
         Vector3::new(0.0, 2.0, 9.0), // eye
@@ -827,7 +833,8 @@ fn main() {
         //let (width, height, sampling) = (2592/4, 3625/4, 100);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
         //let (width, height, sampling) = (1024, 1024, 1000);
 
-        let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
+        #[allow(unused_variables)]
+        let renderer = DebugRenderer { mode: DebugRenderMode::Shading };
         let mut renderer = PathTracingRenderer::new(sampling);
 
         tee(&mut f, &format!("num threads: {}.", rayon::current_num_threads()));
@@ -858,6 +865,7 @@ fn main() {
     tee(&mut f, &format!("total {} sec. used {:.2} % (x {:.2})", total_sec, used_percent, progress_per_used));
 }
 
+#[allow(dead_code)]
 fn inspect_image() {
     let img = image::open(&Path::new("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png")).unwrap();
     let mut min = 255.0;

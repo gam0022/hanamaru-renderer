@@ -3,8 +3,6 @@ extern crate rand;
 extern crate rayon;
 extern crate time;
 
-use std::fs::File;
-use std::path::Path;
 use time::Tm;
 use image::{ImageBuffer, Rgb};
 use self::rand::{Rng, SeedableRng, StdRng};
@@ -12,12 +10,9 @@ use self::rayon::prelude::*;
 
 use config;
 use vector::{Vector3, Vector2};
-use scene::{SceneTrait, Intersectable, Intersection};
+use scene::{SceneTrait, Intersectable};
 use camera::{Camera, Ray};
-use material::SurfaceType;
-use bsdf;
 use color::{Color, color_to_rgb, linear_to_gamma};
-use math::saturate;
 use material::PointMaterial;
 use tonemap;
 
@@ -69,7 +64,7 @@ pub trait Renderer: Sync {
         let scale = ((sampling * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64).recip();
         let tmp: Vec<_> = accumulation_buf.par_iter().map(|p| {
             let liner = *p * scale;
-            let ldr = tonemap::none(&liner);
+            let ldr = tonemap::reinhard(&liner);
             let gamma = linear_to_gamma(ldr);
             color_to_rgb(gamma)
         }).collect();
@@ -88,6 +83,7 @@ pub trait Renderer: Sync {
     }
 }
 
+#[allow(dead_code)]
 pub enum DebugRenderMode {
     Shading,
     Normal,
@@ -102,7 +98,7 @@ pub struct DebugRenderer {
 impl Renderer for DebugRenderer {
     fn max_sampling(&self) -> u32 { 1 }
 
-    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, emissions: &Vec<&Box<Intersectable>>, normalized_coord: &Vector2, _: u32) -> Color {
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, _emissions: &Vec<&Box<Intersectable>>, normalized_coord: &Vector2, _: u32) -> Color {
         let ray = camera.ray(&normalized_coord);
         let light_direction = Vector3::new(1.0, 2.0, -1.0).normalize();
         let (hit, intersection) = scene.intersect(&ray);

@@ -1,9 +1,5 @@
 use config;
 use vector::Vector3;
-use scene::Intersection;
-use camera::Ray;
-use color::Color;
-use math::saturate;
 
 // 法線を基準とした空間の基底ベクトルを計算
 fn get_tangent_space_basis(normal: &Vector3) -> (Vector3, Vector3) {
