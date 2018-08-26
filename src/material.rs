@@ -11,7 +11,7 @@ pub enum SurfaceType {
     Specular,
     Refraction { refractive_index: f64 },
     GGX { f0: f64 },
-    GGXRefraction { f0: f64, refractive_index: f64 },
+    GGXRefraction { refractive_index: f64 },
 }
 
 #[derive(Debug)]
@@ -46,7 +46,7 @@ impl PointMaterial {
 
             SurfaceType::Specular => false,
             SurfaceType::Refraction { refractive_index: _ } => false,
-            SurfaceType::GGXRefraction { f0: _, refractive_index: _ } => false,
+            SurfaceType::GGXRefraction { refractive_index: _ } => false,
         }
     }
 
@@ -84,7 +84,7 @@ impl PointMaterial {
 
                 d * g * f / (4.0 * l_dot_n * v_dot_n)
             }
-            SurfaceType::GGXRefraction { f0: _, refractive_index: _ } => unimplemented!()
+            SurfaceType::GGXRefraction { refractive_index: _ } => unimplemented!()
         }
     }
 
@@ -142,7 +142,7 @@ impl PointMaterial {
                     })
                 }
             }
-            SurfaceType::GGXRefraction { f0: _, refractive_index } => {
+            SurfaceType::GGXRefraction { refractive_index } => {
                 let alpha2 = roughness_to_alpha2(self.roughness);
                 let half = importance_sample_ggx_half(random, normal, alpha2);
                 sample_refraction(random, position, &ray, &half, refractive_index)

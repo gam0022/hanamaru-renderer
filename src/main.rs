@@ -190,7 +190,7 @@ fn init_scene_material_examples() -> (Camera, Scene) {
                 center: Vector3::new(2.0, radius, 0.0),
                 radius: radius,
                 material: Material {
-                    surface: SurfaceType::GGXRefraction { f0: 0.8, refractive_index: 1.5 },
+                    surface: SurfaceType::GGXRefraction { refractive_index: 1.5 },
                     albedo: Texture::white(),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.05)),
