@@ -23,14 +23,6 @@ pub fn rgba_to_color(color: Rgba<u8>) -> Color {
     )
 }
 
-pub fn rgb_to_color(color: Rgb<u8>) -> Color {
-    Color::new(
-        color.data[0] as f64 / 255.0,
-        color.data[1] as f64 / 255.0,
-        color.data[2] as f64 / 255.0,
-    )
-}
-
 fn gamma_to_linear_f64(v: f64) -> f64 {
     v.powf(config::GAMMA_FACTOR)
 }

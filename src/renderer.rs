@@ -66,22 +66,21 @@ pub trait Renderer: Sync {
         let width = imgbuf.width();
         let height = imgbuf.height();
 
-        let liner_img: Vec<_> = accumulation_buf.par_iter().map(|pixel| {
-            *pixel * scale
-        }).collect();
-
-        let gamma_img: Vec<_> = liner_img.par_iter().map(|pixel| {
-            let ldr = tonemap::execute(&pixel);
+        let mut tmp: Vec<_> = accumulation_buf.par_iter().map(|pixel| {
+            let hdr = *pixel * scale;
+            let ldr = tonemap::execute(&hdr);
             let gamma = linear_to_gamma(ldr);
             gamma
         }).collect();
 
-        let gamma_img: Vec<_> = gamma_img.par_iter().enumerate().map(|i_p| {
-            let (index, pixel) = i_p;
-            filter::execute_par(&pixel, &gamma_img, width, height, index)
-        }).collect();
+        for _ in 0..config::BILATERAL_FILTER_ITERATION {
+            tmp = tmp.par_iter().enumerate().map(|i_p| {
+                let (index, pixel) = i_p;
+                filter::execute(&pixel, index, &tmp, width, height)
+            }).collect();
+        }
 
-        let rgbs: Vec<_> = gamma_img.par_iter().map(|pixel| {
+        let rgbs: Vec<_> = tmp.par_iter().map(|pixel| {
             color_to_rgb(*pixel)
         }).collect();
 
