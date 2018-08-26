@@ -63,18 +63,26 @@ pub trait Renderer: Sync {
 
     fn update_imgbuf(accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
         let scale = ((sampling * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64).recip();
-        let tmp: Vec<_> = accumulation_buf.par_iter().map(|p| {
-            let liner = *p * scale;
-            let ldr = tonemap::execute(&liner);
+        let width = imgbuf.width();
+        let height = imgbuf.height();
+
+        let liner_img: Vec<_> = accumulation_buf.par_iter().map(|p| {
+            *p * scale
+        }).collect();
+
+        let rgbs: Vec<_> = liner_img.par_iter().enumerate().map(|i_p| {
+            let (index, pixel) = i_p;
+            // let pixel = filter::execute_par(&pixel, &liner_img, width, height, index);
+            let ldr = tonemap::execute(&pixel);
             let gamma = linear_to_gamma(ldr);
             color_to_rgb(gamma)
         }).collect();
 
         for (i, pixel) in imgbuf.pixels_mut().enumerate() {
-            *pixel = tmp[i];
+            *pixel = rgbs[i];
         }
 
-        filter::execute(imgbuf)
+        // filter::execute(imgbuf)
     }
 
     fn save_progress_image(path: &str, accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) {
