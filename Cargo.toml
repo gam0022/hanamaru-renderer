@@ -7,5 +7,5 @@ authors = ["gam0022 <gam0022@gmail.com>"]
 image = "*"
 num = "*"
 rand = "0.3"
-rayon = "0.8.2"
+rayon = "1.0"
 time = "0.1"
