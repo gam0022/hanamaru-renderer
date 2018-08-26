@@ -19,6 +19,7 @@ use bsdf;
 use color::{Color, color_to_rgb, linear_to_gamma};
 use math::saturate;
 use material::PointMaterial;
+use tonemap;
 
 pub trait Renderer: Sync {
     fn max_sampling(&self) -> u32;
@@ -68,7 +69,8 @@ pub trait Renderer: Sync {
         let scale = ((sampling * config::SUPERSAMPLING * config::SUPERSAMPLING) as f64).recip();
         let tmp: Vec<_> = accumulation_buf.par_iter().map(|p| {
             let liner = *p * scale;
-            let gamma = linear_to_gamma(liner);
+            let ldr = tonemap::reinhard(&liner, 1.0);
+            let gamma = linear_to_gamma(ldr);
             color_to_rgb(gamma)
         }).collect();
 
