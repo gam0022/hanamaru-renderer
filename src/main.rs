@@ -924,14 +924,14 @@ fn init_scene_rtcamp6_v2() -> (Camera, Scene) {
 #[allow(dead_code)]
 fn init_scene_rtcamp6_v3() -> (Camera, Scene) {
     let camera = Camera::new(
-        Vector3::new(0.0, 2.0, 10.0), // eye
+        Vector3::new(0.0, 2.0, 6.0), // eye
         Vector3::new(0.0, 1.0, 0.0), // target
         Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
-        10.0, // fov
+        20.0, // fov
 
         LensShape::Circle, // lens shape
-        0.2 * 0.0,// aperture
-        8.8,// focus_distance
+        0.2,// aperture
+        4.9,// focus_distance
     );
 
     let radius = 0.2;
@@ -939,7 +939,7 @@ fn init_scene_rtcamp6_v3() -> (Camera, Scene) {
     let scene = Scene {
         elements: vec![
             Box::new(Sphere {
-                center: Vector3::new(0.0, radius, 0.0),
+                center: Vector3::new(-0.3, 0.5 + radius, 0.0),
                 radius: radius,
                 material: Material {
                     surface: SurfaceType::Diffuse,
@@ -952,7 +952,7 @@ fn init_scene_rtcamp6_v3() -> (Camera, Scene) {
             // camera light
             Box::new(Sphere {
                 center: camera.eye - camera.forward,
-                radius: 0.1,
+                radius: 0.001,
                 material: Material {
                     surface: SurfaceType::Diffuse,
                     albedo: Texture::black(),
@@ -986,14 +986,15 @@ fn init_scene_rtcamp6_v3() -> (Camera, Scene) {
                     max: Vector3::new(5.0, 0.0, 5.0),
                 },
                 material: Material {
+                    //surface: SurfaceType::GGX{ f0: 0.99 },
                     surface: SurfaceType::Diffuse,
                     albedo:  Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     //albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
                     //albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_c_diffuse.tiff"),
                     emission: Texture::black(),
-                    //roughness: Texture::white(),
-                    roughness: Texture::from_path("textures/2d/checkered_diagonal_10_0.1_0.6_512.png"),
+                    roughness: Texture::white(),
+                    //roughness: Texture::from_path("textures/2d/checkered_diagonal_10_0.1_0.6_512.png"),
                     //roughness: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png"),
                 },
             }),
@@ -1038,7 +1039,7 @@ fn main() {
         //let (width, height, sampling) = (2592/4, 3625/4, 100);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
         //let (width, height, sampling) = (1024, 1024, 1000);
 
-        //let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
+        //let mut renderer = DebugRenderer { mode: DebugRenderMode::FocalPlane };
         let mut renderer = PathTracingRenderer::new(sampling);
 
         tee(&mut f, &format!("num threads: {}.", rayon::current_num_threads()));
