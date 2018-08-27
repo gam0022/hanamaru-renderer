@@ -20,8 +20,8 @@ pub const TIME_LIMIT_SEC: f64 = (4*60*60) as f64;// 4分33秒以内に自動で�
 
 // Tone Mapping
 pub const TONE_MAPPING_MODE: ToneMappingMode = ToneMappingMode::Reinhard;
-pub const TONE_MAPPING_EXPOSURE: f64 = 2.0;
-pub const TONE_MAPPING_WHITE_POINT: f64 = 100.0;
+pub const TONE_MAPPING_EXPOSURE: f64 = 5.0;
+pub const TONE_MAPPING_WHITE_POINT: f64 = 10.0;
 
 // Denoising - Bilateral Fileter
 pub const BILATERAL_FILTER_ITERATION: u32 = 0;
