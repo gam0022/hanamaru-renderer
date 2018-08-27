@@ -34,7 +34,10 @@ use bvh::Aabb;
 use camera::{Camera, LensShape};
 use material::{Material, SurfaceType};
 use texture::Texture;
+
+#[allow(unused_imports)]
 use renderer::{Renderer, DebugRenderer, DebugRenderMode, PathTracingRenderer};
+
 use color::{Color, hsv_to_rgb};
 use loader::ObjLoader;
 
@@ -717,9 +720,9 @@ fn init_scene_tbf3() -> (Camera, Scene) {
 }
 
 #[allow(dead_code)]
-fn init_scene_rtcamp6() -> (Camera, Scene) {
+fn init_scene_rtcamp6_v1() -> (Camera, Scene) {
     let camera = Camera::new(
-        Vector3::new(0.0, 2.0, 9.0), // eye
+        Vector3::new(0.0, 2.0, 10.0), // eye
         Vector3::new(0.0, 1.0, 0.0), // target
         Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
         10.0, // fov
@@ -734,27 +737,15 @@ fn init_scene_rtcamp6() -> (Camera, Scene) {
     let scene = Scene {
         elements: vec![
             Box::new(Sphere {
-                center: Vector3::new(0.0, radius, 0.0),
+                center: Vector3::new(0.0, 3.1782 * 0.4, 0.0),
                 radius: radius,
                 material: Material {
                     surface: SurfaceType::Diffuse,
                     albedo: Texture::white(),
-                    emission: Texture::black(),
+                    emission: Texture::from_color(Color::from_one(10.0)),
                     roughness: Texture::from_color(Color::from_one(0.05)),
                 },
             }),
-
-            // 光源
-            /*Box::new(Sphere {
-                center: Vector3::new(3.0, 2.0 + radius, -2.0),
-                radius: radius,
-                material: Material {
-                    surface: SurfaceType::Diffuse,
-                    albedo: Texture::black(),
-                    emission: Texture::from_color(Color::from_one(20.0)),
-                    roughness: Texture::from_color(Color::from_one(0.05)),
-                },
-            }),*/
 
             // Mesh
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
@@ -800,7 +791,86 @@ fn init_scene_rtcamp6() -> (Camera, Scene) {
             "textures/cube/LancellottiChapel/negy.jpg",
             "textures/cube/LancellottiChapel/posz.jpg",
             "textures/cube/LancellottiChapel/negz.jpg",
-            &Vector3::new(2.0, 2.0, 3.0),
+            &Vector3::from_one(0.5),
+        ),
+    };
+
+    (camera, scene)
+}
+
+#[allow(dead_code)]
+fn init_scene_rtcamp6_v2() -> (Camera, Scene) {
+    let camera = Camera::new(
+        Vector3::new(-5.0, -1.0, 0.0), // eye
+        Vector3::new(0.0, 0.0, 0.0), // target
+        Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
+        10.0, // fov
+
+        LensShape::Circle, // lens shape
+        0.2 * 0.0,// aperture
+        8.8// focus_distance
+    );
+
+    let radius = 0.1;
+
+    let scene = Scene {
+        elements: vec![
+            /*Box::new(Sphere {
+                center: Vector3::new(0.0, 0.0, 0.0),
+                radius: radius,
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::white(),
+                    emission: Texture::from_color(Color::from_one(10.0)),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            }),*/
+
+            // Mesh
+            Box::new(BvhMesh::from_mesh(ObjLoader::load(
+                "models/fractal_dodecahedron.obj",
+                Matrix44::scale_linear(1.0) * Matrix44::translate(0.0, 0.0, 0.0) * Matrix44::rotate_y(0.0),
+                /*Material {
+                    surface: SurfaceType::Refraction { refractive_index: 1.5 },
+                    albedo: Texture::from_color(Color::new(0.7, 0.7, 1.0)),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                },*/
+                Material {
+                    surface: SurfaceType::GGX{ f0: 0.8 },
+                    albedo: Texture::from_color(Color::new(0.4, 0.4, 1.0)),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            ))),
+
+            // 床
+            /*Box::new(Cuboid {
+                aabb: Aabb {
+                    min: Vector3::new(-5.0, -1.0, -5.0),
+                    max: Vector3::new(5.0, 0.0, 5.0),
+                },
+                material: Material {
+                    surface: SurfaceType::GGX{ f0: 0.9 },
+                    //albedo:  Texture::white(),
+                    //albedo: Texture::from_path("textures/2d/stone03.jpg"),
+                    albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
+                    //albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_c_diffuse.tiff"),
+                    emission: Texture::black(),
+                    //roughness: Texture::white(),
+                    roughness: Texture::from_path("textures/2d/checkered_diagonal_10_0.1_0.6_512.png"),
+                    //roughness: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png"),
+                }
+            }),*/
+        ],
+        skybox: Skybox::new(
+            "textures/cube/Ryfjallet/posx.jpg",
+            "textures/cube/Ryfjallet/negx.jpg",
+            "textures/cube/Ryfjallet/posy.jpg",
+            "textures/cube/Ryfjallet/negy.jpg",
+            "textures/cube/Ryfjallet/posz.jpg",
+            "textures/cube/Ryfjallet/negz.jpg",
+            &Vector3::from_one(0.5),
         ),
     };
 
@@ -825,7 +895,7 @@ fn main() {
 
         //let (width, height, sampling) = (1280, 720, 10);// 16:9 HD 921,600 pixel
         //let (width, height, sampling) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
-        let (width, height, sampling) = (1920 / 2, 1080 / 2, 3);
+        let (width, height, sampling) = (1920 / 2, 1080 / 2, 10);
         //let (width, height, sampling) = (800, 600, 10);// 4:3 SVGA 480,000 pixel
         //let (width, height, sampling) = (1280, 960, 1000);// 4:3 960p 1,228,800 pixel
         //let (width, height, sampling) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel
@@ -833,8 +903,7 @@ fn main() {
         //let (width, height, sampling) = (2592/4, 3625/4, 100);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
         //let (width, height, sampling) = (1024, 1024, 1000);
 
-        #[allow(unused_variables)]
-        let renderer = DebugRenderer { mode: DebugRenderMode::Shading };
+        //let mut renderer = DebugRenderer { mode: DebugRenderMode::Shading };
         let mut renderer = PathTracingRenderer::new(sampling);
 
         tee(&mut f, &format!("num threads: {}.", rayon::current_num_threads()));
@@ -845,10 +914,10 @@ fn main() {
         let init_scene_begin = time::now();
 
         //let (camera, scene) = init_scene_rtcamp5();
-        //let (camera, scene) = init_scene_rtcamp6();
         //let (camera, scene) = init_scene_material_examples();
         //let (camera, scene) = init_scene_tbf3();
-        let (camera, scene) = init_scene_simple();
+        //let (camera, scene) = init_scene_simple();
+        let (camera, scene) = init_scene_rtcamp6_v2();
 
         let init_scene_end = time::now();
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
