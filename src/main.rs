@@ -1028,17 +1028,7 @@ fn main() {
 
     let total_begin = time::now();
     {
-
-        //let (width, height, sampling) = (1280, 720, 10);// 16:9 HD 921,600 pixel
-        //let (width, height, sampling) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
-        let (width, height, sampling) = (1920 / 2, 1080 / 2, 10);
-        //let (width, height, sampling) = (800, 600, 10);// 4:3 SVGA 480,000 pixel
-        //let (width, height, sampling) = (1280, 960, 1000);// 4:3 960p 1,228,800 pixel
-        //let (width, height, sampling) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel
-        //let (width, height, sampling) = (2592, 3625, 1000);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
-        //let (width, height, sampling) = (2592/4, 3625/4, 100);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
-        //let (width, height, sampling) = (1024, 1024, 1000);
-
+        let (width, height, sampling) = config::RESOLUTION;
         //let mut renderer = DebugRenderer { mode: DebugRenderMode::FocalPlane };
         let mut renderer = PathTracingRenderer::new(sampling);
 

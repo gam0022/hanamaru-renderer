@@ -13,10 +13,21 @@ pub const GAMMA_FACTOR: f64 = 2.2;
 pub const SUPERSAMPLING: u32 = 2;
 pub const PATHTRACING_BOUNCE_LIMIT: u32 = 10;
 
-// レイトレ合宿5のレギュレーション用
-// https://sites.google.com/site/raytracingcamp5/
-pub const REPORT_INTERVAL_SEC: f64 = 30.0;// 30秒ごとに途中結果を出力
-pub const TIME_LIMIT_SEC: f64 = (4*60*60) as f64;// 4分33秒以内に自動で終了
+// 解像度とサンプリング数
+//pub const RESOLUTION: (u32, u32, u32) = (1280, 720, 10);// 16:9 HD 921,600 pixel
+//pub const RESOLUTION: (u32, u32, u32) = (800, 600, 10);// 4:3 SVGA 480,000 pixel
+//pub const RESOLUTION: (u32, u32, u32) = (1280, 960, 1000);// 4:3 960p 1,228,800 pixel
+//pub const RESOLUTION: (u32, u32, u32) = (1440, 1080, 1000);// 4:3 1080p 1,555,200 pixel
+//pub const RESOLUTION: (u32, u32, u32) = (2592, 3625, 1000);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
+//pub const RESOLUTION: (u32, u32, u32) = (2592/4, 3625/4, 100);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
+//pub const RESOLUTION: (u32, u32, u32) = (1024, 1024, 1000);
+//pub const RESOLUTION: (u32, u32, u32) = (1920 / 2, 1080 / 2, 10);
+pub const RESOLUTION: (u32, u32, u32) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
+
+// レイトレ合宿6のレギュレーション用
+// https://sites.google.com/site/raytracingcamp6/
+pub const REPORT_INTERVAL_SEC: f64 = 15.0;// 15秒ごとに途中結果を出力
+pub const TIME_LIMIT_SEC: f64 = (123) as f64;// 123秒以内に自動で終了
 
 // Tone Mapping
 pub const TONE_MAPPING_MODE: ToneMappingMode = ToneMappingMode::Reinhard;
