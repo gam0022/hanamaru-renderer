@@ -21,8 +21,8 @@ pub const PATHTRACING_BOUNCE_LIMIT: u32 = 10;
 //pub const RESOLUTION: (u32, u32, u32) = (2592, 3625, 1000);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
 //pub const RESOLUTION: (u32, u32, u32) = (2592/4, 3625/4, 100);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
 //pub const RESOLUTION: (u32, u32, u32) = (1024, 1024, 1000);
-pub const RESOLUTION: (u32, u32, u32) = (1920 / 2, 1080 / 2, 1);
-//pub const RESOLUTION: (u32, u32, u32) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
+//pub const RESOLUTION: (u32, u32, u32) = (1920 / 2, 1080 / 2, 1);
+pub const RESOLUTION: (u32, u32, u32) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
 
 // レイトレ合宿6のレギュレーション用
 // https://sites.google.com/site/raytracingcamp6/
