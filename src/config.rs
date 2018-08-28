@@ -21,8 +21,8 @@ pub const PATHTRACING_BOUNCE_LIMIT: u32 = 10;
 //pub const RESOLUTION: (u32, u32, u32) = (2592, 3625, 1000);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
 //pub const RESOLUTION: (u32, u32, u32) = (2592/4, 3625/4, 100);// B5 + とんぼ(2508 + 42 *2, 3541 + 42 *2)
 //pub const RESOLUTION: (u32, u32, u32) = (1024, 1024, 1000);
-//pub const RESOLUTION: (u32, u32, u32) = (1920 / 2, 1080 / 2, 10);
-pub const RESOLUTION: (u32, u32, u32) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
+pub const RESOLUTION: (u32, u32, u32) = (1920 / 2, 1080 / 2, 1);
+//pub const RESOLUTION: (u32, u32, u32) = (1920, 1080, 1000);// 16:9 FHD 2,073,600 pixel
 
 // レイトレ合宿6のレギュレーション用
 // https://sites.google.com/site/raytracingcamp6/
@@ -32,7 +32,7 @@ pub const TIME_LIMIT_SEC: f64 = (123) as f64;// 123秒以内に自動で終了
 // Tone Mapping
 pub const TONE_MAPPING_MODE: ToneMappingMode = ToneMappingMode::Reinhard;
 pub const TONE_MAPPING_EXPOSURE: f64 = 2.0;
-pub const TONE_MAPPING_WHITE_POINT: f64 = 10.0;
+pub const TONE_MAPPING_WHITE_POINT: f64 = 100.0;
 
 // Denoising - Bilateral Fileter
 pub const BILATERAL_FILTER_ITERATION: u32 = 1;

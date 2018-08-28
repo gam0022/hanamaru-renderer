@@ -59,3 +59,7 @@ fn hue(h: f64) -> Color {
         saturate(2.0 - (h * 6.0 - 4.0).abs())
     )
 }
+
+pub fn color_to_luminance(color: &Color) -> f64 {
+    Color::new(0.22, 0.707, 0.071).dot(color)
+}

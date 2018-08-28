@@ -1,5 +1,6 @@
 use vector::Vector3;
 use config;
+use color;
 
 #[allow(dead_code)]
 pub enum ToneMappingMode {
@@ -20,7 +21,7 @@ fn none(color: &Vector3) -> Vector3 {
 
 fn reinhard(color: &Vector3, exposure: f64, white_point: f64) -> Vector3 {
     let color = *color * exposure;
-    (color / (color + 1.0)
-        * (color / (white_point * white_point) + 1.0)
-    ).saturate()
+    let luminance = color::color_to_luminance(&color);
+    let white_point = white_point * exposure;
+    (color * (luminance / (white_point * white_point) + 1.0) / (luminance + 1.0)).saturate()
 }
