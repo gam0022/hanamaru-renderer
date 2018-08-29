@@ -868,7 +868,7 @@ fn init_scene_rtcamp6_v2() -> (Camera, Scene) {
             center: Vector3::new(px, py, pz),
             radius: s,
             material: Material {
-                surface: SurfaceType::GGX{ f0: 0.9 },
+                surface: SurfaceType::GGX { f0: 0.9 },
                 albedo: Texture::from_color(color::hsv_to_rgb(Color::new(rng.gen_range(0.0, 1.0), 1.0, 1.0))),
                 emission: Texture::black(),
                 roughness: Texture::from_color(Color::from_one(rng.gen_range(0.0, 1.0))),
@@ -972,7 +972,7 @@ fn init_scene_rtcamp6_v3() -> (Camera, Scene) {
                     roughness: Texture::from_color(Color::from_one(0.1)),
                 },*/
                 Material {
-                    surface: SurfaceType::GGX{ f0: 0.8 },
+                    surface: SurfaceType::GGX { f0: 0.8 },
                     albedo: Texture::from_color(Color::new(1.0, 0.01, 0.01)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.05)),
@@ -988,7 +988,7 @@ fn init_scene_rtcamp6_v3() -> (Camera, Scene) {
                 material: Material {
                     //surface: SurfaceType::GGX{ f0: 0.99 },
                     surface: SurfaceType::Diffuse,
-                    albedo:  Texture::white(),
+                    albedo: Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     //albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
                     //albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_c_diffuse.tiff"),
@@ -1006,6 +1006,192 @@ fn init_scene_rtcamp6_v3() -> (Camera, Scene) {
             "textures/cube/Powerlines/negy.jpg",
             "textures/cube/Powerlines/posz.jpg",
             "textures/cube/Powerlines/negz.jpg",
+            &Vector3::from_one(1.0),
+        ),
+    };
+
+    (camera, scene)
+}
+
+#[allow(dead_code)]
+fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
+    let camera = Camera::new(
+        Vector3::new(0.0, 2.0, 6.0), // eye
+        Vector3::new(0.0, 1.0, 0.0), // target
+        Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
+        20.0, // fov
+
+        LensShape::Circle, // lens shape
+        0.2,// aperture
+        4.9,// focus_distance
+    );
+
+    let radius = 0.2;
+
+    let mut scene = Scene {
+        elements: vec![
+            Box::new(Sphere {
+                center: Vector3::new(-0.3, 0.5 + radius, 0.0),
+                radius: radius,
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::black(),
+                    emission: Texture::from_color(Color::from_one(10.0)),
+                    roughness: Texture::black(),
+                },
+            }),
+
+            // camera light
+            Box::new(Sphere {
+                center: camera.eye - camera.forward,
+                radius: 0.001,
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::black(),
+                    emission: Texture::from_color(Color::from_one(1000.0)),
+                    roughness: Texture::black(),
+                },
+            }),
+
+            // Mesh
+            Box::new(BvhMesh::from_mesh(ObjLoader::load(
+                "models/bunny/bunny_wired_300.obj",
+                Matrix44::scale_linear(1.5) * Matrix44::translate(0.0, 0.0, 0.0) * Matrix44::rotate_y(0.3),
+                /*Material {
+                    surface: SurfaceType::Refraction { refractive_index: 1.5 },
+                    albedo: Texture::from_color(Color::new(0.7, 0.7, 1.0)),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                },*/
+                Material {
+                    surface: SurfaceType::GGX { f0: 0.8 },
+                    albedo: Texture::from_color(Color::new(1.0, 0.01, 0.01)),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            ))),
+
+            // 床
+            Box::new(Cuboid {
+                aabb: Aabb {
+                    min: Vector3::new(-5.0, -1.0, -5.0),
+                    max: Vector3::new(5.0, 0.0, 5.0),
+                },
+                material: Material {
+                    //surface: SurfaceType::GGX{ f0: 0.99 },
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::white(),
+                    //albedo: Texture::from_path("textures/2d/stone03.jpg"),
+                    //albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
+                    //albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_c_diffuse.tiff"),
+                    emission: Texture::black(),
+                    roughness: Texture::white(),
+                    //roughness: Texture::from_path("textures/2d/checkered_diagonal_10_0.1_0.6_512.png"),
+                    //roughness: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png"),
+                },
+            }),
+        ],
+        skybox: Skybox::new(
+            "textures/cube/Powerlines/posx.jpg",
+            "textures/cube/Powerlines/negx.jpg",
+            "textures/cube/Powerlines/posy.jpg",
+            "textures/cube/Powerlines/negy.jpg",
+            "textures/cube/Powerlines/posz.jpg",
+            "textures/cube/Powerlines/negz.jpg",
+            &Vector3::from_one(3.0),
+        ),
+    };
+
+    let mut i = 0;
+    let count = 6;
+    while i < count {
+        let r = 2.2;
+        let theta = 0.1 + config::PI2 / count as f64 * i as f64;
+        let px = r * theta.sin();
+        let py = 0.0;
+        let pz = r * theta.cos();
+        let s = 1.0;
+
+        scene.add(Box::new(BvhMesh::from_mesh(ObjLoader::load(
+            "models/armadilo_1000.obj",
+            Matrix44::scale_linear(s) * Matrix44::translate(px, py, pz) * Matrix44::rotate_y(theta),
+            if i % 2 == 0 {
+                Material {
+                    surface: SurfaceType::Refraction { refractive_index: 1.5 },
+                    albedo: Texture::from_color(Color::new(0.7, 0.7, 1.0)),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                }
+            } else {
+                Material {
+                    surface: SurfaceType::GGX { f0: 0.8 },
+                    albedo: Texture::from_color(hsv_to_rgb(Color::new(0.2 + 0.1 * i as f64, 1.0, 1.0))),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.01 + 0.05 * i as f64)),
+                }
+            },
+        ))));
+
+        i += 1;
+    }
+
+    (camera, scene)
+}
+
+#[allow(dead_code)]
+fn init_scene_rtcamp6_v4() -> (Camera, Scene) {
+    let camera = Camera::new(
+        Vector3::new(0.0, 1.0, 6.0), // eye
+        Vector3::new(0.0, 0.0, 0.0), // target
+        Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
+        30.0, // fov
+
+        LensShape::Circle, // lens shape
+        0.2 * 0.0,// aperture
+        4.9,// focus_distance
+    );
+
+    let radius = 0.2;
+
+    let scene = Scene {
+        elements: vec![
+            // Mesh
+            Box::new(BvhMesh::from_mesh(ObjLoader::load(
+                "models/fractal_icosahedron.obj",
+                Matrix44::scale_linear(1.0) * Matrix44::translate(0.0, 0.0, 0.0) * Matrix44::rotate_y(0.3),
+                /*Material {
+                    surface: SurfaceType::Refraction { refractive_index: 1.5 },
+                    albedo: Texture::from_color(Color::new(0.7, 0.7, 1.0)),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.1)),
+                },*/
+                Material {
+                    surface: SurfaceType::GGX { f0: 0.8 },
+                    albedo: Texture::from_color(Color::new(1.0, 1.0, 1.0)),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.05)),
+                },
+            ))),
+
+            // camera light
+            Box::new(Sphere {
+                center: camera.eye - camera.forward,
+                radius: 0.001,
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::black(),
+                    emission: Texture::from_color(Color::from_one(1000.0)),
+                    roughness: Texture::black(),
+                },
+            }),
+        ],
+        skybox: Skybox::new(
+            "textures/cube/Ryfjallet/posx.jpg",
+            "textures/cube/Ryfjallet/negx.jpg",
+            "textures/cube/Ryfjallet/posy.jpg",
+            "textures/cube/Ryfjallet/negy.jpg",
+            "textures/cube/Ryfjallet/posz.jpg",
+            "textures/cube/Ryfjallet/negz.jpg",
             &Vector3::from_one(1.0),
         ),
     };
@@ -1043,7 +1229,7 @@ fn main() {
         //let (camera, scene) = init_scene_material_examples();
         //let (camera, scene) = init_scene_tbf3();
         //let (camera, scene) = init_scene_simple();
-        let (camera, scene) = init_scene_rtcamp6_v3();
+        let (camera, scene) = init_scene_rtcamp6_v3_1();
 
         let init_scene_end = time::now();
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
