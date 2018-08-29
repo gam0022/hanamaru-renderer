@@ -27,8 +27,8 @@ pub const RESOLUTION: (u32, u32, u32) = (1920, 1080, 1000);// 16:9 FHD 2,073,600
 // レイトレ合宿6のレギュレーション用
 // https://sites.google.com/site/raytracingcamp6/
 pub const REPORT_INTERVAL_SEC: f64 = 15.0;// 15秒ごとに途中結果を出力
-// pub const TIME_LIMIT_SEC: f64 = (123 * 10000) as f64;// 123秒以内に自動で終了
-pub const TIME_LIMIT_SEC: f64 = (1047) as f64;// 開発環境と本番環境の性能差を考慮した制限時間
+pub const TIME_LIMIT_SEC: f64 = (123) as f64;// 123秒以内に自動で終了
+//pub const TIME_LIMIT_SEC: f64 = (1047) as f64;// 開発環境と本番環境の性能差を考慮した制限時間
 
 // Tone Mapping
 pub const TONE_MAPPING_MODE: ToneMappingMode = ToneMappingMode::Reinhard;
