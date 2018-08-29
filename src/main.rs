@@ -1015,27 +1015,28 @@ fn init_scene_rtcamp6_v3() -> (Camera, Scene) {
 
 #[allow(dead_code)]
 fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
+    let scene_scale = 1.0;
     let theta = config::PI2 * 0.03;
-    let r = 6.5;
+    let r = 6.5 * scene_scale;
     let camera = Camera::new(
-        Vector3::new(r * theta.sin(), 2.0, r * theta.cos()), // eye
-        Vector3::new(0.0, 1.0, 0.0), // target
+        Vector3::new(r * theta.sin(), 2.0 * scene_scale, r * theta.cos()), // eye
+        Vector3::new(0.0, 1.0 * scene_scale, 0.0), // target
         Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
         20.0, // fov
 
         LensShape::Circle, // lens shape
-        0.07,// aperture
-        6.1,// focus_distance
+        0.03,// aperture
+        5.0 * scene_scale,// focus_distance
     );
 
     let radius = 0.2;
-    let floor_s = 9.0;
+    let floor_s = 9.0 * scene_scale;
 
     let mut scene = Scene {
         elements: vec![
             Box::new(Sphere {
-                center: Vector3::new(-0.3, 0.5 + radius, 0.0),
-                radius: radius,
+                center: Vector3::new(-0.3, 0.5 + radius, 0.0) * scene_scale,
+                radius: radius * scene_scale,
                 material: Material {
                     surface: SurfaceType::Diffuse,
                     albedo: Texture::black(),
@@ -1047,7 +1048,7 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
             // Mesh
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/bunny/bunny_wired_300.obj",
-                Matrix44::scale_linear(1.5) * Matrix44::translate(0.0, 0.0, 0.0) * Matrix44::rotate_y(0.3),
+                Matrix44::scale_linear(1.5 * scene_scale) * Matrix44::translate(0.0, 0.0, 0.0) * Matrix44::rotate_y(0.3),
                 Material {
                     surface: SurfaceType::GGX { f0: 0.8 },
                     albedo: Texture::from_color(Color::new(1.0, 0.01, 0.01)),
@@ -1059,7 +1060,7 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
             // 鏡
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/box.obj",
-                Matrix44::translate(1.0, 0.0, -3.0) * Matrix44::rotate_y(- config::PI / 8.0) * Matrix44::scale(4.0, 3.0, 0.1),
+                Matrix44::translate(1.0 * scene_scale, 0.0, -3.0 * scene_scale) * Matrix44::rotate_y(- config::PI / 8.0) * Matrix44::scale(4.0 * scene_scale, 3.0 * scene_scale, 0.1 * scene_scale),
                 Material {
                     surface: SurfaceType::Specular,
                     albedo: Texture::white(),
@@ -1096,18 +1097,18 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
     let mut i = 0;
     let count = 6;
     while i < count {
-        let r = 2.2;
+        let r = 2.2 * scene_scale;
         let dr = i as f64 / count as f64;
         let theta = config::PI2 * dr;
         let px = r * theta.sin();
         let py = 0.0;
         let pz = r * theta.cos();
-        let s = 1.0;
+        let s = scene_scale;
         let offset = 0.45;
 
         scene.add(Box::new(BvhMesh::from_mesh(ObjLoader::load(
             "models/armadilo_1000.obj",
-            Matrix44::scale_linear(s) * Matrix44::translate(px, py, pz) * Matrix44::rotate_y(theta),
+            Matrix44::translate(px, py, pz) * Matrix44::rotate_y(theta) * Matrix44::scale_linear(s),
             if i % 2 == 0 {
                 Material {
                     surface: SurfaceType::Refraction { refractive_index: 1.5 },
