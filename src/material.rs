@@ -199,7 +199,8 @@ fn sample_refraction(random: (f64, f64), position: &Vector3, view: &Vector3, nor
 }
 
 // 法線を基準とした空間の基底ベクトルを計算
-fn get_tangent_space_basis(normal: &Vector3) -> (Vector3, Vector3) {
+#[allow(dead_code)]
+fn get_tangent_space_basis_gram_schmidtd(normal: &Vector3) -> (Vector3, Vector3) {
     let up = if normal.x.abs() > config::EPS {
         Vector3::new(0.0, 1.0, 0.0)
     } else {
@@ -210,10 +211,21 @@ fn get_tangent_space_basis(normal: &Vector3) -> (Vector3, Vector3) {
     (tangent, binormal)
 }
 
+// Duff et al.,の手法
+// https://shikihuiku.wordpress.com/2018/07/09/%E6%AD%A3%E8%A6%8F%E7%9B%B4%E4%BA%A4%E5%9F%BA%E5%BA%95%E3%81%AE%E4%BD%9C%E3%82%8A%E6%96%B9%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E3%80%81%E6%94%B9%E3%82%81%E3%81%A6%E5%8B%89%E5%BC%B7%E3%81%97%E3%81%BE/
+fn get_tangent_space_basis_revised_onb(normal: &Vector3) -> (Vector3, Vector3) {
+    let s = normal.z.signum();
+    let a = -(s + normal.z).recip();
+    let b = normal.x * normal.y * a;
+    let tangent = Vector3::new(1.0 + s * normal.x * normal.x * a, s * b, -s * normal.x);
+    let binormal = Vector3::new(b, s + normal.y * normal.y * a, -normal.y);
+    (tangent, binormal)
+}
+
 // 完全拡散反射のcos項による重点サンプリング
 // https://github.com/githole/edupt/blob/master/radiance.h
 fn importance_sample_diffuse(random: (f64, f64), normal: &Vector3) -> Vector3 {
-    let (tangent, binormal) = get_tangent_space_basis(normal);
+    let (tangent, binormal) = get_tangent_space_basis_revised_onb(normal);
 
     // θ,φは極座標系の偏角。cosθにより重点サンプリングをしたい
     // 任意の確率密度関数fを積分した累積分布関数Fの逆関数を一様乱数に噛ませれば、
@@ -246,7 +258,7 @@ fn roughness_to_alpha2(roughness: f64) -> f64 {
 // cos項による重点サンプリングのためのハーフベクトルを計算
 // http://project-asura.com/blog/?p=3124
 fn importance_sample_ggx_half(random: (f64, f64), normal: &Vector3, alpha2: f64) -> Vector3 {
-    let (tangent, binormal) = get_tangent_space_basis(normal);
+    let (tangent, binormal) = get_tangent_space_basis_revised_onb(normal);
 
     let phi = config::PI2 * random.0;
     let cos_theta = ((1.0 - random.1) / (1.0 + (alpha2 - 1.0) * random.1)).sqrt();
@@ -261,7 +273,7 @@ fn g_smith_joint_lambda(x_dot_n: f64, alpha2: f64) -> f64 {
     0.5 * (1.0 + alpha2 * a).sqrt() - 0.5
 }
 
-fn g_smith_joint(l_dot_n :f64, v_dot_n: f64, alpha2: f64) -> f64 {
+fn g_smith_joint(l_dot_n: f64, v_dot_n: f64, alpha2: f64) -> f64 {
     let lambda_l = g_smith_joint_lambda(l_dot_n, alpha2);
     let lambda_v = g_smith_joint_lambda(v_dot_n, alpha2);
     (1.0 + lambda_l + lambda_v).recip()
