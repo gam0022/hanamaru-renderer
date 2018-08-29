@@ -93,6 +93,10 @@ impl Vector3 {
     pub fn saturate(&self) -> Vector3 {
         Vector3::new(saturate(self.x), saturate(self.y), saturate(self.z))
     }
+
+    pub fn powf(&self, v: f64) -> Vector3 {
+        Vector3::new(self.x.powf(v), self.y.powf(v), self.z.powf(v))
+    }
 }
 
 impl Add for Vector3 {
@@ -291,6 +295,10 @@ impl Vector2 {
 
     pub fn saturate(&self) -> Vector2 {
         Vector2::new(saturate(self.x), saturate(self.y))
+    }
+
+    pub fn powf(&self, v: f64) -> Vector2 {
+        Vector2::new(self.x.powf(v), self.y.powf(v))
     }
 }
 
