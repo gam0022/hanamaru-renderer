@@ -159,10 +159,10 @@ impl Intersectable for Cuboid {
             // 高速化のためにY軸から先に判定する
             if equals_eps(intersection.position.y, self.aabb.max.y) {
                 intersection.normal = Vector3::new(0.0, 1.0, 0.0);
-                intersection.uv = uvw.xz();
+                intersection.uv = uvw.xiz();
             } else if equals_eps(intersection.position.y, self.aabb.min.y) {
                 intersection.normal = Vector3::new(0.0, -1.0, 0.0);
-                intersection.uv = uvw.xz();
+                intersection.uv = uvw.xiz();
             } else if equals_eps(intersection.position.x, self.aabb.min.x) {
                 intersection.normal = Vector3::new(-1.0, 0.0, 0.0);
                 intersection.uv = uvw.zy();

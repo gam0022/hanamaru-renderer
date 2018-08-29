@@ -1015,19 +1015,21 @@ fn init_scene_rtcamp6_v3() -> (Camera, Scene) {
 
 #[allow(dead_code)]
 fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
+    let theta = config::PI2 * 0.08;
+    let r = 6.5;
     let camera = Camera::new(
-        Vector3::new(1.0, 2.0, 6.0), // eye
+        Vector3::new(r * theta.sin(), 2.0, r * theta.cos()), // eye
         Vector3::new(0.0, 1.0, 0.0), // target
         Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
         20.0, // fov
 
         LensShape::Circle, // lens shape
-        0.2 * 0.01,// aperture
-        4.9,// focus_distance
+        0.2 * 1.0,// aperture
+        5.5,// focus_distance
     );
 
     let radius = 0.2;
-    let floor_s = 10.0;
+    let floor_s = 9.0;
 
     let mut scene = Scene {
         elements: vec![
@@ -1105,11 +1107,13 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
     let count = 6;
     while i < count {
         let r = 2.2;
-        let theta = config::PI2 / count as f64 * i as f64;
+        let dr = i as f64 / count as f64;
+        let theta = config::PI2 * dr;
         let px = r * theta.sin();
         let py = 0.0;
         let pz = r * theta.cos();
         let s = 1.0;
+        let offset = 0.45;
 
         scene.add(Box::new(BvhMesh::from_mesh(ObjLoader::load(
             "models/armadilo_1000.obj",
@@ -1117,14 +1121,14 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
             if i % 2 == 0 {
                 Material {
                     surface: SurfaceType::Refraction { refractive_index: 1.5 },
-                    albedo: Texture::from_color(Color::new(0.7, 0.7, 1.0)),
+                    albedo: Texture::from_color(hsv_to_rgb(Color::new((offset + dr).fract(), 0.2, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.1)),
                 }
             } else {
                 Material {
                     surface: SurfaceType::GGX { f0: 0.8 },
-                    albedo: Texture::from_color(hsv_to_rgb(Color::new(0.2 + 0.1 * i as f64, 1.0, 1.0))),
+                    albedo: Texture::from_color(hsv_to_rgb(Color::new((offset + dr).fract(), 1.0, 1.0))),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.01 + 0.05 * i as f64)),
                 }

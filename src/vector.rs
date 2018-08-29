@@ -82,6 +82,10 @@ impl Vector3 {
         Vector2::new(self.x, self.z)
     }
 
+    pub fn xiz(&self) -> Vector2 {
+        Vector2::new(self.x, 1.0 - self.z)
+    }
+
     pub fn approximately(&self, other: &Vector3) -> bool {
         (*self - *other).norm() < config::OFFSET * 4.0
     }
