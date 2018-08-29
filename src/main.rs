@@ -1016,17 +1016,18 @@ fn init_scene_rtcamp6_v3() -> (Camera, Scene) {
 #[allow(dead_code)]
 fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
     let camera = Camera::new(
-        Vector3::new(0.0, 2.0, 6.0), // eye
+        Vector3::new(1.0, 2.0, 6.0), // eye
         Vector3::new(0.0, 1.0, 0.0), // target
         Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
         20.0, // fov
 
         LensShape::Circle, // lens shape
-        0.2,// aperture
+        0.2 * 0.01,// aperture
         4.9,// focus_distance
     );
 
     let radius = 0.2;
+    let floor_s = 10.0;
 
     let mut scene = Scene {
         elements: vec![
@@ -1057,12 +1058,6 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/bunny/bunny_wired_300.obj",
                 Matrix44::scale_linear(1.5) * Matrix44::translate(0.0, 0.0, 0.0) * Matrix44::rotate_y(0.3),
-                /*Material {
-                    surface: SurfaceType::Refraction { refractive_index: 1.5 },
-                    albedo: Texture::from_color(Color::new(0.7, 0.7, 1.0)),
-                    emission: Texture::black(),
-                    roughness: Texture::from_color(Color::from_one(0.1)),
-                },*/
                 Material {
                     surface: SurfaceType::GGX { f0: 0.8 },
                     albedo: Texture::from_color(Color::new(1.0, 0.01, 0.01)),
@@ -1074,20 +1069,24 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
             // 床
             Box::new(Cuboid {
                 aabb: Aabb {
-                    min: Vector3::new(-5.0, -1.0, -5.0),
-                    max: Vector3::new(5.0, 0.0, 5.0),
+                    min: Vector3::new(-floor_s, -1.0, -floor_s),
+                    max: Vector3::new(floor_s, 0.0, floor_s),
                 },
-                material: Material {
-                    //surface: SurfaceType::GGX{ f0: 0.99 },
-                    surface: SurfaceType::Diffuse,
+                /*material: Material {
+                    surface: SurfaceType::GGX{ f0: 1.0 },
+                    //surface: SurfaceType::Diffuse,
                     albedo: Texture::white(),
                     //albedo: Texture::from_path("textures/2d/stone03.jpg"),
                     //albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
-                    //albedo: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_c_diffuse.tiff"),
+                    emission: Texture::black(),
+                    //roughness: Texture::white(),
+                    roughness: Texture::from_path("textures/2d/magic-circle.png"),
+                },*/
+                material: Material {
+                    surface: SurfaceType::Diffuse,
+                    albedo: Texture::from_path("textures/2d/magic-circle3.png"),
                     emission: Texture::black(),
                     roughness: Texture::white(),
-                    //roughness: Texture::from_path("textures/2d/checkered_diagonal_10_0.1_0.6_512.png"),
-                    //roughness: Texture::from_path("textures/2d/MarbleFloorTiles2/TexturesCom_MarbleFloorTiles2_1024_roughness.png"),
                 },
             }),
         ],
@@ -1106,7 +1105,7 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
     let count = 6;
     while i < count {
         let r = 2.2;
-        let theta = 0.1 + config::PI2 / count as f64 * i as f64;
+        let theta = config::PI2 / count as f64 * i as f64;
         let px = r * theta.sin();
         let py = 0.0;
         let pz = r * theta.cos();
@@ -1150,8 +1149,6 @@ fn init_scene_rtcamp6_v4() -> (Camera, Scene) {
         0.2 * 0.0,// aperture
         4.9,// focus_distance
     );
-
-    let radius = 0.2;
 
     let scene = Scene {
         elements: vec![
