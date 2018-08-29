@@ -4,4 +4,4 @@ max sampling: 1000x4 spp.
 time limit: 1047.00 sec.
 init scene: 0.16 sec.
 sampled: 64x4 spp.
-total 1042.386 sec. used 99.56 % (x 1.00)
+total 1030.393 sec. used 98.41 % (x 1.02)

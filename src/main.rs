@@ -1024,7 +1024,7 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
         20.0, // fov
 
         LensShape::Circle, // lens shape
-        0.2,// aperture
+        0.07,// aperture
         6.1,// focus_distance
     );
 
