@@ -1015,7 +1015,7 @@ fn init_scene_rtcamp6_v3() -> (Camera, Scene) {
 
 #[allow(dead_code)]
 fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
-    let theta = config::PI2 * 0.08;
+    let theta = config::PI2 * 0.03;
     let r = 6.5;
     let camera = Camera::new(
         Vector3::new(r * theta.sin(), 2.0, r * theta.cos()), // eye
@@ -1024,8 +1024,8 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
         20.0, // fov
 
         LensShape::Circle, // lens shape
-        0.2 * 1.0,// aperture
-        5.5,// focus_distance
+        0.2,// aperture
+        6.1,// focus_distance
     );
 
     let radius = 0.2;
@@ -1039,19 +1039,7 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
                 material: Material {
                     surface: SurfaceType::Diffuse,
                     albedo: Texture::black(),
-                    emission: Texture::from_color(Color::from_one(10.0)),
-                    roughness: Texture::black(),
-                },
-            }),
-
-            // camera light
-            Box::new(Sphere {
-                center: camera.eye - camera.forward,
-                radius: 0.001,
-                material: Material {
-                    surface: SurfaceType::Diffuse,
-                    albedo: Texture::black(),
-                    emission: Texture::from_color(Color::from_one(1000.0)),
+                    emission: Texture::from_color(Color::new(20.0, 10.0, 4.0)),
                     roughness: Texture::black(),
                 },
             }),
@@ -1068,22 +1056,24 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
                 },
             ))),
 
+            // 鏡
+            Box::new(BvhMesh::from_mesh(ObjLoader::load(
+                "models/box.obj",
+                Matrix44::translate(1.0, 0.0, -3.0) * Matrix44::rotate_y(- config::PI / 8.0) * Matrix44::scale(4.0, 3.0, 0.1),
+                Material {
+                    surface: SurfaceType::Specular,
+                    albedo: Texture::white(),
+                    emission: Texture::black(),
+                    roughness: Texture::black(),
+                },
+            ))),
+
             // 床
             Box::new(Cuboid {
                 aabb: Aabb {
                     min: Vector3::new(-floor_s, -1.0, -floor_s),
                     max: Vector3::new(floor_s, 0.0, floor_s),
                 },
-                /*material: Material {
-                    surface: SurfaceType::GGX{ f0: 1.0 },
-                    //surface: SurfaceType::Diffuse,
-                    albedo: Texture::white(),
-                    //albedo: Texture::from_path("textures/2d/stone03.jpg"),
-                    //albedo: Texture::from_path("textures/2d/checkered_diagonal_10_0.5_1.0_512.png"),
-                    emission: Texture::black(),
-                    //roughness: Texture::white(),
-                    roughness: Texture::from_path("textures/2d/magic-circle.png"),
-                },*/
                 material: Material {
                     surface: SurfaceType::Diffuse,
                     albedo: Texture::from_path("textures/2d/magic-circle3.png"),

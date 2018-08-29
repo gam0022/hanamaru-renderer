@@ -3,5 +3,5 @@ resolution: 1920x1080.
 max sampling: 1000x4 spp.
 time limit: 1047.00 sec.
 init scene: 0.16 sec.
-sampled: 63x4 spp.
-total 1039.696 sec. used 99.30 % (x 1.01)
+sampled: 64x4 spp.
+total 1042.386 sec. used 99.56 % (x 1.00)
