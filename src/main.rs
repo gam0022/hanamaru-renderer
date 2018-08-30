@@ -1064,12 +1064,24 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
             // 鏡
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/box.obj",
-                Matrix44::translate(1.0 * scene_scale, 0.0, -3.0 * scene_scale) * Matrix44::rotate_y(-config::PI / 8.0) * Matrix44::scale(4.0 * scene_scale, 3.0 * scene_scale, 0.1 * scene_scale),
+                Matrix44::translate(1.0 * scene_scale, 0.0, -3.0 * scene_scale) * Matrix44::rotate_y(-config::PI / 8.0) * Matrix44::scale(4.0 * 0.9 * scene_scale, 3.0 * 0.9 * scene_scale, 0.1 * 0.9 * scene_scale),
                 Material {
                     surface: SurfaceType::Specular,
                     albedo: Texture::white(),
                     emission: Texture::black(),
                     roughness: Texture::black(),
+                },
+            ))),
+
+            // 額縁
+            Box::new(BvhMesh::from_mesh(ObjLoader::load(
+                "models/picture_frame.obj",
+                Matrix44::translate(1.0 * scene_scale, 0.0, -3.0 * scene_scale) * Matrix44::rotate_y(-config::PI / 8.0) * Matrix44::scale(4.0 * scene_scale, 3.0 * scene_scale, scene_scale),
+                Material {
+                    surface: SurfaceType::GGX { f0: 0.9 },
+                    albedo: Texture::from_color(Color::new(0.33, 0.27, 0.22 )),
+                    emission: Texture::black(),
+                    roughness: Texture::from_color(Color::from_one(0.3)),
                 },
             ))),
 
@@ -1125,7 +1137,7 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
                     surface: SurfaceType::GGX { f0: 0.8 },
                     albedo: Texture::from_color(hsv_to_rgb(Color::new((offset + dr).fract(), 1.0, 1.0))),
                     emission: Texture::black(),
-                    roughness: Texture::from_color(Color::from_one(0.01 + 0.05 * i as f64)),
+                    roughness: Texture::from_color(Color::from_one(0.05 * i as f64)),
                 }
             },
         ))));
