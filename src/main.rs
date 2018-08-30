@@ -1212,6 +1212,7 @@ fn main() {
 
     let mut opts = Options::new();
     opts.optflag("", "help", "print this help menu");
+    opts.optflag("d", "debug", "use debug mode");
     opts.optopt("w", "width", "output resolution width", "WIDTH");
     opts.optopt("h", "height", "output resolution height", "HEIGHT");
     opts.optopt("s", "sampling", "sampling limit", "SAMPLING");
@@ -1226,6 +1227,7 @@ fn main() {
         print_usage(&program, opts);
         return;
     }
+    let debug_mode = matches.opt_present("debug");
 
     let width = matches.opt_get_default("w", 1920).unwrap();
     let height = matches.opt_get_default("h", 1080).unwrap();
@@ -1239,9 +1241,6 @@ fn main() {
     let mut f = BufWriter::new(fs::File::create("result.txt").unwrap());
     let total_begin = time::now();
     {
-        //let mut renderer = DebugRenderer { mode: DebugRenderMode::FocalPlane };
-        let mut renderer = PathTracingRenderer::new(sampling, time_limit_sec, report_interval_sec);
-
         tee(&mut f, &format!("num threads: {}.", rayon::current_num_threads()));
         tee(&mut f, &format!("resolution: {}x{}.", width, height));
         tee(&mut f, &format!("max sampling: {}x{} spp.", sampling, config::SUPERSAMPLING * config::SUPERSAMPLING));
@@ -1260,7 +1259,14 @@ fn main() {
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
         tee(&mut f, &format!("init scene: {:.2} sec.", init_scene_sec));
 
-        let sampled = render(&mut renderer, width, height, &camera, scene);
+        let sampled = if debug_mode {
+            let mut debug_renderer = DebugRenderer { mode: DebugRenderMode::FocalPlane };
+            render(&mut debug_renderer, width, height, &camera, scene)
+        } else {
+            let mut pathtracing_renderer = PathTracingRenderer::new(sampling, time_limit_sec, report_interval_sec);
+            render(&mut pathtracing_renderer, width, height, &camera, scene)
+        };
+
         tee(&mut f, &format!("sampled: {}x{} spp.", sampled, config::SUPERSAMPLING * config::SUPERSAMPLING));
     }
     let total_end = time::now();
