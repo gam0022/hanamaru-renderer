@@ -3,6 +3,7 @@ extern crate image;
 extern crate time;
 extern crate rand;
 extern crate rayon;
+extern crate getopts;
 
 use image::GenericImage;
 use std::fs::File;
@@ -11,6 +12,8 @@ use std::fs;
 use std::io::{BufWriter, Write};
 use num::Float;
 use self::rand::{Rng, SeedableRng, StdRng};
+use getopts::Options;
+use std::env;
 
 mod config;
 mod vector;
@@ -1060,7 +1063,7 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
             // 鏡
             Box::new(BvhMesh::from_mesh(ObjLoader::load(
                 "models/box.obj",
-                Matrix44::translate(1.0 * scene_scale, 0.0, -3.0 * scene_scale) * Matrix44::rotate_y(- config::PI / 8.0) * Matrix44::scale(4.0 * scene_scale, 3.0 * scene_scale, 0.1 * scene_scale),
+                Matrix44::translate(1.0 * scene_scale, 0.0, -3.0 * scene_scale) * Matrix44::rotate_y(-config::PI / 8.0) * Matrix44::scale(4.0 * scene_scale, 3.0 * scene_scale, 0.1 * scene_scale),
                 Material {
                     surface: SurfaceType::Specular,
                     albedo: Texture::white(),
@@ -1198,22 +1201,52 @@ fn render<R: Renderer>(renderer: &mut R, width: u32, height: u32, camera: &Camer
     sampled
 }
 
+fn print_usage(program: &str, opts: Options) {
+    let brief = format!("Usage: {} [options]", program);
+    print!("{}", opts.usage(&brief));
+}
+
 fn main() {
-    //inspect_image();
-    //return;
+    let args: Vec<String> = env::args().collect();
+    let program = args[0].clone();
+
+    let mut opts = Options::new();
+    opts.optflag("", "help", "print this help menu");
+    opts.optopt("w", "width", "output resolution width", "WIDTH");
+    opts.optopt("h", "height", "output resolution height", "HEIGHT");
+    opts.optopt("s", "sampling", "sampling limit", "SAMPLING");
+    opts.optopt("t", "time", "time limit sec", "TIME");
+    opts.optopt("i", "interval", "report interval sec", "INTERVAL");
+
+    let matches = match opts.parse(&args[1..]) {
+        Ok(m) => { m }
+        Err(f) => { panic!(f.to_string()) }
+    };
+    if matches.opt_present("help") {
+        print_usage(&program, opts);
+        return;
+    }
+
+    let width = matches.opt_get_default("w", 1920).unwrap();
+    let height = matches.opt_get_default("h", 1080).unwrap();
+    let sampling = matches.opt_get_default("s", 1000).unwrap();
+
+    // レイトレ合宿6のレギュレーション用
+    // https://sites.google.com/site/raytracingcamp6/
+    let time_limit_sec = matches.opt_get_default("t", 123.0).unwrap();// 123秒以内に終了
+    let report_interval_sec = matches.opt_get_default("i", 15.0).unwrap();// 15秒ごとに途中結果を出力
 
     let mut f = BufWriter::new(fs::File::create("result.txt").unwrap());
-
     let total_begin = time::now();
     {
-        let (width, height, sampling) = config::RESOLUTION;
         //let mut renderer = DebugRenderer { mode: DebugRenderMode::FocalPlane };
-        let mut renderer = PathTracingRenderer::new(sampling);
+        let mut renderer = PathTracingRenderer::new(sampling, time_limit_sec, report_interval_sec);
 
         tee(&mut f, &format!("num threads: {}.", rayon::current_num_threads()));
         tee(&mut f, &format!("resolution: {}x{}.", width, height));
         tee(&mut f, &format!("max sampling: {}x{} spp.", sampling, config::SUPERSAMPLING * config::SUPERSAMPLING));
-        tee(&mut f, &format!("time limit: {:.2} sec.", config::TIME_LIMIT_SEC));
+        tee(&mut f, &format!("time limit: {:.2} sec.", time_limit_sec));
+        tee(&mut f, &format!("report interval: {:.2} sec.", report_interval_sec));
 
         let init_scene_begin = time::now();
 
@@ -1233,7 +1266,7 @@ fn main() {
     let total_end = time::now();
 
     let total_sec = (total_end - total_begin).num_milliseconds() as f64 * 0.001;
-    let used_percent = total_sec / config::TIME_LIMIT_SEC as f64 * 100.0;
+    let used_percent = total_sec / time_limit_sec as f64 * 100.0;
     let progress_per_used = 100.0 / used_percent;
     tee(&mut f, &format!("total {} sec. used {:.2} % (x {:.2})", total_sec, used_percent, progress_per_used));
 }

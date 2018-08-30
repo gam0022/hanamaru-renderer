@@ -147,6 +147,8 @@ impl Renderer for DebugRenderer {
 
 pub struct PathTracingRenderer {
     sampling: u32,
+    time_limit_sec: f64,
+    report_interval_sec: f64,
 
     // for report_progress
     begin: Tm,
@@ -203,7 +205,7 @@ impl Renderer for PathTracingRenderer {
     fn report_progress(&mut self, accumulation_buf: &Vec<Vector3>, sampling: u32, imgbuf: &mut ImageBuffer<Rgb<u8>, Vec<u8>>) -> bool {
         let now = time::now();
         let used = (now - self.begin).num_milliseconds() as f64 * 0.001;
-        let used_percent = used / config::TIME_LIMIT_SEC as f64 * 100.0;
+        let used_percent = used / self.time_limit_sec as f64 * 100.0;
         let from_last_sampling_sec = (now - self.last_report_progress).num_milliseconds() as f64 * 0.001;
 
         println!("rendering: {}x{} sampled (last {:.3} sec). total: {:.3} sec ({:.2} %).",
@@ -214,11 +216,11 @@ impl Renderer for PathTracingRenderer {
         // reached time limit
         // 前フレームの所要時間から次のフレームが制限時間内に終るかを予測する。時間超過を防ぐために1.1倍に見積もる
         let offset = from_last_sampling_sec * 1.1;
-        if used + offset > config::TIME_LIMIT_SEC {
+        if used + offset > self.time_limit_sec {
             let path = format!("progress_{:>03}.png", self.report_image_counter);
             println!("reached time limit");
             println!("output final image: {}", path);
-            println!("remain: {:.3} sec.", config::TIME_LIMIT_SEC - used);
+            println!("remain: {:.3} sec.", self.time_limit_sec - used);
             Self::save_progress_image(&path, accumulation_buf, sampling, imgbuf);
             return true;
         }
@@ -228,14 +230,14 @@ impl Renderer for PathTracingRenderer {
             let path = format!("progress_{:>03}.png", self.report_image_counter);
             println!("reached max sampling");
             println!("output final image: {}", path);
-            println!("remain: {:.3} sec.", config::TIME_LIMIT_SEC - used);
+            println!("remain: {:.3} sec.", self.time_limit_sec - used);
             Self::save_progress_image(&path, accumulation_buf, sampling, imgbuf);
             return true;
         }
 
         // on interval time passed
         let from_last_report_image_sec = (now - self.last_report_image).num_milliseconds() as f64 * 0.001;
-        if from_last_report_image_sec >= config::REPORT_INTERVAL_SEC {
+        if from_last_report_image_sec >= self.report_interval_sec {
             // save progress image
             let path = format!("progress_{:>03}.png", self.report_image_counter);
             println!("output progress image: {}", path);
@@ -250,10 +252,12 @@ impl Renderer for PathTracingRenderer {
 }
 
 impl PathTracingRenderer {
-    pub fn new(sampling: u32) -> PathTracingRenderer {
+    pub fn new(sampling: u32, time_limit_sec: f64, report_interval_sec: f64) -> PathTracingRenderer {
         let now = time::now();
         PathTracingRenderer {
             sampling,
+            time_limit_sec,
+            report_interval_sec,
 
             begin: now,
             last_report_progress: now,
