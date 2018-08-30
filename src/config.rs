@@ -15,8 +15,8 @@ pub const PATHTRACING_BOUNCE_LIMIT: u32 = 10;
 
 // Tone Mapping
 pub const TONE_MAPPING_MODE: ToneMappingMode = ToneMappingMode::Reinhard;
-pub const TONE_MAPPING_EXPOSURE: f64 = 2.0;
-pub const TONE_MAPPING_WHITE_POINT: f64 = 100.0;
+pub const TONE_MAPPING_EXPOSURE: f64 = 1.5;
+pub const TONE_MAPPING_WHITE_POINT: f64 = 20.0;
 
 // Denoising - Bilateral Fileter
 pub const BILATERAL_FILTER_ITERATION: u32 = 1;

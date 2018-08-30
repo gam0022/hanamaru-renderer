@@ -1037,13 +1037,14 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
 
     let mut scene = Scene {
         elements: vec![
+            // 光源
             Box::new(Sphere {
                 center: Vector3::new(-0.3, 0.5 + radius, 0.0) * scene_scale,
                 radius: radius * scene_scale,
                 material: Material {
                     surface: SurfaceType::Diffuse,
                     albedo: Texture::black(),
-                    emission: Texture::from_color(Color::new(20.0, 10.0, 4.0)),
+                    emission: Texture::from_color(Color::new(30.0, 20.0, 4.0)),
                     roughness: Texture::black(),
                 },
             }),
@@ -1093,7 +1094,7 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
             "textures/cube/Powerlines/negy.jpg",
             "textures/cube/Powerlines/posz.jpg",
             "textures/cube/Powerlines/negz.jpg",
-            &Vector3::from_one(3.0),
+            &Vector3::from_one(1.0),
         ),
     };
 
