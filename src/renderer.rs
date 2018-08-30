@@ -217,7 +217,7 @@ impl Renderer for PathTracingRenderer {
         // 前フレームの所要時間から次のフレームが制限時間内に終るかを予測する。時間超過を防ぐために1.1倍に見積もる
         let offset = from_last_sampling_sec * 1.1;
         if used + offset > self.time_limit_sec {
-            let path = format!("progress_{:>03}.png", self.report_image_counter);
+            let path = format!("{:>03}.png", self.report_image_counter);
             println!("reached time limit");
             println!("output final image: {}", path);
             println!("remain: {:.3} sec.", self.time_limit_sec - used);
@@ -227,7 +227,7 @@ impl Renderer for PathTracingRenderer {
 
         // reached max sampling
         if sampling >= self.max_sampling() {
-            let path = format!("progress_{:>03}.png", self.report_image_counter);
+            let path = format!("{:>03}.png", self.report_image_counter);
             println!("reached max sampling");
             println!("output final image: {}", path);
             println!("remain: {:.3} sec.", self.time_limit_sec - used);
@@ -239,7 +239,7 @@ impl Renderer for PathTracingRenderer {
         let from_last_report_image_sec = (now - self.last_report_image).num_milliseconds() as f64 * 0.001;
         if from_last_report_image_sec >= self.report_interval_sec {
             // save progress image
-            let path = format!("progress_{:>03}.png", self.report_image_counter);
+            let path = format!("{:>03}.png", self.report_image_counter);
             println!("output progress image: {}", path);
             Self::save_progress_image(&path, accumulation_buf, sampling, imgbuf);
             self.report_image_counter += 1;
