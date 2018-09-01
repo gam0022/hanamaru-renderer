@@ -37,8 +37,8 @@ cd hanamaru-renderer
 # レイトレ合宿6のレギュレーションで実行
 cargo run --release
 
-# 時間を指定して実行
-cargo run --release -- -t 1047
+# 制限時間を1047秒に設定し、60秒ごとに途中結果を出力しながら実行
+cargo run --release -- -t 1047 -i 60
 
 # 低解像度・サンプリング数を1で実行
 cargo run --release -- -w 480 -h 270 -s 1
