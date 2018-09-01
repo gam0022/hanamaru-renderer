@@ -1,5 +1,7 @@
 use std::ops::{Add, Sub, Mul, Div, Neg, AddAssign, MulAssign};
 use std::cmp::PartialEq;
+use config;
+use math::saturate;
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]
@@ -8,6 +10,7 @@ pub struct Vector3 {
     pub y: f64,
     pub z: f64,
 }
+
 impl Vector3 {
     pub fn new(x: f64, y: f64, z: f64) -> Vector3 {
         Vector3 { x: x, y: y, z: z }
@@ -71,13 +74,28 @@ impl Vector3 {
         Vector2::new(self.x, self.y)
     }
 
-
     pub fn zy(&self) -> Vector2 {
         Vector2::new(self.z, self.y)
     }
 
     pub fn xz(&self) -> Vector2 {
         Vector2::new(self.x, self.z)
+    }
+
+    pub fn xiz(&self) -> Vector2 {
+        Vector2::new(self.x, 1.0 - self.z)
+    }
+
+    pub fn approximately(&self, other: &Vector3) -> bool {
+        (*self - *other).norm() < config::OFFSET * 4.0
+    }
+
+    pub fn saturate(&self) -> Vector3 {
+        Vector3::new(saturate(self.x), saturate(self.y), saturate(self.z))
+    }
+
+    pub fn powf(&self, v: f64) -> Vector3 {
+        Vector3::new(self.x.powf(v), self.y.powf(v), self.z.powf(v))
     }
 }
 
@@ -236,7 +254,7 @@ pub struct Vector2 {
 
 impl Vector2 {
     pub fn new(x: f64, y: f64) -> Vector2 {
-        Vector2 { x: x, y: y}
+        Vector2 { x: x, y: y }
     }
 
     pub fn zero() -> Vector2 {
@@ -269,6 +287,18 @@ impl Vector2 {
 
     pub fn cross(&self, other: &Vector2) -> f64 {
         self.x * other.y - other.x * self.y
+    }
+
+    pub fn approximately(&self, other: &Vector2) -> bool {
+        (*self - *other).norm() < config::OFFSET * 4.0
+    }
+
+    pub fn saturate(&self) -> Vector2 {
+        Vector2::new(saturate(self.x), saturate(self.y))
+    }
+
+    pub fn powf(&self, v: f64) -> Vector2 {
+        Vector2::new(self.x.powf(v), self.y.powf(v))
     }
 }
 

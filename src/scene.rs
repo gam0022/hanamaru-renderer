@@ -16,6 +16,12 @@ pub struct Intersection {
     pub material: PointMaterial,
 }
 
+pub struct Surface {
+    pub position: Vector3,
+    pub normal: Vector3,
+    pub pdf: f64,
+}
+
 impl Intersection {
     pub fn empty() -> Intersection {
         Intersection {
@@ -37,6 +43,9 @@ pub trait Intersectable: Sync {
     fn intersect(&self, ray: &Ray, intersection: &mut Intersection) -> bool;
     fn material(&self) -> &Material;
     fn aabb(&self) -> Aabb;
+
+    fn nee_available(&self) -> bool;
+    fn sample_on_surface(&self, random: (f64, f64)) -> Surface;
 }
 
 pub struct Sphere {
@@ -76,6 +85,20 @@ impl Intersectable for Sphere {
             max: self.center + Vector3::from_one(self.radius),
         }
     }
+
+    fn nee_available(&self) -> bool { true }
+
+    // http://apollon.issp.u-tokyo.ac.jp/~watanabe/pdf/prob.pdf
+    fn sample_on_surface(&self, random: (f64, f64)) -> Surface {
+        let theta = config::PI2 * random.0;
+        let unit_z = 1.0 - 2.0 * random.1;
+        let a = (1.0 - unit_z * unit_z).sqrt();
+
+        let normal = Vector3::new(a * theta.cos(), a * theta.sin(), unit_z);
+        let position = self.center + (self.radius + config::OFFSET) * normal;
+        let pdf = (4.0 * config::PI * self.radius * self.radius).recip();
+        Surface { position, normal, pdf }
+    }
 }
 
 #[allow(dead_code)]
@@ -112,6 +135,12 @@ impl Intersectable for Plane {
             max: Vector3::zero(),
         }
     }
+
+    fn nee_available(&self) -> bool { false }
+
+    fn sample_on_surface(&self, _random: (f64, f64)) -> Surface {
+        unimplemented!()
+    }
 }
 
 pub struct Cuboid {
@@ -130,10 +159,10 @@ impl Intersectable for Cuboid {
             // 高速化のためにY軸から先に判定する
             if equals_eps(intersection.position.y, self.aabb.max.y) {
                 intersection.normal = Vector3::new(0.0, 1.0, 0.0);
-                intersection.uv = uvw.xz();
+                intersection.uv = uvw.xiz();
             } else if equals_eps(intersection.position.y, self.aabb.min.y) {
                 intersection.normal = Vector3::new(0.0, -1.0, 0.0);
-                intersection.uv = uvw.xz();
+                intersection.uv = uvw.xiz();
             } else if equals_eps(intersection.position.x, self.aabb.min.x) {
                 intersection.normal = Vector3::new(-1.0, 0.0, 0.0);
                 intersection.uv = uvw.zy();
@@ -156,6 +185,12 @@ impl Intersectable for Cuboid {
     fn material(&self) -> &Material { &self.material }
 
     fn aabb(&self) -> Aabb { self.aabb.clone() }
+
+    fn nee_available(&self) -> bool { false }
+
+    fn sample_on_surface(&self, _random: (f64, f64)) -> Surface {
+        unimplemented!()
+    }
 }
 
 pub struct Face {
@@ -190,6 +225,12 @@ impl Intersectable for Mesh {
             max: Vector3::zero(),
         }
     }
+
+    fn nee_available(&self) -> bool { false }
+
+    fn sample_on_surface(&self, _random: (f64, f64)) -> Surface {
+        unimplemented!()
+    }
 }
 
 pub struct BvhMesh {
@@ -205,6 +246,12 @@ impl Intersectable for BvhMesh {
     fn material(&self) -> &Material { &self.mesh.material }
 
     fn aabb(&self) -> Aabb { self.bvh.aabb.clone() }
+
+    fn nee_available(&self) -> bool { false }
+
+    fn sample_on_surface(&self, _random: (f64, f64)) -> Surface {
+        unimplemented!()
+    }
 }
 
 impl BvhMesh {
@@ -274,6 +321,7 @@ impl Skybox {
 
 pub trait SceneTrait: Sync {
     fn intersect(&self, ray: &Ray) -> (bool, Intersection);
+    fn emissions(&self) -> Vec<&Box<Intersectable>>;
 }
 
 pub struct Scene {
@@ -303,6 +351,10 @@ impl SceneTrait for Scene {
             intersection.material.emission = self.skybox.sample(&ray.direction);
             (false, intersection)
         }
+    }
+
+    fn emissions(&self) -> Vec<&Box<Intersectable>> {
+        self.elements.iter().filter(|e| e.nee_available() && e.material().emission.color != Color::zero()).collect()
     }
 }
 
@@ -346,6 +398,10 @@ impl SceneTrait for BvhScene {
             intersection.material.emission = self.scene.skybox.sample(&ray.direction);
             (false, intersection)
         }
+    }
+
+    fn emissions(&self) -> Vec<&Box<Intersectable>> {
+        self.scene.emissions()
     }
 }
 

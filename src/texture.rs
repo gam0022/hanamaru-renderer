@@ -48,6 +48,7 @@ impl ImageTexture {
         gamma_to_linear(gamma)
     }
 
+    #[allow(dead_code)]
     pub fn sample_nearest(&self, u: f64, v: f64) -> Vector3 {
         let x = u * self.image.width() as f64;
         let y = v * self.image.height() as f64;

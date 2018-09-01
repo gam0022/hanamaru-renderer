@@ -1,4 +1,5 @@
 use std::f64;
+use tonemap::ToneMappingMode;
 
 pub const PI: f64 = f64::consts::PI;
 pub const PI2: f64 = 2.0 * PI;
@@ -12,7 +13,13 @@ pub const GAMMA_FACTOR: f64 = 2.2;
 pub const SUPERSAMPLING: u32 = 2;
 pub const PATHTRACING_BOUNCE_LIMIT: u32 = 10;
 
-// レイトレ合宿5のレギュレーション用
-// https://sites.google.com/site/raytracingcamp5/
-pub const REPORT_INTERVAL_SEC: f64 = 30.0;// 30秒ごとに途中結果を出力
-pub const TIME_LIMIT_SEC: f64 = (4 * 60 + 33) as f64;// 4分33秒以内に自動で終了
+// Tone Mapping
+pub const TONE_MAPPING_MODE: ToneMappingMode = ToneMappingMode::Reinhard;
+pub const TONE_MAPPING_EXPOSURE: f64 = 1.5;
+pub const TONE_MAPPING_WHITE_POINT: f64 = 20.0;
+
+// Denoising - Bilateral Fileter
+pub const BILATERAL_FILTER_ITERATION: u32 = 1;
+pub const BILATERAL_FILTER_DIAMETER: u32 = 3;
+pub const BILATERAL_FILTER_SIGMA_I: f64 = 1.0;// これを無限大にすると Gaussian Blur となる
+pub const BILATERAL_FILTER_SIGMA_S: f64 = 16.0;
