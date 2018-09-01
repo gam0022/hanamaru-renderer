@@ -21,13 +21,20 @@
   - Specular
   - Refraction
   - GGX
-- ポリゴンメッシュに対応
-  - BVH で衝突判定を高速化
-- albedo / roughness / emission をテクスチャで指定可能
-- 薄レンズモデルによる被写界深度（DoF）
+- Geometry
+  - Polygon Mesh
+  - Sphere
+  - AABB
+- Texture Type
+  - albedo
+  - roughnessi
+  - emission
+- Depth of Field（DoF）
 - Image-Based Lighting（IBL）
-  - CubeMap
+  - Cube Map
+- Parallel processing
 - Debug Renderer（Normal / Depth / Focal Plane）
+- Acceleration structure with BVH
 - Next Event Estimation（NEE）
 - Reinhard Tone Mapping
 - Denoising（Bilateral Filter）
