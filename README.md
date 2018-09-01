@@ -16,11 +16,17 @@
 
 ## Features / 機能
 
+- BSDF
+  - Diffuse
+  - Specular
+  - Refraction
+  - GGX
 - ポリゴンメッシュに対応
   - BVH で衝突判定を高速化
 - albedo / roughness / emission をテクスチャで指定可能
 - 薄レンズモデルによる被写界深度（DoF）
-- Image-Based Lighting（Cube Map）
+- Image-Based Lighting（IBL）
+  - CubeMap
 - Debug Renderer（Normal / Depth / Focal Plane）
 - Next Event Estimation（NEE）
 - Reinhard Tone Mapping
