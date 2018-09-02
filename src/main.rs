@@ -1230,7 +1230,7 @@ fn init_scene_veach() -> (Camera, Scene) {
             "textures/cube/LancellottiChapel/negy.jpg",
             "textures/cube/LancellottiChapel/posz.jpg",
             "textures/cube/LancellottiChapel/negz.jpg",
-            &Vector3::zero(),
+            &Vector3::from_one(0.1),
         ),
     };
 
@@ -1261,13 +1261,13 @@ fn init_scene_veach() -> (Camera, Scene) {
         scene.add(Box::new(BvhMesh::from_mesh(ObjLoader::load(
             "models/box.obj",
             Matrix44::translate(px, py, pz)
-                * Matrix44::rotate_x(-1.0 * config::PI + half.y.acos())
+                * Matrix44::rotate_x(half.y.acos() - 1.01 * config::PI)
                 * Matrix44::scale(100.0, 1.0, 30.0),
             Material {
                 surface: SurfaceType::GGX { f0: 0.99 },
                 albedo: Texture::white(),
                 emission: Texture::black(),
-                roughness: Texture::from_color(Color::from_one(0.001 * (3 - i) as f64)),
+                roughness: Texture::from_color(Color::from_one(0.0001 + 0.001 * (3 - i) as f64)),
             },
         ))));
     }
@@ -1342,7 +1342,7 @@ fn main() {
         tee(&mut f, &format!("init scene: {:.2} sec.", init_scene_sec));
 
         let sampled = if debug_mode {
-            let mut debug_renderer = DebugRenderer { mode: DebugRenderMode::Shading };
+            let mut debug_renderer = DebugRenderer { mode: DebugRenderMode::MisWeight };
             render(&mut debug_renderer, width, height, &camera, scene)
         } else {
             let mut pathtracing_renderer = PathTracingRenderer::new(sampling, time_limit_sec, report_interval_sec);

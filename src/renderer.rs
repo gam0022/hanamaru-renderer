@@ -154,8 +154,8 @@ impl Renderer for DebugRenderer {
                             }
                         }
                     }
-                    math::mix(&Color::new(1.0, 0.0, 0.0),
-                              &Color::new(0.0, 1.0, 0.0),
+                    math::mix(&Color::new(0.0, 1.0, 0.0),
+                              &Color::new(1.0, 0.0, 0.0),
                               bsdf_mis_weight_avg)
                 }
             }
@@ -207,11 +207,11 @@ impl Renderer for PathTracingRenderer {
                 let view = &-ray.direction;
                 if let Some(result) = intersection.material.sample(random, &intersection.position, view, &intersection.normal) {
                     if intersection.material.nee_available() && intersection.material.emission == Vector3::zero() {
-                        let (nee_contribution, weight_sum) = PathTracingRenderer::next_event_estimation(
+                        let (nee_contribution, weight_avg) = PathTracingRenderer::next_event_estimation(
                             random, &result.ray.origin, view, &intersection.normal,
                             scene, &emissions, &intersection.material);
                         accumulation += reflectance * nee_contribution;
-                        bsdf_mis_weight_avg = weight_sum;
+                        bsdf_mis_weight_avg = weight_avg;
                     }
 
                     ray = result.ray;
