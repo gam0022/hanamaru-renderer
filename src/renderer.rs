@@ -9,6 +9,7 @@ use self::rand::{Rng, SeedableRng, StdRng};
 use self::rayon::prelude::*;
 
 use config;
+use math;
 use vector::{Vector3, Vector2};
 use scene::{SceneTrait, Intersectable};
 use camera::{Camera, Ray};
@@ -104,6 +105,7 @@ pub enum DebugRenderMode {
     Normal,
     Depth,
     FocalPlane,
+    MisWeight,
 }
 
 pub struct DebugRenderer {
@@ -113,7 +115,7 @@ pub struct DebugRenderer {
 impl Renderer for DebugRenderer {
     fn max_sampling(&self) -> u32 { 1 }
 
-    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, _emissions: &Vec<&Box<Intersectable>>, normalized_coord: &Vector2, _: u32) -> Color {
+    fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, emissions: &Vec<&Box<Intersectable>>, normalized_coord: &Vector2, sampling: u32) -> Color {
         let ray = camera.ray(&normalized_coord);
         let light_direction = Vector3::new(1.0, 2.0, -1.0).normalize();
         let (hit, intersection) = scene.intersect(&ray);
@@ -132,6 +134,30 @@ impl Renderer for DebugRenderer {
                 DebugRenderMode::Normal => intersection.normal,
                 DebugRenderMode::Depth => Color::from_one(0.5 * intersection.distance / camera.focus_distance),
                 DebugRenderMode::FocalPlane => Color::from_one((intersection.distance - camera.focus_distance).abs()),
+                DebugRenderMode::MisWeight => {
+                    let mut bsdf_mis_weight_avg = 1.0;
+                    if intersection.material.nee_available() && intersection.material.emission == Vector3::zero() {
+                        // TODO: 共通化
+                        let s = ((4.0 + normalized_coord.x) * 100870.0) as usize;
+                        let t = ((4.0 + normalized_coord.y) * 100304.0) as usize;
+                        let seed: &[_] = &[8700304, sampling as usize, s, t];
+                        let mut rng: StdRng = SeedableRng::from_seed(seed);
+                        let random = rng.gen::<(f64, f64)>();
+
+                        let view = &-ray.direction;
+                        if let Some(result) = intersection.material.sample(random, &intersection.position, view, &intersection.normal) {
+                            if intersection.material.nee_available() && intersection.material.emission == Vector3::zero() {
+                                let (_, weight_avg) = PathTracingRenderer::next_event_estimation(
+                                    random, &result.ray.origin, view, &intersection.normal,
+                                    scene, &emissions, &intersection.material);
+                                bsdf_mis_weight_avg = weight_avg;
+                            }
+                        }
+                    }
+                    math::mix(&Color::new(1.0, 0.0, 0.0),
+                              &Color::new(0.0, 1.0, 0.0),
+                              bsdf_mis_weight_avg)
+                }
             }
         } else {
             intersection.material.emission
@@ -175,7 +201,7 @@ impl Renderer for PathTracingRenderer {
             let random = rng.gen::<(f64, f64)>();
             let (hit, mut intersection) = scene.intersect(&ray);
             let mut current_reflectance = 1.0;
-            let mut bsdf_mis_weight_sum = 1.0;
+            let mut bsdf_mis_weight_avg = 1.0;
 
             if hit {
                 let view = &-ray.direction;
@@ -185,7 +211,7 @@ impl Renderer for PathTracingRenderer {
                             random, &result.ray.origin, view, &intersection.normal,
                             scene, &emissions, &intersection.material);
                         accumulation += reflectance * nee_contribution;
-                        bsdf_mis_weight_sum = weight_sum;
+                        bsdf_mis_weight_avg = weight_sum;
                     }
 
                     ray = result.ray;
@@ -196,7 +222,7 @@ impl Renderer for PathTracingRenderer {
                 }
             }
 
-            accumulation += reflectance * bsdf_mis_weight_sum * intersection.material.emission;
+            accumulation += reflectance * bsdf_mis_weight_avg * intersection.material.emission;
             reflectance *= intersection.material.albedo * current_reflectance;
 
             if !hit || reflectance == Vector3::zero() { break; }
@@ -300,6 +326,6 @@ impl PathTracingRenderer {
             }
         }
 
-        (accumulation * material.albedo, bsdf_mis_weight_sum)
+        (accumulation * material.albedo, bsdf_mis_weight_sum / emissions.len() as f64)
     }
 }

@@ -1265,15 +1265,15 @@ fn main() {
         //let (camera, scene) = init_scene_rtcamp5();
         //let (camera, scene) = init_scene_material_examples();
         //let (camera, scene) = init_scene_tbf3();
-        //let (camera, scene) = init_scene_simple();
-        let (camera, scene) = init_scene_rtcamp6_v3_1();
+        let (camera, scene) = init_scene_simple();
+        //let (camera, scene) = init_scene_rtcamp6_v3_1();
 
         let init_scene_end = time::now();
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
         tee(&mut f, &format!("init scene: {:.2} sec.", init_scene_sec));
 
         let sampled = if debug_mode {
-            let mut debug_renderer = DebugRenderer { mode: DebugRenderMode::FocalPlane };
+            let mut debug_renderer = DebugRenderer { mode: DebugRenderMode::MisWeight };
             render(&mut debug_renderer, width, height, &camera, scene)
         } else {
             let mut pathtracing_renderer = PathTracingRenderer::new(sampling, time_limit_sec, report_interval_sec);
