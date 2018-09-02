@@ -3,6 +3,6 @@ resolution: 960x540.
 max sampling: 1x4 spp.
 time limit: 123.00 sec.
 report interval: 15.00 sec.
-init scene: 0.71 sec.
+init scene: 0.72 sec.
 sampled: 1x4 spp.
-total 3.598 sec. used 2.93 % (x 34.19)
+total 3.8120000000000003 sec. used 3.10 % (x 32.27)

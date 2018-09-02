@@ -175,14 +175,17 @@ impl Renderer for PathTracingRenderer {
             let random = rng.gen::<(f64, f64)>();
             let (hit, mut intersection) = scene.intersect(&ray);
             let mut current_reflectance = 1.0;
+            let mut bsdf_mis_weight_sum = 1.0;
 
             if hit {
                 let view = &-ray.direction;
                 if let Some(result) = intersection.material.sample(random, &intersection.position, view, &intersection.normal) {
                     if intersection.material.nee_available() {
-                        accumulation += reflectance * PathTracingRenderer::next_event_estimation(
+                        let (nee_contribution, weight_sum) = PathTracingRenderer::next_event_estimation(
                             random, &result.ray.origin, view, &intersection.normal,
                             scene, &emissions, &intersection.material);
+                        accumulation += reflectance * nee_contribution;
+                        bsdf_mis_weight_sum = weight_sum;
                     }
 
                     ray = result.ray;
@@ -193,7 +196,7 @@ impl Renderer for PathTracingRenderer {
                 }
             }
 
-            accumulation += reflectance * intersection.material.emission;
+            accumulation += reflectance * bsdf_mis_weight_sum * intersection.material.emission;
             reflectance *= intersection.material.albedo * current_reflectance;
 
             if !hit || reflectance == Vector3::zero() { break; }
@@ -267,10 +270,9 @@ impl PathTracingRenderer {
     }
 
     fn next_event_estimation(random: (f64, f64), position: &Vector3, view: &Vector3, normal: &Vector3,
-                             scene: &SceneTrait, emissions: &Vec<&Box<Intersectable>>, material: &PointMaterial) -> Vector3 {
-        //return Vector3::zero();
-
+                             scene: &SceneTrait, emissions: &Vec<&Box<Intersectable>>, material: &PointMaterial) -> (Vector3, f64) {
         let mut accumulation = Vector3::zero();
+        let mut bsdf_mis_weight_sum = 0.0;
 
         for emission in emissions {
             let surface = emission.sample_on_surface(random);
@@ -280,18 +282,24 @@ impl PathTracingRenderer {
             let (shadow_hit, shadow_intersection) = scene.intersect(&shadow_ray);
 
             if shadow_hit && shadow_intersection.position.approximately(&surface.position) {
-                let dot_0 = normal.dot(&shadow_dir).abs();
-                let dot_l = surface.normal.dot(&shadow_dir).abs();
+                let cos_shadow = normal.dot(&shadow_dir).abs();
+                let cos_light = surface.normal.dot(&shadow_dir).abs();
                 let distance_pow2 = shadow_vec.dot(&shadow_vec);
-                let g = (dot_0 * dot_l) / distance_pow2;
-                let pdf = surface.pdf;
+                let g = (cos_shadow * cos_light) / distance_pow2;
+
+                let light_pdf = surface.pdf;
+
+                let fs = material.bsdf(view, normal, &shadow_dir);
+                let bsdf_pdf = fs * cos_light / distance_pow2;// 単位を light_pdf に合わせる
+
+                let light_mis_weight = light_pdf / (bsdf_pdf + light_pdf);
+                bsdf_mis_weight_sum += bsdf_pdf / (bsdf_pdf + light_pdf);
 
                 accumulation += shadow_intersection.material.emission
-                    * material.bsdf(view, normal, &shadow_dir)
-                    * g / pdf;
+                    * fs * g / light_pdf * light_mis_weight;
             }
         }
 
-        accumulation * material.albedo
+        (accumulation * material.albedo, bsdf_mis_weight_sum)
     }
 }
