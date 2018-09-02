@@ -180,7 +180,7 @@ impl Renderer for PathTracingRenderer {
             if hit {
                 let view = &-ray.direction;
                 if let Some(result) = intersection.material.sample(random, &intersection.position, view, &intersection.normal) {
-                    if intersection.material.nee_available() {
+                    if intersection.material.nee_available() && intersection.material.emission == Vector3::zero() {
                         let (nee_contribution, weight_sum) = PathTracingRenderer::next_event_estimation(
                             random, &result.ray.origin, view, &intersection.normal,
                             scene, &emissions, &intersection.material);
