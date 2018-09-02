@@ -1079,7 +1079,7 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
                 Matrix44::translate(1.0 * scene_scale, 0.0, -3.0 * scene_scale) * Matrix44::rotate_y(-config::PI / 8.0) * Matrix44::scale(4.0 * scene_scale, 3.0 * scene_scale, scene_scale),
                 Material {
                     surface: SurfaceType::GGX { f0: 0.9 },
-                    albedo: Texture::from_color(Color::new(0.33, 0.27, 0.22 )),
+                    albedo: Texture::from_color(Color::new(0.33, 0.27, 0.22)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.3)),
                 },
@@ -1207,6 +1207,74 @@ fn init_scene_rtcamp6_v4() -> (Camera, Scene) {
     (camera, scene)
 }
 
+
+#[allow(dead_code)]
+fn init_scene_veach() -> (Camera, Scene) {
+    let camera = Camera::new(
+        Vector3::new(0.0, 0.0, 100.0), // eye
+        Vector3::new(0.0, 0.0, 0.0), // target
+        Vector3::new(0.0, 1.0, 0.0).normalize(), // y_up
+        30.0, // fov
+
+        LensShape::Circle, // lens shape
+        0.2 * 0.0,// aperture
+        8.8,// focus_distance
+    );
+
+    let mut scene = Scene {
+        elements: vec![],
+        skybox: Skybox::new(
+            "textures/cube/LancellottiChapel/posx.jpg",
+            "textures/cube/LancellottiChapel/negx.jpg",
+            "textures/cube/LancellottiChapel/posy.jpg",
+            "textures/cube/LancellottiChapel/negy.jpg",
+            "textures/cube/LancellottiChapel/posz.jpg",
+            "textures/cube/LancellottiChapel/negz.jpg",
+            &Vector3::zero(),
+        ),
+    };
+
+    // 光源
+    for i in 0..4 {
+        scene.add(Box::new(Sphere {
+            center: Vector3::new(-45.0 + (i as f64) * 30.0, 40.0, 0.0),
+            radius: 2.0.powi(i),
+            material: Material {
+                surface: SurfaceType::Diffuse,
+                albedo: Texture::black(),
+                emission: Texture::from_color(Color::from_one(100.0)),
+                roughness: Texture::black(),
+            },
+        }));
+    }
+
+    // ビーチ版
+    for i in 0..4 {
+        let px = 0.0;
+        let py = -50.0 + 25.0 * i as f64;
+        let pz = -25.0 * i as f64;
+        let center = Vector3::new(px, py, pz);
+
+        let view = (camera.eye - center).normalize();
+        let light = (Vector3::new(0.0, 40.0, 0.0) - center).normalize();
+        let half = (view + light).normalize();
+        scene.add(Box::new(BvhMesh::from_mesh(ObjLoader::load(
+            "models/box.obj",
+            Matrix44::translate(px, py, pz)
+                * Matrix44::rotate_x(-1.0 * config::PI + half.y.acos())
+                * Matrix44::scale(100.0, 1.0, 30.0),
+            Material {
+                surface: SurfaceType::GGX { f0: 0.99 },
+                albedo: Texture::white(),
+                emission: Texture::black(),
+                roughness: Texture::from_color(Color::from_one(0.001 * (3 - i) as f64)),
+            },
+        ))));
+    }
+
+    (camera, scene)
+}
+
 fn render<R: Renderer>(renderer: &mut R, width: u32, height: u32, camera: &Camera, scene: Scene) -> u32 {
     let mut imgbuf = image::ImageBuffer::new(width, height);
     let sampled = renderer.render(&BvhScene::from_scene(scene), camera, &mut imgbuf);
@@ -1265,15 +1333,16 @@ fn main() {
         //let (camera, scene) = init_scene_rtcamp5();
         //let (camera, scene) = init_scene_material_examples();
         //let (camera, scene) = init_scene_tbf3();
-        let (camera, scene) = init_scene_simple();
+        //let (camera, scene) = init_scene_simple();
         //let (camera, scene) = init_scene_rtcamp6_v3_1();
+        let (camera, scene) = init_scene_veach();
 
         let init_scene_end = time::now();
         let init_scene_sec = (init_scene_end - init_scene_begin).num_milliseconds() as f64 * 0.001;
         tee(&mut f, &format!("init scene: {:.2} sec.", init_scene_sec));
 
         let sampled = if debug_mode {
-            let mut debug_renderer = DebugRenderer { mode: DebugRenderMode::MisWeight };
+            let mut debug_renderer = DebugRenderer { mode: DebugRenderMode::Shading };
             render(&mut debug_renderer, width, height, &camera, scene)
         } else {
             let mut pathtracing_renderer = PathTracingRenderer::new(sampling, time_limit_sec, report_interval_sec);
