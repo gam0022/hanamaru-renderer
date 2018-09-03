@@ -28,19 +28,24 @@
   - Specular
   - Refraction
   - GGX
+  - Refraction with GGX Normal
 - Geometry
   - Polygon Mesh
   - Sphere
   - AABB
 - Texture Type
-  - albedo
-  - roughnessi
-  - emission
+  - Albedo
+  - Roughness
+  - Emission
 - Depth of Field（DoF）
 - Image-Based Lighting（IBL）
   - Cube Map
 - Parallel processing
-- Debug Renderer（Normal / Depth / Focal Plane）
+- Debug Renderer
+  - Fast lighting by directional light
+  - Normal
+  - Depth
+  - Focal Plane
 - Acceleration structure with BVH
 - Next Event Estimation（NEE）
 - Reinhard Tone Mapping
