@@ -1028,8 +1028,12 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
         20.0, // fov
 
         LensShape::Circle, // lens shape
-        0.03,// aperture
-        5.0 * scene_scale,// focus_distance
+
+        // Submit版
+        0.03, 5.0 * scene_scale,
+
+        // 強いDOF用
+        //0.3, 5.7 * scene_scale,
     );
 
     let radius = 0.2;
@@ -1079,7 +1083,7 @@ fn init_scene_rtcamp6_v3_1() -> (Camera, Scene) {
                 Matrix44::translate(1.0 * scene_scale, 0.0, -3.0 * scene_scale) * Matrix44::rotate_y(-config::PI / 8.0) * Matrix44::scale(4.0 * scene_scale, 3.0 * scene_scale, scene_scale),
                 Material {
                     surface: SurfaceType::GGX { f0: 0.9 },
-                    albedo: Texture::from_color(Color::new(0.33, 0.27, 0.22 )),
+                    albedo: Texture::from_color(Color::new(0.33, 0.27, 0.22)),
                     emission: Texture::black(),
                     roughness: Texture::from_color(Color::from_one(0.3)),
                 },
