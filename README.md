@@ -10,9 +10,16 @@
 
 [![rtcamp5.png](rtcamp5.png)](rtcamp5.png)
 
+
+発表スライド
+- [Hanamaru Renderer for レイトレ合宿5‽](https://speakerdeck.com/gam0022/hanamaru-renderer-for-reitorehe-su-5)
+
 ### レイトレ合宿6
 
 [![rtcamp6_1000x4spp.png](rtcamp6_1000x4spp.png)](rtcamp6_1000x4spp.png)
+
+発表スライド
+- [Hanamaru Renderer v2 for レイトレ合宿6](https://speakerdeck.com/gam0022/hanamaru-renderer-v2-for-reitorehe-su-6)
 
 ## Features / 機能
 
@@ -75,7 +82,3 @@ Options:
     -i, --interval INTERVAL
                         report interval se
 ```
-
-## 発表スライド / Slides
-
-- [Hanamaru Renderer for レイトレ合宿5‽](https://speakerdeck.com/gam0022/hanamaru-renderer-for-reitorehe-su-5)
