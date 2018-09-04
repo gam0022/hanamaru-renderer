@@ -11,9 +11,10 @@ use std::path::Path;
 use std::fs;
 use std::io::{BufWriter, Write};
 use num::Float;
-use self::rand::{Rng, SeedableRng, StdRng};
+use rand::{Rng, SeedableRng, XorShiftRng};
 use getopts::Options;
 use std::env;
+use std::mem::transmute;
 
 mod config;
 mod vector;
@@ -250,8 +251,8 @@ fn init_scene_material_examples() -> (Camera, Scene) {
 
 #[allow(dead_code)]
 fn init_scene_rtcamp5() -> (Camera, Scene) {
-    let seed: &[_] = &[870, 2000, 304, 2];
-    let mut rng: StdRng = SeedableRng::from_seed(seed);
+    let seed = unsafe { transmute([1, 2, 3, 4]) };
+    let mut rng: XorShiftRng = SeedableRng::from_seed(seed);
 
     let camera = Camera::new(
         Vector3::new(0.0, 2.5, 9.0), // eye
@@ -500,8 +501,8 @@ fn init_scene_rtcamp5() -> (Camera, Scene) {
 
 #[allow(dead_code)]
 fn init_scene_tbf3() -> (Camera, Scene) {
-    let seed: &[_] = &[870, 2000, 304, 1];
-    let mut rng: StdRng = SeedableRng::from_seed(seed);
+    let seed = unsafe { transmute([1, 2, 3, 4]) };
+    let mut rng: XorShiftRng = SeedableRng::from_seed(seed);
 
     let camera = Camera::new(
         Vector3::new(0.0, 2.5, 9.0), // eye
@@ -802,8 +803,8 @@ fn init_scene_rtcamp6_v1() -> (Camera, Scene) {
 
 #[allow(dead_code)]
 fn init_scene_rtcamp6_v2() -> (Camera, Scene) {
-    let seed: &[_] = &[870, 2000, 304, 2];
-    let mut rng: StdRng = SeedableRng::from_seed(seed);
+    let seed = unsafe { transmute([1, 2, 3, 4]) };
+    let mut rng: XorShiftRng = SeedableRng::from_seed(seed);
 
     let camera = Camera::new(
         Vector3::new(-5.0, -1.0, 0.0), // eye
