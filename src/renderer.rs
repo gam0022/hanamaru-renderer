@@ -162,20 +162,12 @@ impl Renderer for PathTracingRenderer {
     fn max_sampling(&self) -> u32 { self.sampling }
 
     fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, emissions: &Vec<&Box<Intersectable>>, normalized_coord: &Vector2, sampling: u32) -> Color {
-        let s: [u32; 2] = unsafe { transmute(normalized_coord.x * 8700304.0) };
-        let t: [u32; 2] = unsafe { transmute(normalized_coord.y * 8700304.0) };
-        let (a, b, c, d) = (s[0], s[1], t[0], t[1]);
-        let s = sampling ^ (sampling >> 30);
-        //let s = 1812433253 * (s ^ (s >> 30));
-        //let t = 1812433253 * (t ^ (t >> 30)) + 1;
-        //let seed = unsafe { transmute([8700304, s, t, sampling]) };
+        let u: [u32; 2] = unsafe { transmute(normalized_coord.x) };
+        let v: [u32; 2] = unsafe { transmute(normalized_coord.y) };
+        let (a, b, c, d) = (u[0], u[1], v[0], v[1]);
         let seed = unsafe {
             transmute([
-                a * s, b * s, c * s, d * s
-                //1812433253 * (a ^ (a >> 30)),
-                //1812433253 * (b ^ (b >> 30)),
-                //1812433253 * (c ^ (c >> 30)),
-                //1812433253 * (d ^ (d >> 30))
+                a * sampling, b * sampling, c * sampling, d * sampling
             ])
         };
         let mut rng: XorShiftRng = SeedableRng::from_seed(seed);
