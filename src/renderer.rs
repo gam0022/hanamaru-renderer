@@ -5,8 +5,9 @@ extern crate time;
 
 use time::Tm;
 use image::{ImageBuffer, Rgb};
-use self::rand::{Rng, SeedableRng, StdRng};
+use rand::{Rng, SeedableRng, XorShiftRng};
 use self::rayon::prelude::*;
+use std::mem::transmute;
 
 use config;
 use vector::{Vector3, Vector2};
@@ -161,11 +162,16 @@ impl Renderer for PathTracingRenderer {
     fn max_sampling(&self) -> u32 { self.sampling }
 
     fn calc_pixel(&self, scene: &SceneTrait, camera: &Camera, emissions: &Vec<&Box<Intersectable>>, normalized_coord: &Vector2, sampling: u32) -> Color {
-        // random generator
-        let s = ((4.0 + normalized_coord.x) * 100870.0) as usize;
-        let t = ((4.0 + normalized_coord.y) * 100304.0) as usize;
-        let seed: &[_] = &[8700304, sampling as usize, s, t];
-        let mut rng: StdRng = SeedableRng::from_seed(seed);// self::rand::thread_rng();
+        let u: [u32; 2] = unsafe { transmute(normalized_coord.x) };
+        let v: [u32; 2] = unsafe { transmute(normalized_coord.y) };
+        let (a, b, c, d) = (u[0], u[1], v[0], v[1]);
+        let seed = unsafe {
+            transmute([
+                a * sampling, b * sampling, c * sampling, d * sampling
+            ])
+        };
+        let mut rng: XorShiftRng = SeedableRng::from_seed(seed);
+
         let mut ray = camera.ray_with_dof(&normalized_coord, &mut rng);
 
         let mut accumulation = Color::zero();
