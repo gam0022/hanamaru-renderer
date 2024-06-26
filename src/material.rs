@@ -240,7 +240,7 @@ fn importance_sample_diffuse(random: (f64, f64), normal: &Vector3) -> Vector3 {
     // サンプリング方向 result は極座標から直交座標への変換によって求められる
     // result = tangent * sin(theta) * cos(phi) + binormal * sin(theta) * sin(phi) + normal * cos(theta))
     // ここで、sin(theta)とcos(theta)は次のように整理できる
-    // ・sin(theta) = sin(asin(sqrt(random.1))) = sqrt(random.1) = sqrt(random.1)
+    // ・sin(theta) = sin(asin(sqrt(random.1))) = sqrt(random.1)
     // ・cos(theta) = sqrt(1.0 - sin(theta) * sin(theta)) = sqrt(1.0 - random.1)
     // よって、result = (tangent * cos(phi) + binormal* sin(phi)) * sin(theta) + normal * cos(theta))
     //               = (tangent * cos(phi) + binormal* sin(phi)) * sqrt(random.1) + normal * sqrt(1.0 - random.1)
